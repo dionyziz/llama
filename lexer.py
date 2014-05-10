@@ -14,43 +14,42 @@ import sys
 import ply.lex as lex
 
 # Represent reserved words as a frozenset for fast lookup
-_reserved_words = frozenset(
-'''
-and
-array
-begin
-bool
-char
-delete
-dim
-do
-done
-downto
-else
-end
-false
-float
-for
-if
-in
-int
-let
-match
-mod
-mutable
-new
-not
-of
-rec
-ref
-then
-to
-true
-type
-unit
-while
-with
-'''.split()
+_reserved_words = frozenset('''
+    and
+    array
+    begin
+    bool
+    char
+    delete
+    dim
+    do
+    done
+    downto
+    else
+    end
+    false
+    float
+    for
+    if
+    in
+    int
+    let
+    match
+    mod
+    mutable
+    new
+    not
+    of
+    rec
+    ref
+    then
+    to
+    true
+    type
+    unit
+    while
+    with
+    '''.split()
 )
 
 _reserved_tokens = tuple(s.upper() for s in _reserved_words)
@@ -172,7 +171,7 @@ class LlamaLexer:
     # TODO: Make error style more gcc-like
     def error_out(self, message, lineno=None, lexpos=None):
         '''Prints error concerning input file'''
-        self.error=True
+        self.error = True
         if lineno is not None:
             if lexpos is not None:
                 print(
@@ -309,7 +308,7 @@ class LlamaLexer:
         pass
 
     # == LEXING OF TOKENS CARRYING NO VALUE ==
-    
+
     # Integer operators
     t_PLUS      = r'\+'
     t_MINUS     = r'-'
@@ -364,9 +363,8 @@ class LlamaLexer:
     # Generic identifiers and reserved words
     def t_ID(self, t):
         r'[a-z][A-Za-z0-9_]*'
-        # Check for reserved word
-        if t.type in _reserved_words:
-            t.type = 'ID'
+        if t.value in _reserved_words:
+            t.type = t.value.upper()
         return t
 
     # Floating-point constants
@@ -454,6 +452,7 @@ def mk_lexer(optimize=1):
     lxr = LlamaLexer(optimize=optimize)
     lxr.build()
     return lxr
+
 
 def do_lex(input_file=None, debug=None):
     '''Lex entire input. Report errors and (optionally) tokens'''
