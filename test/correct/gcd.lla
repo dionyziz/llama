@@ -1,0 +1,26 @@
+(*
+ *  Michalis Mathioudakis
+ *)
+
+let gcd a b k =
+   while !a > 0 && !b > 0 do
+      if !a > !b then 
+         a := !a mod !b
+      else 
+         b := !b mod !a
+   done;
+   k := !a+!b
+
+let main =
+   let mutable a
+   and mutable b
+   and mutable c in
+
+   print_string "Give the first number: ";
+   a := read_int () ;
+   print_string "\nGive the second number: ";
+   b := read_int () ;
+   print_string "\nGCD = ";
+   gcd a b c;
+   print_int !c;
+   print_string "\n"
