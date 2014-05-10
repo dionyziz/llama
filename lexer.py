@@ -111,7 +111,7 @@ max_uint = 2**32 - 1
 class LlamaLexer:
     '''An instrumented llama lexer'''
 
-    def __init__(self, input_file=None, data=None, optimize=1):
+    def __init__(self, optimize=1):
         '''Construct a LlamaLexer environment.'''
         # == OBJECT STATE VARIABLES ==
 
@@ -134,7 +134,7 @@ class LlamaLexer:
         # Should we build an optimized lexer?
         self.optimize = optimize
 
-        # == LEXING STATE VARIABLES ==
+        # == INTERNAL LEXER VARIABLES ==
         self.states = _states
         self.tokens = _tokens
 
@@ -143,7 +143,7 @@ class LlamaLexer:
         lxr = lex.lex(module=self, optimize=self.optimize)
         self.lexer = lxr
 
-    def feed(self, input_file=None, data=None, optimize=1):
+    def feed(self, input_file=None, data=None):
         '''Feed the lexer with input.'''
         if not data:
             if input_file:
