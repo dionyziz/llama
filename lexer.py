@@ -138,31 +138,6 @@ class LlamaLexer:
         '''
         self.lexer = lex.lex(module=self, optimize=optimize, reflags=re.ASCII)
 
-    def feed(self, input_file=None, data=None):
-        '''Feed the lexer with input.'''
-        if not data:
-            if input_file:
-                try:
-                    fd = open(input_file)
-                    data = fd.read()
-                    fd.close()
-                except IOError as e:
-                    sys.exit(
-                        'Could not open file %s for reading. Aborting.'
-                        % input_file
-                    )
-            else:
-                input_file = '<stdin>'
-                # FIXME: Choose an appropriate output stream
-                sys.stdout.write(
-                    "Reading from standard input (type <EOF> to end):"
-                )
-                sys.stdout.flush()
-                data = sys.stdin.read()
-        self.data = data
-        self.input_file = input_file
-        self.lexer.input(self.data)
-
     # == ERROR PROCESSING ==
 
     # TODO: Make error style more gcc-like
@@ -237,6 +212,31 @@ class LlamaLexer:
 
         t.lexpos = self.lexer.lexpos - self.bol
         return t
+
+    def input(self, input_file=None, data=None):
+        '''Feed the lexer with input.'''
+        if not data:
+            if input_file:
+                try:
+                    fd = open(input_file)
+                    data = fd.read()
+                    fd.close()
+                except IOError as e:
+                    sys.exit(
+                        'Could not open file %s for reading. Aborting.'
+                        % input_file
+                    )
+            else:
+                input_file = '<stdin>'
+                # FIXME: Choose an appropriate output stream
+                sys.stdout.write(
+                    "Reading from standard input (type <EOF> to end):"
+                )
+                sys.stdout.flush()
+                data = sys.stdin.read()
+        self.data = data
+        self.input_file = input_file
+        self.lexer.input(self.data)
 
     def __iter__(self):
         return self
@@ -449,7 +449,7 @@ class LlamaLexer:
 def do_lex(input_file=None, debug=None):
     '''Lex entire input. Report errors and (optionally) tokens'''
     lxr = LlamaLexer(optimize=0)
-    lxr.feed(input_file=input_file)
+    lxr.input(input_file=input_file)
     if debug:
         for t in lxr:
             sys.stdout.write(
