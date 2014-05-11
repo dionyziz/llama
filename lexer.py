@@ -13,129 +13,127 @@
 import sys
 import ply.lex as lex
 
-# Represent reserved words as a frozenset for fast lookup
-_reserved_words = frozenset('''
-    and
-    array
-    begin
-    bool
-    char
-    delete
-    dim
-    do
-    done
-    downto
-    else
-    end
-    false
-    float
-    for
-    if
-    in
-    int
-    let
-    match
-    mod
-    mutable
-    new
-    not
-    of
-    rec
-    ref
-    then
-    to
-    true
-    type
-    unit
-    while
-    with
-    '''.split()
-)
-
-_reserved_tokens = tuple(s.upper() for s in _reserved_words)
-
-_other_tokens = (
-    # Identifiers (generic variable identifiers, constructor identifiers)
-    'ID', 'CONID',
-
-    # Literals (int constant, float constant, char constant, string const)
-    'ICONST', 'FCONST', 'CCONST', 'SCONST',
-
-    # Integer operators (+, -, *, /)
-    'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
-
-    # Floating-point operators (+., -., *., /., **)
-    'FPLUS', 'FMINUS', 'FTIMES', 'FDIVIDE', 'FPOW',
-
-    # Boolean operators (&&, ||)
-    'BAND', 'BOR',
-
-    # Comparison operators (<, <=, >, >=, =, <>, ==, !=)
-    'LT', 'LE', 'GT', 'GE', 'EQ', 'NEQ', 'NATEQ', 'NATNEQ',
-
-    # Pattern operators (->, |)
-    'ARROW', 'PIPE',
-
-    # Assignment and dereference (:=, !)
-    'ASSIGN', 'BANG',
-
-    # Semicolon (;)
-    'SEMICOLON',
-
-    # Delimeters ( ) [ ] , :
-    'LPAREN', 'RPAREN',
-    'LBRACKET', 'RBRACKET',
-    'COMMA', 'COLON',
-
-    # EOF token
-    'EOF'
-)
-
-# All valid_tokens
-# NOTE: The 'tokens' symbol is exported via the lexer class.
-_tokens = _reserved_tokens + _other_tokens
-
-# Lexer states
-_states = (
-    ('comment', 'exclusive'),
-    ('char',    'exclusive'),
-    ('string',  'exclusive')
-)
-
-# MAXINT
-# TODO: Is this the right place for this?
-max_uint = 2**32 - 1
-
 
 class LlamaLexer:
     '''An instrumented llama lexer'''
 
+    # Represent reserved words as a frozenset for fast lookup
+    _reserved_words = frozenset('''
+        and
+        array
+        begin
+        bool
+        char
+        delete
+        dim
+        do
+        done
+        downto
+        else
+        end
+        false
+        float
+        for
+        if
+        in
+        int
+        let
+        match
+        mod
+        mutable
+        new
+        not
+        of
+        rec
+        ref
+        then
+        to
+        true
+        type
+        unit
+        while
+        with
+        '''.split()
+    )
+
+    _reserved_tokens = tuple(s.upper() for s in _reserved_words)
+
+    _other_tokens = (
+        # Identifiers (generic variable identifiers, constructor identifiers)
+        'ID', 'CONID',
+
+        # Literals (int constant, float constant, char constant, string const)
+        'ICONST', 'FCONST', 'CCONST', 'SCONST',
+
+        # Integer operators (+, -, *, /)
+        'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
+
+        # Floating-point operators (+., -., *., /., **)
+        'FPLUS', 'FMINUS', 'FTIMES', 'FDIVIDE', 'FPOW',
+
+        # Boolean operators (&&, ||)
+        'BAND', 'BOR',
+
+        # Comparison operators (<, <=, >, >=, =, <>, ==, !=)
+        'LT', 'LE', 'GT', 'GE', 'EQ', 'NEQ', 'NATEQ', 'NATNEQ',
+
+        # Pattern operators (->, |)
+        'ARROW', 'PIPE',
+
+        # Assignment and dereference (:=, !)
+        'ASSIGN', 'BANG',
+
+        # Semicolon (;)
+        'SEMICOLON',
+
+        # Delimeters ( ) [ ] , :
+        'LPAREN', 'RPAREN',
+        'LBRACKET', 'RBRACKET',
+        'COMMA', 'COLON',
+
+        # EOF token
+        'EOF'
+    )
+
+    # All valid_tokens
+    tokens = _reserved_tokens + _other_tokens
+
+    # Lexer states
+    states = (
+        ('comment', 'exclusive'),
+        ('char',    'exclusive'),
+        ('string',  'exclusive')
+    )
+
+    # Are we at (or past) EOF?
+    at_eof = False
+
+    # Has any error happend during lexing?
+    error = False
+
+    # Input info
+    input_file = None
+    data = None
+
+    # The inner lexer, as constructed by PLY
+    lexer = None
+
+    # Index of the most recent beginning of line
+    bol = 0
+
+    # Levels of nested comment blocks still open
+    level = 0
+
+    # Change to 1 for release code or if calling with -OO
+    optimize = 0
+
+    # MAXINT
+    # TODO: Is this the right place for this?
+    max_uint = 2**32 - 1
+
     def __init__(self, optimize=1):
         '''Construct a LlamaLexer environment.'''
-        # == OBJECT STATE VARIABLES ==
-
-        # Are we at (or past) EOF?
-        self.at_eof = False
-
-        # Has any error happend during lexing?
-        self.error = False
-
-        # Input info
-        self.input_file = None
-        self.data = None
-
-        # Index of the most recent beginning of line
-        self.bol = 1
-
-        # Levels of nested comment blocks still open
-        self.level = 0
-
-        # Should we build an optimized lexer?
-        self.optimize = optimize
-
-        # == INTERNAL LEXER VARIABLES ==
-        self.states = _states
-        self.tokens = _tokens
+        pass
 
     def build(self):
         '''Build the actual lexer out of the module environment.'''
@@ -168,56 +166,44 @@ class LlamaLexer:
         self.lexer.input(self.data)
 
     # == ERROR PROCESSING ==
+
     # TODO: Make error style more gcc-like
     def error_out(self, message, lineno=None, lexpos=None):
         '''Prints error concerning input file'''
         self.error = True
         if lineno is not None:
             if lexpos is not None:
-                print(
-                    "%s: %d:%d Error: %s"
-                    % (self.input_file, lineno, lexpos, message)
+                s = "%s: %d:%d Error: %s" % (
+                    self.input_file, lineno, lexpos, message
                 )
             else:
-                print(
-                    "%s: %d: Error: %s"
-                    % (self.input_file, lineno, message)
+                s = "%s: %d: Error: %s" % (
+                    self.input_file, lineno, message
                 )
         else:
-            print(
-                "%s: Error: %s"
-                % (self.input_file, message)
+            s = "%s: Error: %s" % (
+                self.input_file, message
             )
+        print(s)
 
     def warning_out(self, message, lineno=None, lexpos=None):
         '''Prints warning concerning input file'''
         if lineno is not None:
             if lexpos is not None:
-                print(
-                    "%s: %d:%d Warning: %s"
-                    % (self.input_file, lineno, lexpos, message)
+                s = "%s: %d:%d Warning: %s" % (
+                    self.input_file, lineno, lexpos, message
                 )
             else:
-                print(
-                    "%s: %d: Warning: %s"
-                    % (self.input_file, lineno, message)
+                s = "%s: %d: Warning: %s" % (
+                    self.input_file, lineno, message
                 )
         else:
-            print(
-                "%s: Warning: %s"
-                % (self.input_file, message)
+            s = "%s: Warning: %s" % (
+                self.input_file, message
             )
+        print(s)
 
     # == REQUIRED LEXER INTERFACE ==
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.at_eof:
-            raise StopIteration
-        else:
-            return self.token()
 
     # A wrapper around the function of the inner lexer
     def token(self):
@@ -251,8 +237,17 @@ class LlamaLexer:
                     self.lexer.lineno
                 )
 
-        t.lexpos = self.lexer.lexpos - self.bol + 1
+        t.lexpos = self.lexer.lexpos - self.bol
         return t
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.at_eof:
+            raise StopIteration
+        else:
+            return self.token()
 
     # == LEXING OF NON-TOKENS ==
 
@@ -363,7 +358,7 @@ class LlamaLexer:
     # Generic identifiers and reserved words
     def t_ID(self, t):
         r'[a-z][A-Za-z0-9_]*'
-        if t.value in _reserved_words:
+        if t.value in self._reserved_words:
             t.type = t.value.upper()
         return t
 
@@ -377,7 +372,7 @@ class LlamaLexer:
     def t_ICONST(self, t):
         r'\d+'
         i = int(t.value)
-        if i > max_uint:
+        if i > self.max_uint:
             self.warning_out(
                 "Integer constant is too big.",
                 t.lineno,
@@ -439,7 +434,7 @@ class LlamaLexer:
     # Catch-all error reporting
     def t_ANY_error(self, t):
         self.error_out(
-            "Illegal character '%s'\n" % t.value[0],
+            "Illegal character '%s'" % t.value[0],
             t.lineno,
             t.lexpos - self.bol + 1
         )
