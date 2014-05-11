@@ -361,22 +361,28 @@ class LlamaLexer:
     # Floating-point constants
     def t_FCONST(self, t):
         r'\d+\.\d+([eE]([+\-]?)\d+)?'
-        t.value = float(t.value)
+        try:
+            t.value = float(t.value)
+        except OverflowError:
+            self.error_out(
+                "Floating-point constant is irrepresentable.",
+                t.lineno,
+                t.lexpos - self.bol + 1
+            )
+            t.value = 0.0
         return t
 
     # Integer constants
     def t_ICONST(self, t):
         r'\d+'
-        i = int(t.value)
-        if i > self.max_uint:
-            self.warning_out(
+        t.value = int(t.value)
+        if t.value > self.max_uint:
+            self.error_out(
                 "Integer constant is too big.",
                 t.lineno,
                 t.lexpos - self.bol + 1
             )
             t.value = 0
-        else:
-            t.value = i
         return t
 
     # FIXME: Inappropriate (?)

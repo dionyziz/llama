@@ -20,19 +20,21 @@ notakeywordamI_
 
 'L'
 
+( ) -- space-seperated unit constant
+
 while dim mod is true "asleep" do new "post" with false "username" else "play L\0L" 
 
 ---x WRONG x---
 
 _iamnot_an_identifier
 
-( ) -- space-seperated unit constant
-
 "'another
     array
     of
     notsense
 "
+
+128374651837416253847123645812347 -- so int, much 64bit, wow x86
 
 print_str "\n\r' Hey, haxxor, l3ave the string5 alone!  :(
 
