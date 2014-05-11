@@ -124,21 +124,17 @@ class LlamaLexer:
     # Levels of nested comment blocks still open
     level = 0
 
-    # Change to 1 for release code or if calling with -OO
-    optimize = 0
-
     # MAXINT
     # TODO: Is this the right place for this?
     max_uint = 2**32 - 1
 
+    # NOTE: optimize should always be set to 1 if using -OO
     def __init__(self, optimize=1):
-        '''Construct a LlamaLexer environment.'''
-        pass
-
-    def build(self):
-        '''Build the actual lexer out of the module environment.'''
-        lxr = lex.lex(module=self, optimize=self.optimize)
-        self.lexer = lxr
+        '''
+        Build a minimal lexer out of PLY and wrap it in a complete lexer
+        for llama. By default, the lexer is optimized.
+        '''
+        self.lexer = lex.lex(module=self, optimize=optimize)
 
     def feed(self, input_file=None, data=None):
         '''Feed the lexer with input.'''
@@ -442,16 +438,9 @@ class LlamaLexer:
         t.lexer.begin('INITIAL')
 
 
-def mk_lexer(optimize=1):
-    '''Create a complete llama lexer'''
-    lxr = LlamaLexer(optimize=optimize)
-    lxr.build()
-    return lxr
-
-
 def do_lex(input_file=None, debug=None):
     '''Lex entire input. Report errors and (optionally) tokens'''
-    lxr = mk_lexer(optimize=0)
+    lxr = LlamaLexer(optimize=0)
     lxr.feed(input_file=input_file)
     if debug:
         for t in lxr:
