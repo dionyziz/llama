@@ -10,7 +10,9 @@
 # https://github.com/ramen/phply/blob/master/phply/phplex.py
 # ----------------------------------------------------------------------
 
+import re
 import sys
+
 import ply.lex as lex
 
 
@@ -134,7 +136,7 @@ class LlamaLexer:
         Build a minimal lexer out of PLY and wrap it in a complete lexer
         for llama. By default, the lexer is optimized.
         '''
-        self.lexer = lex.lex(module=self, optimize=optimize)
+        self.lexer = lex.lex(module=self, optimize=optimize, reflags=re.ASCII)
 
     def feed(self, input_file=None, data=None):
         '''Feed the lexer with input.'''
