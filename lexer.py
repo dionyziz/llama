@@ -120,6 +120,9 @@ class LlamaLexer:
     # The inner lexer, as constructed by PLY
     lexer = None
 
+    # If debug is True, token will be duplicated to stdout.
+    debug = False
+
     # Index of the most recent beginning of line
     bol = 0
 
@@ -130,13 +133,15 @@ class LlamaLexer:
     # TODO: Is this the right place for this?
     max_uint = 2**32 - 1
 
+
     # NOTE: optimize should always be set to 1 if using -OO
-    def __init__(self, optimize=1):
+    def __init__(self, optimize=1, debug=False):
         '''
         Build a minimal lexer out of PLY and wrap it in a complete lexer
         for llama. By default, the lexer is optimized.
         '''
         self.lexer = lex.lex(module=self, optimize=optimize, reflags=re.ASCII)
+        self.debug = debug
 
     # == ERROR PROCESSING ==
 
@@ -157,7 +162,7 @@ class LlamaLexer:
             s = "%s: Error: %s" % (
                 self.input_file, message
             )
-        print(s)
+        print(s, file=sys.stderr)
 
     def warning_out(self, message, lineno=None, lexpos=None):
         '''Prints warning concerning input file'''
@@ -174,7 +179,7 @@ class LlamaLexer:
             s = "%s: Warning: %s" % (
                 self.input_file, message
             )
-        print(s)
+        print(s, file=sys.stderr)
 
     # == REQUIRED LEXER INTERFACE ==
 
@@ -211,6 +216,8 @@ class LlamaLexer:
                 )
 
         t.lexpos = self.lexer.lexpos - self.bol
+        if self.debug:
+            print((t.type, t.value, t.lineno, t.lexpos))
         return t
 
     def input(self, input_file=None, data=None):
@@ -444,17 +451,3 @@ class LlamaLexer:
         )
         t.lexer.skip(1)
         t.lexer.begin('INITIAL')
-
-
-def do_lex(input_file=None, debug=None):
-    '''Lex entire input. Report errors and (optionally) tokens'''
-    lxr = LlamaLexer(optimize=0)
-    lxr.input(input_file=input_file)
-    if debug:
-        for t in lxr:
-            sys.stdout.write(
-                "(%s,%r,%d,%d)\n" % (t.type, t.value, t.lineno, t.lexpos)
-            )
-    else:
-        for t in lxr:
-            pass

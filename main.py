@@ -35,7 +35,7 @@ def mk_CLI_parser():
         '-o',
         '--output',
         help='''
-            The output file. If ommitted, output is written to stdout.
+            The output file. If ommitted, normal output is written to stdout.
             ''',
         nargs='?'
     )
@@ -44,9 +44,8 @@ def mk_CLI_parser():
         '-ld',
         '--lexer_debug',
         help='''
-            Output the lexed tokens along with their file position.
-            Reporting for lexing errors will be interspersed
-            with the printed tokens.
+            Output the lexed tokens along with their file position to stdout.
+            Report any lexing errors to stderr.
             ''',
         action='store_true',
         default=False
@@ -67,10 +66,10 @@ def main():
     opts['lexer_debug'] = args.lexer_debug
 
     # Just a stub
-    lex.do_lex(
-        input_file=opts['input'],
-        debug=opts['lexer_debug']
-    )
+    lxr = lex.LlamaLexer(debug=opts['lexer_debug'])
+    lxr.input(input_file=opts['input'])
+    for t in lxr:
+        pass
 
 if __name__ == '__main__':
     main()
