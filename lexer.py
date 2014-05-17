@@ -15,90 +15,93 @@ import sys
 
 import ply.lex as lex
 
+# Represent reserved words as a frozenset for fast lookup
+_reserved_words = frozenset('''
+    and
+    array
+    begin
+    bool
+    char
+    delete
+    dim
+    do
+    done
+    downto
+    else
+    end
+    false
+    float
+    for
+    if
+    in
+    int
+    let
+    match
+    mod
+    mutable
+    new
+    not
+    of
+    rec
+    ref
+    then
+    to
+    true
+    type
+    unit
+    while
+    with
+    '''.split()
+)
+
+_reserved_tokens = tuple(s.upper() for s in _reserved_words)
+
+_other_tokens = (
+    # Identifiers (generic variable identifiers, constructor identifiers)
+    'ID', 'CONID',
+
+    # Literals (int constant, float constant, char constant, string const)
+    'ICONST', 'FCONST', 'CCONST', 'SCONST',
+
+    # Integer operators (+, -, *, /)
+    'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
+
+    # Floating-point operators (+., -., *., /., **)
+    'FPLUS', 'FMINUS', 'FTIMES', 'FDIVIDE', 'FPOW',
+
+    # Boolean operators (&&, ||)
+    'BAND', 'BOR',
+
+    # Comparison operators (<, <=, >, >=, =, <>, ==, !=)
+    'LT', 'LE', 'GT', 'GE', 'EQ', 'NEQ', 'NATEQ', 'NATNEQ',
+
+    # Pattern operators (->, |)
+    'ARROW', 'PIPE',
+
+    # Assignment and dereference (:=, !)
+    'ASSIGN', 'BANG',
+
+    # Semicolon (;)
+    'SEMICOLON',
+
+    # Delimeters ( ) [ ] , :
+    'LPAREN', 'RPAREN',
+    'LBRACKET', 'RBRACKET',
+    'COMMA', 'COLON',
+
+    # EOF token
+    'EOF'
+)
+
+# All valid_tokens [exported]
+tokens = _reserved_tokens + _other_tokens
+
 
 class LlamaLexer:
     '''An instrumented llama lexer'''
 
-    # Represent reserved words as a frozenset for fast lookup
-    _reserved_words = frozenset('''
-        and
-        array
-        begin
-        bool
-        char
-        delete
-        dim
-        do
-        done
-        downto
-        else
-        end
-        false
-        float
-        for
-        if
-        in
-        int
-        let
-        match
-        mod
-        mutable
-        new
-        not
-        of
-        rec
-        ref
-        then
-        to
-        true
-        type
-        unit
-        while
-        with
-        '''.split()
-    )
-
-    _reserved_tokens = tuple(s.upper() for s in _reserved_words)
-
-    _other_tokens = (
-        # Identifiers (generic variable identifiers, constructor identifiers)
-        'ID', 'CONID',
-
-        # Literals (int constant, float constant, char constant, string const)
-        'ICONST', 'FCONST', 'CCONST', 'SCONST',
-
-        # Integer operators (+, -, *, /)
-        'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
-
-        # Floating-point operators (+., -., *., /., **)
-        'FPLUS', 'FMINUS', 'FTIMES', 'FDIVIDE', 'FPOW',
-
-        # Boolean operators (&&, ||)
-        'BAND', 'BOR',
-
-        # Comparison operators (<, <=, >, >=, =, <>, ==, !=)
-        'LT', 'LE', 'GT', 'GE', 'EQ', 'NEQ', 'NATEQ', 'NATNEQ',
-
-        # Pattern operators (->, |)
-        'ARROW', 'PIPE',
-
-        # Assignment and dereference (:=, !)
-        'ASSIGN', 'BANG',
-
-        # Semicolon (;)
-        'SEMICOLON',
-
-        # Delimeters ( ) [ ] , :
-        'LPAREN', 'RPAREN',
-        'LBRACKET', 'RBRACKET',
-        'COMMA', 'COLON',
-
-        # EOF token
-        'EOF'
-    )
-
-    # All valid_tokens
-    tokens = _reserved_tokens + _other_tokens
+    # Token list needed by PLY
+    tokens = tokens
 
     # Lexer states
     states = (
@@ -132,7 +135,6 @@ class LlamaLexer:
     # MAXINT
     # TODO: Is this the right place for this?
     max_uint = 2**32 - 1
-
 
     # NOTE: optimize should always be set to 1 if using -OO
     def __init__(self, optimize=1, debug=False):
@@ -363,7 +365,7 @@ class LlamaLexer:
     # Generic identifiers and reserved words
     def t_ID(self, t):
         r'[a-z][A-Za-z0-9_]*'
-        if t.value in self._reserved_words:
+        if t.value in _reserved_words:
             t.type = t.value.upper()
         return t
 

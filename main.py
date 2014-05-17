@@ -61,8 +61,8 @@ def main():
     args = parser.parse_args()
 
     # Store options & switches in global dict
-    opts['input']       = args.input
-    opts['output']      = args.output
+    opts['input'] = args.input
+    opts['output'] = args.output
     opts['lexer_debug'] = args.lexer_debug
 
     # Just a stub
