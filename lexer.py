@@ -247,6 +247,19 @@ class LlamaLexer:
         self.input_file = input_file
         self.lexer.input(self.data)
 
+    def clone(self):
+        newLexer = LlamaLexer(optimize=self.optimize, debug=self.debug)
+        newLexer.at_eof = self.at_eof
+        newLexer.error = self.error
+        newLexer.input_file = self.input_file
+        newLexer.data = self.data
+        newLexer.lexer = self.lexer.clone()
+        newLexer.bol = self.bol
+        newLexer.level = self.level
+        return newLexer
+
+    # == ITERATOR INTERFACE ==
+
     def __iter__(self):
         return self
 
