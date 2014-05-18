@@ -223,7 +223,7 @@ class LlamaParser :
     data = None
 
     def __init__(self, debug=0) :
-        self.parser = yacc.yacc(module=self, optimize=0, debug=debug)
+        self.parser = yacc.yacc(module=self, optimize=1, debug=debug)
 
     def p_error(self, p):
         print("Syntax error")
