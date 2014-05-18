@@ -87,10 +87,7 @@ _other_tokens = (
     # Delimeters ( ) [ ] , :
     'LPAREN', 'RPAREN',
     'LBRACKET', 'RBRACKET',
-    'COMMA', 'COLON',
-
-    # EOF token
-    'EOF'
+    'COMMA', 'COLON'
 )
 
 # All valid_tokens [exported]
@@ -109,9 +106,6 @@ class LlamaLexer:
         ('char',    'exclusive'),
         ('string',  'exclusive')
     )
-
-    # Are we at (or past) EOF?
-    at_eof = False
 
     # Has any error happend during lexing?
     error = False
@@ -191,17 +185,8 @@ class LlamaLexer:
         Return a token to caller. Detect when <EOF> has been reached.
         Signal abnormal cases.
         '''
-        if self.at_eof:
-            return None
-
         t = self.lexer.token()
         if not t:
-            # Make a faux EOF token wth the help of PLY
-            t = lex.LexToken()
-            t.type, t.value = "EOF", "<EOF>"
-            t.lineno = self.lexer.lineno
-
-            self.at_eof = True
             # Check for abnormal EOF
             st = self.lexer.current_state()
             if st == "comment":
@@ -219,6 +204,7 @@ class LlamaLexer:
                     "Unclosed character literal at end of file.",
                     self.lexer.lineno
                 )
+            return None
 
         t.lexpos = self.lexer.lexpos - self.bol
         if self.debug:

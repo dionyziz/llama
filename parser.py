@@ -1,13 +1,24 @@
+# ----------------------------------------------------------------------
+# parser.py
+#
+# parser for the Llama language
+# http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
+#
+# Author: Dimitris Koutsoukos <dimkou@Renelvon@gmail.com>
+#         Nick Korasidis <Renelvon@gmail.com>
+# ----------------------------------------------------------------------
+
 import ply.yacc as yacc
 from lexer import tokens
 
-class LlamaParser :
+
+class LlamaParser:
     precedence = (
-    # Type operator precedence
+        # Type operator precedence
         ('right', 'ARROW'),
         ('nonassoc', 'OF'),
 
-    # Normal operator precedence
+        # Normal operator precedence
         ('nonassoc', 'IN'),
         ('left', 'SEMICOLON'),
         ('nonassoc', 'THEN'),
@@ -22,199 +33,210 @@ class LlamaParser :
         ('nonassoc', 'SIGN', 'NOT', 'DELETE')
     )
 
-    def p_program(self, p) :
-        'program  : deflist EOF'
+    # == GRAMMAR RULES ==
+    # Naming convention: If A is a non-terminal and B is a separator, then
+    #       A_B_list is a potentially empty list of tokens of type A,
+    #                separated by tokens of type B.
+    #       A_B_seq  is a non-empty list of tokens of type A
+    #                separated by tokens of type B.
+    # In cases where B is absent, whitespace may be assumed as separator.
+
+    def p_program(self, p):
+        'program : def_list'
         pass
-    
-    def p_empty(self, p) :
+
+    def p_empty(self, p):
         'empty : '
         pass
-    
-    def p_deflist(self, p) :
-        '''deflist : letdef deflist
-           | typedef deflist
-                   | empty'''
+
+    def p_def_list(self, p):
+        '''def_list : letdef def_list
+                    | typedef def_list
+                    | empty'''
         pass
-    
-    def p_typedef(self, p) :
-        'typedef : TYPE tdefandseq'
+
+    def p_typedef(self, p):
+        'typedef : TYPE tdef_and_seq'
         pass
-    
-    def p_tdef(self, p) :
-        'tdef : GENID EQ constructorseq'
+
+    def p_tdef(self, p):
+        'tdef : GENID EQ constr_seq'
         pass
-    
-    def p_constructorseq(self, p) :
-        '''constructorseq : constr 
-              | constr PIPE constructorseq'''
+
+    def p_constr_seq(self, p):
+        '''constr_seq : constr
+                      | constr PIPE constr_seq'''
         pass
-    
-    def p_tdefandseq(self, p) :
-        '''tdefandseq : tdef 
-              | tdef AND tdefandseq'''
+
+    def p_tdef_and_seq(self, p):
+        '''tdef_and_seq : tdef
+                        | tdef AND tdef_and_seq'''
         pass
-    
-    def p_constr(self, p) :
-        '''constr : CONID 
-          | CONID OF typeseq'''
+
+    def p_constr(self, p):
+        '''constr : CONID
+                  | CONID OF type_seq'''
         pass
-    
-    def p_typeseq(self, p) :
-        '''typeseq : type 
-         | type typeseq'''
+
+    def p_type_seq(self, p):
+        '''type_seq : type
+                    | type type_seq'''
         pass
-    
+
     # Check types during semantic analysis
-    def p_type(self, p) :
-        '''type : UNIT 
-                | INT 
-                | CHAR 
-                | BOOL 
-                | FLOAT 
-                | LPAREN type RPAREN 
+    def p_type(self, p):
+        '''type : UNIT
+                | INT
+                | CHAR
+                | BOOL
+                | FLOAT
+                | LPAREN type RPAREN
                 | GENID
-                | type REF 
-                | ARRAY OF type 
-                | ARRAY LBRACKET starseq RBRACKET OF type
+                | type REF
+                | ARRAY OF type
+                | ARRAY LBRACKET star_comma_seq RBRACKET OF type
                 | type ARROW type'''
         pass
 
-    def p_starseq(self, p) :
-        '''starseq : TIMES 
-         | TIMES COMMA starseq'''
+    def p_star_comma_seq(self, p):
+        '''star_comma_seq : TIMES
+                          | TIMES COMMA star_comma_seq'''
         pass
-    
-    def p_par(self, p) :
-        '''par : GENID 
-           | LPAREN GENID COLON type RPAREN'''
+
+    def p_par(self, p):
+        '''par : GENID
+               | LPAREN GENID COLON type RPAREN'''
         pass
-    
-    def p_letdef(self, p) :
-        '''letdef : LET defseq 
-        | LET REC defseq'''
+
+    def p_letdef(self, p):
+        '''letdef : LET def_seq
+                  | LET REC def_seq'''
         pass
-    
-    def p_defseq(self, p) :
-        '''defseq : def 
-        | def AND defseq'''
+
+    def p_def_seq(self, p):
+        '''def_seq : def
+                   | def AND def_seq'''
         pass
-    
-    def p_def(self, p) :
-        '''def : GENID parlist EQ expr 
-           | GENID parlist COLON type EQ expr
-           | MUTABLE GENID 
-           | MUTABLE GENID COLON type 
-           | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET
-           | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type'''
+
+    def p_def(self, p):
+        '''def : GENID par_list EQ expr
+               | GENID par_list COLON type EQ expr
+               | MUTABLE GENID
+               | MUTABLE GENID COLON type
+               | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET
+               | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type'''
         pass
-    
-    def p_expr_comma_seq(self, p) :
-        '''expr_comma_seq : expr 
-           | expr COMMA expr_comma_seq'''
+
+    def p_expr_comma_seq(self, p):
+        '''expr_comma_seq : expr
+                          | expr COMMA expr_comma_seq'''
         pass
-    
-    def p_simple_expr_seq(self, p) :
-        '''simple_expr_seq : simpleexpr
-                           | simpleexpr simple_expr_seq'''
+
+    def p_simpleexpr_seq(self, p):
+        '''simpleexpr_seq : simpleexpr
+                          | simpleexpr simpleexpr_seq'''
         pass
-    
-    def p_parlist(self, p) :
-        '''parlist : empty 
-           | par parlist'''
+
+    def p_par_list(self, p):
+        '''par_list : empty
+                    | par par_list'''
         pass
 
     def p_simpleexpr(self, p):
-        '''simpleexpr : ICONST 
-        | FCONST 
-        | CCONST 
-        | SCONST 
-        | TRUE 
-        | FALSE 
-        | LPAREN RPAREN 
-        | BANG simpleexpr 
-        | LPAREN expr RPAREN
-        | GENID 
-        | CONID 
-        | GENID LBRACKET expr_comma_seq RBRACKET'''
+        '''simpleexpr : ICONST
+                      | FCONST
+                      | CCONST
+                      | SCONST
+                      | TRUE
+                      | FALSE
+                      | LPAREN RPAREN
+                      | BANG simpleexpr
+                      | LPAREN expr RPAREN
+                      | GENID
+                      | CONID
+                      | GENID LBRACKET expr_comma_seq RBRACKET'''
         pass
 
-    def p_expr(self, p) :
+    def p_expr(self, p):
         '''expr : simpleexpr
-        | PLUS expr %prec SIGN
-        | MINUS expr %prec SIGN
-        | FPLUS expr %prec SIGN
-        | FMINUS expr %prec SIGN
-        | NOT expr 
-        | expr PLUS expr
-        | expr MINUS expr
-        | expr TIMES expr
-        | expr DIVIDE expr
-        | expr FPLUS expr
-        | expr FMINUS expr
-        | expr FTIMES expr
-        | expr FDIVIDE expr
-        | expr MOD expr
-        | expr FPOW expr
-        | expr EQ expr
-        | expr NEQ expr
-        | expr NATEQ expr
-        | expr NATNEQ expr
-        | expr LT expr
-        | expr LE expr
-        | expr GT expr
-        | expr GE expr
-        | expr BOR expr
-        | expr BAND expr
-        | expr SEMICOLON expr
-        | expr ASSIGN expr
-        | GENID simple_expr_seq
-        | CONID simple_expr_seq
-        | DIM GENID
-        | DIM ICONST GENID
-        | NEW type
-        | DELETE expr
-        | letdef IN expr
-        | BEGIN expr END
-        | IF expr THEN expr
-        | IF expr THEN expr ELSE expr
-        | WHILE expr DO expr DONE
-        | FOR GENID EQ expr TO expr DO expr DONE
-        | FOR GENID EQ expr DOWNTO expr DO expr DONE
-        | MATCH expr WITH clauseseq END '''
+                | PLUS expr %prec SIGN
+                | MINUS expr %prec SIGN
+                | FPLUS expr %prec SIGN
+                | FMINUS expr %prec SIGN
+                | NOT expr
+                | expr PLUS expr
+                | expr MINUS expr
+                | expr TIMES expr
+                | expr DIVIDE expr
+                | expr FPLUS expr
+                | expr FMINUS expr
+                | expr FTIMES expr
+                | expr FDIVIDE expr
+                | expr MOD expr
+                | expr FPOW expr
+                | expr EQ expr
+                | expr NEQ expr
+                | expr NATEQ expr
+                | expr NATNEQ expr
+                | expr LT expr
+                | expr LE expr
+                | expr GT expr
+                | expr GE expr
+                | expr BOR expr
+                | expr BAND expr
+                | expr SEMICOLON expr
+                | expr ASSIGN expr
+                | GENID simpleexpr_seq
+                | CONID simpleexpr_seq
+                | DIM GENID
+                | DIM ICONST GENID
+                | NEW type
+                | DELETE expr
+                | letdef IN expr
+                | BEGIN expr END
+                | IF expr THEN expr
+                | IF expr THEN expr ELSE expr
+                | WHILE expr DO expr DONE
+                | FOR GENID EQ expr TO expr DO expr DONE
+                | FOR GENID EQ expr DOWNTO expr DO expr DONE
+                | MATCH expr WITH clause_seq END '''
         pass
-    
-    def p_clauseseq(self, p) :
-        '''clauseseq : clause 
-             | clause PIPE clauseseq'''
+
+    def p_clause_seq(self, p):
+        '''clause_seq : clause
+                      | clause PIPE clause_seq'''
         pass
-    
-    def p_clause(self, p) :
+
+    def p_clause(self, p):
         '''clause : pattern ARROW expr'''
         pass
-    
-    def p_pattern(self, p) :
-        '''pattern : simple_pattern
-                   | CONID simple_patternlist'''
-        pass
-    
-    def p_simple_patternlist(self, p) :
-        '''simple_patternlist : empty 
-               | simple_pattern simple_patternlist'''
+
+    def p_pattern(self, p):
+        '''pattern : simplepattern
+                   | CONID simplepattern_list'''
         pass
 
-    def p_simple_pattern(self, p) :
-        '''simple_pattern : ICONST 
-           | PLUS ICONST 
-           | MINUS ICONST 
-           | FCONST 
-           | FPLUS FCONST 
-           | FMINUS FCONST
-           | CCONST 
-           | TRUE 
-           | FALSE 
-           | GENID 
-           | LPAREN pattern RPAREN '''
+    def p_simplepattern_list(self, p):
+        '''simplepattern_list : empty
+                              | simplepattern simplepattern_list'''
         pass
+
+    def p_simplepattern(self, p):
+        '''simplepattern : ICONST
+                         | PLUS ICONST
+                         | MINUS ICONST
+                         | FCONST
+                         | FPLUS FCONST
+                         | FMINUS FCONST
+                         | CCONST
+                         | TRUE
+                         | FALSE
+                         | GENID
+                         | LPAREN pattern RPAREN'''
+        pass
+
+    def p_error(self, p):
+        print("Syntax error")
 
     parser = None
     tokens = tokens
@@ -222,30 +244,27 @@ class LlamaParser :
     input_file = None
     data = None
 
-    def __init__(self, debug=0) :
+    def __init__(self, debug=0):
         self.parser = yacc.yacc(module=self, optimize=1, debug=debug)
-
-    def p_error(self, p):
-        print("Syntax error")
 
     def parse(self, lexer, data=None, input_file=None, debug=1):
         '''Feed the parser with input.'''
-        if not data :
-            if input_file :
-                try :
+        if not data:
+            if input_file:
+                try:
                     fd = open(input_file)
                     data = fd.read()
                     fd.close()
-                except IOError as e :
+                except IOError as e:
                     sys.exit(
                         'Could not open file %s for reading. Aborting.'
                         % input_file
                     )
-            else :
+            else:
                 self.input_file = '<stdin>'
                 # FIXME : Choose an appropriate output stream
                 sys.stdout.write(
-                    "Reading from standard input (type <EOF> to end) :"
+                    "Reading from standard input (type <EOF> to end):"
                 )
                 sys.stdout.flush()
                 data = sys.stdin.read()
