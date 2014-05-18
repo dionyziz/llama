@@ -3,4 +3,4 @@
 all:
 
 clean:
-	$(RM) lextab.py
+	$(RM) lextab.py parsetab.py parser.out

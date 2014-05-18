@@ -11,6 +11,7 @@ import argparse
 import collections
 
 import lexer as lex
+import parser as p
 
 # Compiler invokation options and switches.
 # Available to all modules.
@@ -51,6 +52,16 @@ def mk_CLI_parser():
         default=False
     )
 
+    CLI_parser.add_argument(
+        '-pd',
+        '--parser_debug',
+        help='''
+            Output the parser state during parsing (stack, current item, etc).
+            Report any parsing errors to stderr.
+            ''',
+        action='store_true',
+        default=0
+    )
     return CLI_parser
 
 
@@ -64,12 +75,16 @@ def main():
     opts['input'] = args.input
     opts['output'] = args.output
     opts['lexer_debug'] = args.lexer_debug
+    opts['parser_debug'] = args.parser_debug
 
-    # Just a stub
     lxr = lex.LlamaLexer(debug=opts['lexer_debug'])
-    lxr.input(input_file=opts['input'])
-    for t in lxr:
-        pass
+    # Just a stub for lexer debugging
+    #lxr.input(input_file=opts['input'])
+    #for t in lxr:
+    #    pass
 
+    prsr = p.LlamaParser()
+    prsr.parse(lexer=lxr, input_file=opts['input'], debug=opts['parser_debug'])
+		
 if __name__ == '__main__':
     main()

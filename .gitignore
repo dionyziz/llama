@@ -1,3 +1,5 @@
 *.swp
 lextab.py
+parsetab.py
+parser.out
 __pycache__

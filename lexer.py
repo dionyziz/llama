@@ -58,7 +58,7 @@ _reserved_tokens = tuple(s.upper() for s in _reserved_words)
 
 _other_tokens = (
     # Identifiers (generic variable identifiers, constructor identifiers)
-    'ID', 'CONID',
+    'GENID', 'CONID',
 
     # Literals (int constant, float constant, char constant, string const)
     'ICONST', 'FCONST', 'CCONST', 'SCONST',
@@ -191,6 +191,9 @@ class LlamaLexer:
         Return a token to caller. Detect when <EOF> has been reached.
         Signal abnormal cases.
         '''
+        if self.at_eof:
+            return None
+
         t = self.lexer.token()
         if not t:
             # Make a faux EOF token wth the help of PLY
@@ -222,7 +225,7 @@ class LlamaLexer:
             print((t.type, t.value, t.lineno, t.lexpos))
         return t
 
-    def input(self, input_file=None, data=None):
+    def input(self, data=None, input_file=None):
         '''Feed the lexer with input.'''
         if not data:
             if input_file:
@@ -376,7 +379,7 @@ class LlamaLexer:
     t_CONID     = r'[A-Z][A-Za-z0-9_]*'
 
     # Generic identifiers and reserved words
-    def t_ID(self, t):
+    def t_GENID(self, t):
         r'[a-z][A-Za-z0-9_]*'
         if t.value in _reserved_words:
             t.type = t.value.upper()
