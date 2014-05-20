@@ -130,13 +130,11 @@ class LlamaLexer:
     # TODO: Is this the right place for this?
     max_uint = 2**32 - 1
 
-    # NOTE: optimize should always be set to 1 if using -OO
-    def __init__(self, optimize=1, debug=False):
+    def __init__(self, debug=False):
         '''
-        Build a minimal lexer out of PLY and wrap it in a complete lexer
-        for llama. By default, the lexer is optimized.
+        Initialize wrapper object of PLY lexer. To get a working LlamaLexer,
+        invoke build() on the returned object.
         '''
-        self.lexer = lex.lex(module=self, optimize=optimize, reflags=re.ASCII)
         self.debug = debug
 
     # == ERROR PROCESSING ==
@@ -178,6 +176,17 @@ class LlamaLexer:
         print(s, file=sys.stderr)
 
     # == REQUIRED LEXER INTERFACE ==
+
+    def build(self):
+        '''
+        Build a minimal lexer out of PLY and wrap it in a complete lexer
+        for llama. By default, the lexer is optimized and accepts
+        only ASCII input.
+        '''
+        self.lexer = lex.lex(
+            module=self,
+            optimize=1,
+            reflags=re.ASCII)
 
     # A wrapper around the function of the inner lexer
     def token(self):
@@ -237,8 +246,8 @@ class LlamaLexer:
         self.lexer.input(self.data)
 
     def clone(self):
-        newLexer = LlamaLexer(optimize=self.optimize, debug=self.debug)
-        newLexer.at_eof = self.at_eof
+        newLexer = LlamaLexer(debug=self.debug)
+        newLexer.build()
         newLexer.error = self.error
         newLexer.input_file = self.input_file
         newLexer.data = self.data
@@ -429,7 +438,7 @@ class LlamaLexer:
         t.lexer.begin('INITIAL')
 
     # String constants
-    # FIXME: Ask is empty string is valid
+    # FIXME: Ask if empty string is valid
     def t_INITIAL_LSTRING(self, t):
         r'"'
         t.lexer.begin('string')

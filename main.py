@@ -77,9 +77,18 @@ def main():
     opts['lexer_debug'] = args.lexer_debug
     opts['parser_debug'] = args.parser_debug
 
+    # Make a lexer
     lxr = lex.LlamaLexer(debug=opts['lexer_debug'])
-    prsr = p.LlamaParser()
-    prsr.parse(lexer=lxr, input_file=opts['input'], debug=opts['parser_debug'])
+    lxr.build()
+
+    # Make a parser
+    prsr = p.LlamaParser(debug=0)
+
+    # Parse!
+    prsr.parse(
+        lexer=lxr,
+        input_file=opts['input'],
+        debug=opts['parser_debug'])
 
 if __name__ == '__main__':
     main()
