@@ -42,50 +42,50 @@ class LlamaParser:
     # In cases where B is absent, whitespace may be assumed as separator.
 
     def p_program(self, p):
-        'program : def_list'
+        """program : def_list"""
         pass
 
     def p_empty(self, p):
-        'empty : '
+        """empty :"""
         pass
 
     def p_def_list(self, p):
-        '''def_list : letdef def_list
+        """def_list : letdef def_list
                     | typedef def_list
-                    | empty'''
+                    | empty"""
         pass
 
     def p_typedef(self, p):
-        'typedef : TYPE tdef_and_seq'
+        """typedef : TYPE tdef_and_seq"""
         pass
 
     def p_tdef(self, p):
-        'tdef : GENID EQ constr_seq'
+        """tdef : GENID EQ constr_seq"""
         pass
 
     def p_constr_seq(self, p):
-        '''constr_seq : constr
-                      | constr PIPE constr_seq'''
+        """constr_seq : constr
+                      | constr PIPE constr_seq"""
         pass
 
     def p_tdef_and_seq(self, p):
-        '''tdef_and_seq : tdef
-                        | tdef AND tdef_and_seq'''
+        """tdef_and_seq : tdef
+                        | tdef AND tdef_and_seq"""
         pass
 
     def p_constr(self, p):
-        '''constr : CONID
-                  | CONID OF type_seq'''
+        """constr : CONID
+                  | CONID OF type_seq"""
         pass
 
     def p_type_seq(self, p):
-        '''type_seq : type
-                    | type type_seq'''
+        """type_seq : type
+                    | type type_seq"""
         pass
 
     # Check types during semantic analysis
     def p_type(self, p):
-        '''type : UNIT
+        """type : UNIT
                 | INT
                 | CHAR
                 | BOOL
@@ -95,55 +95,55 @@ class LlamaParser:
                 | type REF
                 | ARRAY OF type
                 | ARRAY LBRACKET star_comma_seq RBRACKET OF type
-                | type ARROW type'''
+                | type ARROW type"""
         pass
 
     def p_star_comma_seq(self, p):
-        '''star_comma_seq : TIMES
-                          | TIMES COMMA star_comma_seq'''
+        """star_comma_seq : TIMES
+                          | TIMES COMMA star_comma_seq"""
         pass
 
     def p_par(self, p):
-        '''par : GENID
-               | LPAREN GENID COLON type RPAREN'''
+        """par : GENID
+               | LPAREN GENID COLON type RPAREN"""
         pass
 
     def p_letdef(self, p):
-        '''letdef : LET def_seq
-                  | LET REC def_seq'''
+        """letdef : LET def_seq
+                  | LET REC def_seq"""
         pass
 
     def p_def_seq(self, p):
-        '''def_seq : def
-                   | def AND def_seq'''
+        """def_seq : def
+                   | def AND def_seq"""
         pass
 
     def p_def(self, p):
-        '''def : GENID par_list EQ expr
+        """def : GENID par_list EQ expr
                | GENID par_list COLON type EQ expr
                | MUTABLE GENID
                | MUTABLE GENID COLON type
                | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET
-               | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type'''
+               | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type"""
         pass
 
     def p_expr_comma_seq(self, p):
-        '''expr_comma_seq : expr
-                          | expr COMMA expr_comma_seq'''
+        """expr_comma_seq : expr
+                          | expr COMMA expr_comma_seq"""
         pass
 
     def p_simpleexpr_seq(self, p):
-        '''simpleexpr_seq : simpleexpr
-                          | simpleexpr simpleexpr_seq'''
+        """simpleexpr_seq : simpleexpr
+                          | simpleexpr simpleexpr_seq"""
         pass
 
     def p_par_list(self, p):
-        '''par_list : empty
-                    | par par_list'''
+        """par_list : empty
+                    | par par_list"""
         pass
 
     def p_simpleexpr(self, p):
-        '''simpleexpr : ICONST
+        """simpleexpr : ICONST
                       | FCONST
                       | CCONST
                       | SCONST
@@ -154,11 +154,11 @@ class LlamaParser:
                       | LPAREN expr RPAREN
                       | GENID
                       | CONID
-                      | GENID LBRACKET expr_comma_seq RBRACKET'''
+                      | GENID LBRACKET expr_comma_seq RBRACKET"""
         pass
 
     def p_expr(self, p):
-        '''expr : simpleexpr
+        """expr : simpleexpr
                 | PLUS expr %prec SIGN
                 | MINUS expr %prec SIGN
                 | FPLUS expr %prec SIGN
@@ -199,30 +199,30 @@ class LlamaParser:
                 | WHILE expr DO expr DONE
                 | FOR GENID EQ expr TO expr DO expr DONE
                 | FOR GENID EQ expr DOWNTO expr DO expr DONE
-                | MATCH expr WITH clause_seq END '''
+                | MATCH expr WITH clause_seq END """
         pass
 
     def p_clause_seq(self, p):
-        '''clause_seq : clause
-                      | clause PIPE clause_seq'''
+        """clause_seq : clause
+                      | clause PIPE clause_seq"""
         pass
 
     def p_clause(self, p):
-        '''clause : pattern ARROW expr'''
+        """clause : pattern ARROW expr"""
         pass
 
     def p_pattern(self, p):
-        '''pattern : simplepattern
-                   | CONID simplepattern_list'''
+        """pattern : simplepattern
+                   | CONID simplepattern_list"""
         pass
 
     def p_simplepattern_list(self, p):
-        '''simplepattern_list : empty
-                              | simplepattern simplepattern_list'''
+        """simplepattern_list : empty
+                              | simplepattern simplepattern_list"""
         pass
 
     def p_simplepattern(self, p):
-        '''simplepattern : ICONST
+        """simplepattern : ICONST
                          | PLUS ICONST
                          | MINUS ICONST
                          | FCONST
@@ -232,7 +232,7 @@ class LlamaParser:
                          | TRUE
                          | FALSE
                          | GENID
-                         | LPAREN pattern RPAREN'''
+                         | LPAREN pattern RPAREN"""
         pass
 
     def p_error(self, p):
@@ -241,34 +241,15 @@ class LlamaParser:
     parser = None
     tokens = tokens
     debug = False
-    input_file = None
-    data = None
 
     def __init__(self, debug=0):
         self.parser = yacc.yacc(module=self, optimize=1, debug=debug)
 
-    def parse(self, lexer, data=None, input_file=None, debug=1):
-        '''Feed the parser with input.'''
-        if not data:
-            if input_file:
-                try:
-                    fd = open(input_file)
-                    data = fd.read()
-                    fd.close()
-                except IOError as e:
-                    sys.exit(
-                        'Could not open file %s for reading. Aborting.'
-                        % input_file
-                    )
-            else:
-                self.input_file = '<stdin>'
-                # FIXME : Choose an appropriate output stream
-                sys.stdout.write(
-                    "Reading from standard input (type <EOF> to end):"
-                )
-                sys.stdout.flush()
-                data = sys.stdin.read()
-        self.data = data
-        self.input_file = input_file
+    def parse(self, lexer, data, debug=0):
+        """
+        Feed the lexer with the data, then use it to parse
+        the input. If debug is enabled, output matched productions
+        to stdout.
+        """
         self.debug = debug
         self.parser.parse(data, lexer=lexer, debug=debug)

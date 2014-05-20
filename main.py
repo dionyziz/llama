@@ -9,6 +9,7 @@
 
 import argparse
 import collections
+import sys
 
 import lexer as lex
 import parser as p
@@ -19,9 +20,12 @@ opts = collections.defaultdict(lambda: None)
 
 
 def mk_CLI_parser():
-    '''Generates a CLI parser for the llama compiler'''
+    """Generate a CLI parser for the llama compiler."""
 
-    CLI_parser = argparse.ArgumentParser(description='Invoke llama compiler.')
+    CLI_parser = argparse.ArgumentParser(
+        description='Invoke llama compiler.',
+        epilog='Use at your own RISC.'
+    )
 
     CLI_parser.add_argument(
         '-i',
@@ -29,16 +33,19 @@ def mk_CLI_parser():
         help='''
             The input file. If ommitted, input is read from stdin.
             ''',
-        nargs='?'
+        nargs='?',
+        const=None,
+        default=None
     )
 
     CLI_parser.add_argument(
         '-o',
         '--output',
         help='''
-            The output file. If ommitted, normal output is written to stdout.
+            The output file. If ommitted, it defaults to a.out.
             ''',
-        nargs='?'
+        nargs='?',
+        default='a.out'
     )
 
     CLI_parser.add_argument(
@@ -56,7 +63,7 @@ def mk_CLI_parser():
         '-pd',
         '--parser_debug',
         help='''
-            Output the parser state during parsing (stack, current item, etc).
+            Output the parser state during parsing (token, item, etc).
             Report any parsing errors to stderr.
             ''',
         action='store_true',
@@ -65,29 +72,55 @@ def mk_CLI_parser():
     return CLI_parser
 
 
+def input(input_file=None):
+    """
+    Read input from file or stdin (if a file is not provided).
+    Return read input as a single string.
+    """
+    if input_file:
+        try:
+            fd = open(input_file)
+            data = fd.read()
+            fd.close()
+        except IOError as e:
+            sys.exit(
+                'Could not open file %s for reading. Aborting.'
+                % input_file
+            )
+    else:
+        opts['input'] = '<stdin>'
+        sys.stdout.write("Reading from stdin (type <EOF> to end):\n")
+        sys.stdout.flush()
+        data = sys.stdin.read()
+    return data
+
+
 # One function to invoke them all!
 def main():
-    # Parse command line
+    # Parse command line.
     parser = mk_CLI_parser()
     args = parser.parse_args()
 
-    # Store options & switches in global dict
+    # Store options & switches in global dict.
     opts['input'] = args.input
     opts['output'] = args.output
     opts['lexer_debug'] = args.lexer_debug
     opts['parser_debug'] = args.parser_debug
 
-    # Make a lexer
+    # Make a lexer.
     lxr = lex.LlamaLexer(debug=opts['lexer_debug'])
     lxr.build()
 
-    # Make a parser
-    prsr = p.LlamaParser(debug=0)
+    # Make a parser.
+    prsr = p.LlamaParser()
+
+    # Get some input.
+    data = input(opts['input'])
 
     # Parse!
     prsr.parse(
         lexer=lxr,
-        input_file=opts['input'],
+        data=data,
         debug=opts['parser_debug'])
 
 if __name__ == '__main__':

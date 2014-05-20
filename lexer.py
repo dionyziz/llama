@@ -95,7 +95,7 @@ tokens = _reserved_tokens + _other_tokens
 
 
 class LlamaLexer:
-    '''An instrumented llama lexer'''
+    """An instrumented llama lexer"""
 
     # Token list needed by PLY
     tokens = tokens
@@ -131,17 +131,17 @@ class LlamaLexer:
     max_uint = 2**32 - 1
 
     def __init__(self, debug=False):
-        '''
+        """
         Initialize wrapper object of PLY lexer. To get a working LlamaLexer,
         invoke build() on the returned object.
-        '''
+        """
         self.debug = debug
 
     # == ERROR PROCESSING ==
 
     # TODO: Make error style more gcc-like
     def error_out(self, message, lineno=None, lexpos=None):
-        '''Prints error concerning input file'''
+        """Signal lexing error."""
         self.error = True
         if lineno is not None:
             if lexpos is not None:
@@ -159,7 +159,7 @@ class LlamaLexer:
         print(s, file=sys.stderr)
 
     def warning_out(self, message, lineno=None, lexpos=None):
-        '''Prints warning concerning input file'''
+        """Signal lexing warning."""
         if lineno is not None:
             if lexpos is not None:
                 s = "%s: %d:%d Warning: %s" % (
@@ -178,11 +178,11 @@ class LlamaLexer:
     # == REQUIRED LEXER INTERFACE ==
 
     def build(self):
-        '''
+        """
         Build a minimal lexer out of PLY and wrap it in a complete lexer
         for llama. By default, the lexer is optimized and accepts
         only ASCII input.
-        '''
+        """
         self.lexer = lex.lex(
             module=self,
             optimize=1,
@@ -190,10 +190,10 @@ class LlamaLexer:
 
     # A wrapper around the function of the inner lexer
     def token(self):
-        '''
+        """
         Return a token to caller. Detect when <EOF> has been reached.
         Signal abnormal cases.
-        '''
+        """
         t = self.lexer.token()
         if not t:
             # Check for abnormal EOF
@@ -221,7 +221,7 @@ class LlamaLexer:
         return t
 
     def input(self, data):
-        '''Feed the lexer with input.'''
+        """Feed the lexer with input."""
         self.data = data
         self.lexer.input(self.data)
 
