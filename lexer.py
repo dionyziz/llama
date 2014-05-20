@@ -111,7 +111,7 @@ class LlamaLexer:
     error = False
 
     # Input info
-    input_file = None
+    input_file = 'dummy'  # Deprecated. Will be removed in next version.
     data = None
 
     # The inner lexer, as constructed by PLY
@@ -220,36 +220,15 @@ class LlamaLexer:
             print((t.type, t.value, t.lineno, t.lexpos))
         return t
 
-    def input(self, data=None, input_file=None):
+    def input(self, data):
         '''Feed the lexer with input.'''
-        if not data:
-            if input_file:
-                try:
-                    fd = open(input_file)
-                    data = fd.read()
-                    fd.close()
-                except IOError as e:
-                    sys.exit(
-                        'Could not open file %s for reading. Aborting.'
-                        % input_file
-                    )
-            else:
-                input_file = '<stdin>'
-                # FIXME: Choose an appropriate output stream
-                sys.stdout.write(
-                    "Reading from standard input (type <EOF> to end):"
-                )
-                sys.stdout.flush()
-                data = sys.stdin.read()
         self.data = data
-        self.input_file = input_file
         self.lexer.input(self.data)
 
     def clone(self):
         newLexer = LlamaLexer(debug=self.debug)
         newLexer.build()
         newLexer.error = self.error
-        newLexer.input_file = self.input_file
         newLexer.data = self.data
         newLexer.lexer = self.lexer.clone()
         newLexer.bol = self.bol
@@ -262,10 +241,10 @@ class LlamaLexer:
         return self
 
     def __next__(self):
-        if self.at_eof:
+        t = self.token()
+        if t is None:
             raise StopIteration
-        else:
-            return self.token()
+        return t
 
     # == LEXING OF NON-TOKENS ==
 
