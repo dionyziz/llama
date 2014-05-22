@@ -11,8 +11,9 @@ import argparse
 import collections
 import sys
 
+import error as err
 import lexer as lex
-import parser as p
+import parser as prs
 
 # Compiler invokation options and switches.
 # Available to all modules.
@@ -108,20 +109,27 @@ def main():
     opts['parser_debug'] = args.parser_debug
 
     # Make a lexer.
-    lxr = lex.LlamaLexer(debug=opts['lexer_debug'])
-    lxr.build()
+    lexer = lex.LlamaLexer(debug=opts['lexer_debug'])
+    lexer.build()
 
     # Make a parser.
-    prsr = p.LlamaParser()
+    parser = prs.LlamaParser()
 
     # Get some input.
     data = input(opts['input'])
 
-    # Parse!
-    prsr.parse(
-        lexer=lxr,
+    # Initiaize the error logger
+    err.init_logger(opts['input'])
+
+    # Parse.
+    parser.parse(
+        lexer=lexer,
         data=data,
         debug=opts['parser_debug'])
+
+    # Output all errors and warnings to stderr.
+    for msg in err.get_all_signals():
+        print(msg, file=sys.stderr)
 
 if __name__ == '__main__':
     main()

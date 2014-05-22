@@ -11,9 +11,10 @@
 # ----------------------------------------------------------------------
 
 import re
-import sys
 
 import ply.lex as lex
+
+import error as err
 
 # Represent reserved words as a frozenset for fast lookup
 _reserved_words = frozenset('''
@@ -107,11 +108,7 @@ class LlamaLexer:
         ('string',  'exclusive')
     )
 
-    # Has any error happend during lexing?
-    error = False
-
     # Input info
-    input_file = 'dummy'  # Deprecated. Will be removed in next version.
     data = None
 
     # The inner lexer, as constructed by PLY
@@ -142,38 +139,25 @@ class LlamaLexer:
     # TODO: Make error style more gcc-like
     def error_out(self, message, lineno=None, lexpos=None):
         """Signal lexing error."""
-        self.error = True
         if lineno is not None:
             if lexpos is not None:
-                s = "%s: %d:%d Error: %s" % (
-                    self.input_file, lineno, lexpos, message
-                )
+                s = "%d:%d Error: %s" % (lineno, lexpos, message)
             else:
-                s = "%s: %d: Error: %s" % (
-                    self.input_file, lineno, message
-                )
+                s = "%d: Error: %s" % (lineno, message)
         else:
-            s = "%s: Error: %s" % (
-                self.input_file, message
-            )
-        print(s, file=sys.stderr)
+            s = "Error: %s" % (message)
+        err.push_error(lineno or 0, s)
 
     def warning_out(self, message, lineno=None, lexpos=None):
         """Signal lexing warning."""
         if lineno is not None:
             if lexpos is not None:
-                s = "%s: %d:%d Warning: %s" % (
-                    self.input_file, lineno, lexpos, message
-                )
+                s = "%s: %d:%d Warning: %s" % (lineno, lexpos, message)
             else:
-                s = "%s: %d: Warning: %s" % (
-                    self.input_file, lineno, message
-                )
+                s = "%s: %d: Warning: %s" % (lineno, message)
         else:
-            s = "%s: Warning: %s" % (
-                self.input_file, message
-            )
-        print(s, file=sys.stderr)
+            s = "%s: Warning: %s" % (message)
+        err.push_warning(lineno or 0, s)
 
     # == REQUIRED LEXER INTERFACE ==
 
@@ -227,10 +211,9 @@ class LlamaLexer:
 
     def clone(self):
         newLexer = LlamaLexer(debug=self.debug)
-        newLexer.build()
-        newLexer.error = self.error
-        newLexer.data = self.data
         newLexer.lexer = self.lexer.clone()
+
+        newLexer.data = self.data
         newLexer.bol = self.bol
         newLexer.level = self.level
         return newLexer
