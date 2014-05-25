@@ -164,9 +164,6 @@ class LlamaLexer:
     # Levels of nested comment blocks still open
     level = 0
 
-    # Deprecated. To be removed in next version.
-    max_uint = 2**32 - 1
-
     def __init__(self, debug=False):
         """
         Initialize wrapper object of PLY lexer. To get a working LlamaLexer,
@@ -403,15 +400,7 @@ class LlamaLexer:
     def t_ICONST(self, t):
         r'\d+'
         t.value = int(t.value)
-        # Deprecated
         # TODO Check if constant is too big in another module.
-        if t.value > self.max_uint:
-            self.error_out(
-                "Integer constant is too big.",
-                t.lineno,
-                t.lexpos - self.bol + 1
-            )
-            t.value = 0
         return t
 
     # FIXME: Inappropriate (?)
