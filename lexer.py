@@ -280,7 +280,7 @@ class LlamaLexer:
     # Newlines
     def t_ANY_newline(self, t):
         r'\n+'
-        t.lineno += len(t.value)
+        self.lexer.lineno += len(t.value)
         st = t.lexer.current_state()
         if st == "string":
             self.error_out(
