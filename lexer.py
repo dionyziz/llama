@@ -10,8 +10,6 @@
 # https://github.com/ramen/phply/blob/master/phply/phplex.py
 # ----------------------------------------------------------------------
 
-import re
-
 import ply.lex as lex
 
 import error as err
@@ -108,23 +106,65 @@ class LlamaLexer:
         ('string',  'exclusive')
     )
 
-    # Input info
-    data = None
-
-    # The inner lexer, as constructed by PLY
+    # The inner lexer, constructed by PLY.
     lexer = None
+
+    # == REQUIRED ATTRIBUTES (export PLY interface) ==
+    @property
+    def lexdata(self):
+        """The lexer's input string."""
+        if self.lexer:
+            return self.lexer.lexdata
+        return None
+
+    @lexdata.setter
+    def lexdata(self, value):
+        """Set lexer's input string."""
+        if self.lexer:
+            self.lexer.lexdata = value
+
+    @property
+    def lexmatch(self):
+        """The latest matched token as a Match object."""
+        if self.lexer:
+            return self.lexer.lexmatch
+        return None
+
+    @property
+    def lexpos(self):
+        """Column following last token matched in current line."""
+        if self.lexer:
+            return self.lexer.lexpos - self.bol + 1
+        return None
+
+    # NOTE: There is no meaningful lexpos.setter method to define.
+    @lexpos.setter
+    def lexpos(self, value=None):
+        raise NotImplementedError
+
+    @property
+    def lineno(self):
+        """Current line of input"""
+        if self.lexer:
+            return self.lexer.lineno
+        return None
+
+    @lineno.setter
+    def lineno(self, value):
+        """Update line tracking"""
+        if self.lexer:
+            self.lexer.lineno = value
 
     # If debug is True, token will be duplicated to stdout.
     debug = False
 
-    # Index of the most recent beginning of line
+    # File position of the most recent beginning of line
     bol = 0
 
     # Levels of nested comment blocks still open
     level = 0
 
-    # MAXINT
-    # TODO: Is this the right place for this?
+    # Deprecated. To be removed in next version.
     max_uint = 2**32 - 1
 
     def __init__(self, debug=False):
@@ -161,16 +201,15 @@ class LlamaLexer:
 
     # == REQUIRED LEXER INTERFACE ==
 
-    def build(self):
+    def build(self, **kwargs):
         """
         Build a minimal lexer out of PLY and wrap it in a complete lexer
-        for llama. By default, the lexer is optimized and accepts
-        only ASCII input.
+        for llama.
+
+        NOTE: This function should always be called before ANY methods
+        or attributes of the newly inidialized object are accessed.
         """
-        self.lexer = lex.lex(
-            module=self,
-            optimize=1,
-            reflags=re.ASCII)
+        self.lexer = lex.lex(module=self, **kwargs)
 
     # A wrapper around the function of the inner lexer
     def token(self):
@@ -199,24 +238,28 @@ class LlamaLexer:
                 )
             return None
 
-        t.lexpos = self.lexer.lexpos - self.bol
+        # Track the token's position in the current column.
+        t.lexpos = self.lexpos
         if self.debug:
             print((t.type, t.value, t.lineno, t.lexpos))
         return t
 
-    def input(self, data):
+    def input(self, lexdata):
         """Feed the lexer with input."""
-        self.data = data
-        self.lexer.input(self.data)
+        self.lexer.input(lexdata)
 
     def clone(self):
+        """Return a copy of the current lexer."""
         newLexer = LlamaLexer(debug=self.debug)
         newLexer.lexer = self.lexer.clone()
 
-        newLexer.data = self.data
         newLexer.bol = self.bol
         newLexer.level = self.level
         return newLexer
+
+    def skip(self, value=1):
+        """Skip 'value' characters in the input string."""
+        self.lexer.skip(value)
 
     # == ITERATOR INTERFACE ==
 
@@ -237,7 +280,7 @@ class LlamaLexer:
     # Newlines
     def t_ANY_newline(self, t):
         r'\n+'
-        t.lexer.lineno += len(t.value)
+        t.lineno += len(t.value)
         st = t.lexer.current_state()
         if st == "string":
             self.error_out(
@@ -360,6 +403,8 @@ class LlamaLexer:
     def t_ICONST(self, t):
         r'\d+'
         t.value = int(t.value)
+        # Deprecated
+        # TODO Check if constant is too big in another module.
         if t.value > self.max_uint:
             self.error_out(
                 "Integer constant is too big.",

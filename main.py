@@ -9,6 +9,7 @@
 
 import argparse
 import collections
+import re
 import sys
 
 import error as err
@@ -119,9 +120,13 @@ def main():
     opts['lexer_debug'] = args.lexer_debug
     opts['parser_debug'] = args.parser_debug
 
-    # Make a lexer.
+    # Make a lexer. By default, the lexer is optimized and accepts
+    # only ASCII input.
     lexer = lex.LlamaLexer(debug=opts['lexer_debug'])
-    lexer.build()
+    lexer.build(
+        lextab='lextab',
+        optimize=1,
+        reflags=re.ASCII)
 
     # Make a parser.
     parser = prs.LlamaParser()
