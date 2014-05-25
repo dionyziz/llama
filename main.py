@@ -50,6 +50,16 @@ def mk_CLI_parser():
     )
 
     CLI_parser.add_argument(
+        '-pp',
+        '--prepare',
+        help='''
+            Build the lexing and parsing tables and exit.
+            ''',
+        action='store_true',
+        default=False
+    )
+
+    CLI_parser.add_argument(
         '-ld',
         '--lexer_debug',
         help='''
@@ -105,6 +115,7 @@ def main():
     # Store options & switches in global dict.
     opts['input'] = args.input
     opts['output'] = args.output
+    opts['prepare'] = args.prepare
     opts['lexer_debug'] = args.lexer_debug
     opts['parser_debug'] = args.parser_debug
 
@@ -114,6 +125,11 @@ def main():
 
     # Make a parser.
     parser = prs.LlamaParser()
+
+    # Stop here if this a dry run
+    if opts['prepare']:
+        print('Finished generating lexer and parser tables. Exiting...')
+        return
 
     # Get some input.
     data = input(opts['input'])
