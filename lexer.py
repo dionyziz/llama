@@ -200,11 +200,10 @@ class LlamaLexer:
 
     def build(self, **kwargs):
         """
-        Build a minimal lexer out of PLY and wrap it in a complete lexer
-        for llama.
+        Build a lexer out of PLY and attach it to the wrapper object.
 
-        NOTE: This function should always be called before ANY methods
-        or attributes of the newly inidialized object are accessed.
+        NOTE: This function should be called once before ANY methods
+        or attributes of the wrapper object are accessed.
         """
         self.lexer = lex.lex(module=self, **kwargs)
 
