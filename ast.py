@@ -1,3 +1,5 @@
+import type
+
 class Node:
     def __init__(self):
         raise NotImplementedError
@@ -14,7 +16,9 @@ class TypeDef(Node):
     pass
 
 class LetDef(Node):
-    isRec = False
+    def __init__(self, l, isRec):
+        self.list = l
+        self.isRec = isRec
 
 class TDef(Node):
     def __init__(self, l):
@@ -24,47 +28,36 @@ class Constr(Node):
     def __init__(self, l):
         self.list = l
 
-class Type(Node):
-    def __init__(self):
-        raise NotImplementedError
-
-class UnitType(Type):
-    pass
-
-class IntType(Type):
-    pass
-
-class CharType(Type):
-    pass
-
-class BoolType(Type):
-    pass
-
-class FloatType(Type):
-    pass
-
-class UserType(Type):
-    def __init__(self, typename):
-        self.typename = typename
-
-class RefType(Type):
-    def __init__(self, refType):
-        self.refType = refType
-
-class ArrayType(Type):
-    def __init__(self, refType, dim):
-        self.refType = refType
-
-class FunctionType(Type):
-    def __init__(self, fromType, toType):
-        self.fromType = fromType
-        self.toType = toType
-
-class Par(DataNode):
-    pass
+class Param(DataNode):
+    def __init__(self, name, type):
+        self.name = name
+        self.type = type
 
 class Def(Node):
-    pass
+    def __init__():
+        raise NotImplementedError
+
+class FunctionDef(Def):
+    def __init__(self, name, params, body, type = None):
+        self.name = name
+        self.params = params
+        self.body = body
+        self.type = type
+
+class VariableDef(Def):
+    def __init__(self, name, dataType = None):
+        if isinstance(dataType, type.Array):
+            raise TypeError
+        self.name = name
+        self.type = type
+
+class ArrayVariableDef(VariableDef):
+    def __init__(self, name, dataType, arraySize):
+        assert(isinstance(dataType, type.Array))
+
+        self.name = name
+        self.type = type
+        self.arraySize = arraySize
 
 class GenId(DataNode):
     def __init__(self):
@@ -75,13 +68,18 @@ class Expression(DataNode):
 
 class UnaryExpression(Expression):
     def __init__(self, operator, a):
-        print("Unary expression (%s)" % (operator))
+        # print("Unary expression (%s)" % (operator))
         self.operator = operator
         self.a = a
 
 class BinaryExpression(Expression):
     def __init__(self, operator, a, b):
-        print("Binary expression (%s)" % (operator))
+        # print("Binary expression (%s)" % (operator))
         self.operator = operator
         self.a = a
         self.b = b
+
+class SimpleExpression(Expression):
+    def __init__(self, value, type):
+        self.value = value
+        self.type = type

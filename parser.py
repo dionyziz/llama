@@ -12,7 +12,7 @@
 from pprint import pprint
 import ply.yacc as yacc
 from lexer import tokens
-import ast
+import ast, type
 
 
 class LlamaParser:
@@ -101,11 +101,11 @@ class LlamaParser:
         if len(p) == 2:
             try:
                 p[0] = {
-                    'unit': ast.UnitType(),
-                    'int': ast.IntType(),
-                    'char': ast.CharType(),
-                    'bool': ast.BoolType(),
-                    'float': ast.FloatType(),
+                    'unit': type.Unit(),
+                    'int': type.Int(),
+                    'char': type.Char(),
+                    'bool': type.Bool(),
+                    'float': type.Float(),
                 }[p[1]]
             except:
                 # derived type
@@ -117,19 +117,19 @@ class LlamaParser:
 
     def p_user_type(self, p):
         """user_type : GENID"""
-        p[0] = ast.UserType(p[1])
+        p[0] = type.User(p[1])
 
     def p_ref_type(self, p):
         """ref_type : type REF"""
-        p[0] = ast.RefType(p[1])
+        p[0] = type.Ref(p[1])
 
     def p_array_type(self, p):
         """array_type : ARRAY OF type
                       | ARRAY LBRACKET star_comma_seq RBRACKET OF type"""
         if len(p) == 4:
-            p[0] = ast.ArrayType(p[3])
+            p[0] = type.Array(p[3])
         else:
-            p[0] = ast.ArrayType(p[6], p[3])
+            p[0] = type.Array(p[6], p[3])
 
     def p_function_type(self, p):
         """function_type : type ARROW type"""
@@ -138,17 +138,28 @@ class LlamaParser:
     def p_star_comma_seq(self, p):
         """star_comma_seq : TIMES
                           | TIMES COMMA star_comma_seq"""
-        self._expand_seq(p)
+        # count number of dimensions
+        if len(p) == 2:
+            p[0] = 1
+        else:
+            p[0] = p[3] + 1
 
-    def p_par(self, p):
-        """par : GENID
-               | LPAREN GENID COLON type RPAREN"""
-        pass
+    def p_param(self, p):
+        """param : GENID
+                 | LPAREN GENID COLON type RPAREN"""
+        if len(p) == 6:
+            name = p[2]
+            type = p[4]
+        else:
+            name = p[1]
+            type = None
+        p[0] = ast.Param(name=name, type=type)
 
     def p_letdef(self, p):
         """letdef : LET def_seq
                   | LET REC def_seq"""
-        pass
+        isRec = len(p) == 4
+        p[0] = ast.LetDef(p[-1], isRec)
 
     def p_def_seq(self, p):
         """def_seq : def
@@ -156,13 +167,38 @@ class LlamaParser:
         self._expand_seq(p)
 
     def p_def(self, p):
-        """def : GENID par_list EQ expr
-               | GENID par_list COLON type EQ expr
-               | MUTABLE GENID
-               | MUTABLE GENID COLON type
-               | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET
-               | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type"""
-        pass
+        """def : function_def
+               | variable_def"""
+        p[0] = p[1]
+
+    def p_function_def(self, p):
+        """function_def : GENID param_list EQ expr
+                        | GENID param_list COLON type EQ expr"""
+        type = None
+        if len(p) == 7:
+            type = p[5]
+        p[0] = ast.FunctionDef(name=p[1], params=p[2], body=p[-1], type=type)
+
+    def p_variable_def(self, p):
+        """variable_def : simple_variable_def
+                        | array_variable_def"""
+        p[0] = p[1]
+
+    def p_simple_variable_def(self, p):
+        """simple_variable_def : MUTABLE GENID
+                               | MUTABLE GENID COLON type"""
+        type = None
+        if len(p) == 5:
+            type = p[-1]
+        p[0] = ast.VariableDef(p[2], type)
+
+    def p_array_variable_def(self, p):
+        """array_variable_def : MUTABLE GENID LBRACKET expr_comma_seq RBRACKET
+                              | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type"""
+        dataType = None
+        if len(p) == 8:
+            dataType = p[-1]
+        p[0] = ast.VariableDef(p[2], type.Array(refType=dataType, dim=p[4]))
 
     def p_expr_comma_seq(self, p):
         """expr_comma_seq : expr
@@ -174,13 +210,13 @@ class LlamaParser:
                           | simpleexpr simpleexpr_seq"""
         self._expand_seq(p, 1, 2)
 
-    def p_par_list(self, p):
-        """par_list : empty
-                    | par par_list"""
+    def p_param_list(self, p):
+        """param_list : empty
+                      | param param_list"""
         self._expand_list(p)
 
     def p_simpleexpr(self, p):
-        """simpleexpr : ICONST
+        """simpleexpr : iconst_simple_expr
                       | FCONST
                       | CCONST
                       | SCONST
@@ -192,7 +228,12 @@ class LlamaParser:
                       | GENID
                       | CONID
                       | GENID LBRACKET expr_comma_seq RBRACKET"""
-        pass
+    
+    def p_iconst_simple_expr(self, p):
+        """iconst_simple_expr : ICONST"""
+
+        pprint(p[1])
+        # p[0] = ast.SimpleExpression()
 
     def p_expr(self, p):
         """expr : simpleexpr
