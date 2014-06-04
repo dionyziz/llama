@@ -25,7 +25,7 @@ def mk_CLI_parser():
     """Generate a CLI parser for the llama compiler."""
 
     CLI_parser = argparse.ArgumentParser(
-        description='Invoke llama compiler.',
+        description='Llama compiler.',
         epilog='Use at your own RISC.'
     )
 

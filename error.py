@@ -22,17 +22,14 @@ class ErrorLogger:
     warnings = None
     input_file = None
 
-    def __init__(self, input_file=None):
-        """Intialize logger to empty state."""
+    def __init__(self, input_file):
+        """Initialize logger to empty state."""
         self.errors = []
         self.warnings = []
-        if input_file is None:
-            self.input_file = '<stdin>'
-        else:
-            self.input_file = input_file
+        self.input_file = input_file
 
 
-def init_logger(input_file=None):
+def init_logger(input_file):
     """If the logger hasn't been created, do so."""
     global _logger
     if _logger is None:

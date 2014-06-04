@@ -2,9 +2,15 @@ PYTHON=python3
 PREPARE_FLAG=--prepare
 OPT=-OO
 
-.PHONY: clean prepare
+.PHONY: clean prepare test alltest
 
-all:
+all: clean prepare test
+
+test:
+	$(PYTHON) main.py -i test/correct/fibonacci.lla
+
+alltest: clean prepare ptest.sh
+	./ptest.sh
 
 prepare:
 	$(PYTHON) main.py $(PREPARE_FLAG)
