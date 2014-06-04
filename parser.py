@@ -112,7 +112,7 @@ class LlamaParser:
                 p[0] = p[1]
 
     def p_paren_type(self, p):
-        """paren_typ : LPAREN type RPAREN"""
+        """paren_type : LPAREN type RPAREN"""
         p[0] = p[2]
 
     def p_user_type(self, p):
@@ -172,7 +172,7 @@ class LlamaParser:
     def p_simpleexpr_seq(self, p):
         """simpleexpr_seq : simpleexpr
                           | simpleexpr simpleexpr_seq"""
-        self._expand_seq(p)
+        self._expand_seq(p, 1, 2)
 
     def p_par_list(self, p):
         """par_list : empty
@@ -342,19 +342,19 @@ class LlamaParser:
     def p_error(self, p):
         print("Syntax error")
 
-    def _expand_seq(self, p):
-        if len(p) == 2:
-            p[0] = [p[1]]
+    def _expand_seq(self, p, lastIdx = 1, listIdx = 3):
+        if len(p) == lastIdx + 1:
+            p[0] = [p[lastIdx]]
         else:
-            p[3][0:0] = p[1]
-            p[0] = p[3]
+            p[listIdx][0:0] = [p[lastIdx]]
+            p[0] = p[listIdx]
 
     def _expand_list(self, p):
         if p[1] is None:
             # end of list
             p[0] = []
         else:
-            p[2][0:0] = p[1]
+            p[2][0:0] = [p[1]]
             p[0] = p[2]
 
 
