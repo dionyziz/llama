@@ -214,7 +214,7 @@ class LlamaLexer:
         Signal abnormal cases.
         """
         t = self.lexer.token()
-        if not t:
+        if t is None:
             # Check for abnormal EOF
             st = self.lexer.current_state()
             if st == "comment":

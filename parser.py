@@ -4,7 +4,7 @@
 # parser for the Llama language
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
-# Author: Dimitris Koutsoukos <dimkou@Renelvon@gmail.com>
+# Author: Dimitris Koutsoukos <dimkou.shmmy@gmail.com>
 #         Nick Korasidis <Renelvon@gmail.com>
 # ----------------------------------------------------------------------
 
@@ -60,12 +60,12 @@ class LlamaParser:
         pass
 
     def p_tdef(self, p):
-        """tdef : GENID EQ constr_seq"""
+        """tdef : GENID EQ constr_pipe_seq"""
         pass
 
-    def p_constr_seq(self, p):
-        """constr_seq : constr
-                      | constr PIPE constr_seq"""
+    def p_constr_pipe_seq(self, p):
+        """constr_pipe_seq : constr
+                           | constr PIPE constr_pipe_seq"""
         pass
 
     def p_tdef_and_seq(self, p):
