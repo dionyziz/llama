@@ -2,11 +2,11 @@ PYTHON=python3
 PREPARE_FLAG=--prepare
 OPT=-OO
 
-.PHONY: clean prepare test alltest
+.PHONY: clean prepare test
 
 all: clean prepare test
 
-alltest: clean prepare ptest.sh
+test: clean prepare ptest.sh
 	./ptest.sh
 
 prepare:
