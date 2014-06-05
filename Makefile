@@ -6,9 +6,6 @@ OPT=-OO
 
 all: clean prepare test
 
-test:
-	$(PYTHON) main.py -i test/correct/fibonacci.lla
-
 alltest: clean prepare ptest.sh
 	./ptest.sh
 
