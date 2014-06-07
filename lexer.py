@@ -155,8 +155,8 @@ class LlamaLexer:
         if self.lexer:
             self.lexer.lineno = value
 
-    # If debug is True, token will be duplicated to stdout.
-    debug = False
+    # If verbose is True, token will be duplicated to stdout.
+    verbose = False
 
     # File position of the most recent beginning of line
     bol = 0
@@ -164,12 +164,12 @@ class LlamaLexer:
     # Levels of nested comment blocks still open
     level = 0
 
-    def __init__(self, debug=False):
+    def __init__(self, verbose=False):
         """
         Initialize wrapper object of PLY lexer. To get a working LlamaLexer,
         invoke build() on the returned object.
         """
-        self.debug = debug
+        self.verbose = verbose
 
     # == ERROR PROCESSING ==
 
@@ -236,7 +236,7 @@ class LlamaLexer:
 
         # Track the token's position in the current column.
         t.lexpos = self.lexpos
-        if self.debug:
+        if self.verbose:
             print((t.type, t.value, t.lineno, t.lexpos))
         return t
 
@@ -246,7 +246,7 @@ class LlamaLexer:
 
     def clone(self):
         """Return a copy of the current lexer."""
-        newLexer = LlamaLexer(debug=self.debug)
+        newLexer = LlamaLexer(verbose=self.verbose)
         newLexer.lexer = self.lexer.clone()
 
         newLexer.bol = self.bol

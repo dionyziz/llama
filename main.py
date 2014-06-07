@@ -61,8 +61,8 @@ def mk_CLI_parser():
     )
 
     CLI_parser.add_argument(
-        '-ld',
-        '--lexer_debug',
+        '-lv',
+        '--lexer_verbose',
         help='''
             Output the lexed tokens along with their file position to stdout.
             Report any lexing errors to stderr.
@@ -117,12 +117,12 @@ def main():
     opts['input'] = args.input
     opts['output'] = args.output
     opts['prepare'] = args.prepare
-    opts['lexer_debug'] = args.lexer_debug
+    opts['lexer_verbose'] = args.lexer_verbose
     opts['parser_debug'] = args.parser_debug
 
     # Make a lexer. By default, the lexer is optimized and accepts
     # only ASCII input.
-    lexer = lex.LlamaLexer(debug=opts['lexer_debug'])
+    lexer = lex.LlamaLexer(verbose=opts['lexer_verbose'])
     lexer.build(
         lextab='lextab',
         optimize=1,
