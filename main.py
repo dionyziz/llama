@@ -16,7 +16,7 @@ import error as err
 import lexer as lex
 import parser as prs
 
-# Compiler invokation options and switches.
+# Compiler invocation options and switches.
 # Available to all modules.
 opts = collections.defaultdict(lambda: None)
 
@@ -120,13 +120,14 @@ def main():
     opts['lexer_verbose'] = args.lexer_verbose
     opts['parser_debug'] = args.parser_debug
 
-    # Make a lexer. By default, the lexer is optimized and accepts
-    # only ASCII input.
-    lexer = lex.LlamaLexer(verbose=opts['lexer_verbose'])
-    lexer.build(
+    # Make a lexer. By default, the lexer accepts only ASCII
+    # and is optimized (i.e caches the lexing tables across
+    # invocations).
+    lexer = lex.Lexer(
         lextab='lextab',
         optimize=1,
-        reflags=re.ASCII)
+        reflags=re.ASCII,
+        verbose=opts['lexer_verbose'])
 
     # Make a parser.
     parser = prs.LlamaParser()

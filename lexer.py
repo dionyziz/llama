@@ -92,11 +92,15 @@ _other_tokens = (
 # All valid_tokens [exported]
 tokens = _reserved_tokens + _other_tokens
 
+class _LexerBuilder:
+    """
+    Implementation of a Llama lexer
+    
+    Defines tokens and lexing rules, performs error reporting,
+    interacts with PLY and tracks line and column numbers.
+    """
 
-class LlamaLexer:
-    """An instrumented llama lexer"""
-
-    # Token list needed by PLY
+    # Token list needed by PLY module
     tokens = tokens
 
     # Lexer states
@@ -106,56 +110,10 @@ class LlamaLexer:
         ('string',  'exclusive')
     )
 
-    # The inner lexer, constructed by PLY.
+    # The raw lexer derived from PLY.
     lexer = None
 
-    # == REQUIRED ATTRIBUTES (export PLY interface) ==
-    @property
-    def lexdata(self):
-        """The lexer's input string."""
-        if self.lexer:
-            return self.lexer.lexdata
-        return None
-
-    @lexdata.setter
-    def lexdata(self, value):
-        """Set lexer's input string."""
-        if self.lexer:
-            self.lexer.lexdata = value
-
-    @property
-    def lexmatch(self):
-        """The latest matched token as a Match object."""
-        if self.lexer:
-            return self.lexer.lexmatch
-        return None
-
-    @property
-    def lexpos(self):
-        """Column following last token matched in current line."""
-        if self.lexer:
-            return self.lexer.lexpos - self.bol + 1
-        return None
-
-    # NOTE: There is no meaningful lexpos.setter method to define.
-    @lexpos.setter
-    def lexpos(self, value=None):
-        raise NotImplementedError
-
-    @property
-    def lineno(self):
-        """Current line of input"""
-        if self.lexer:
-            return self.lexer.lineno
-        return None
-
-    @lineno.setter
-    def lineno(self, value):
-        """Update line tracking"""
-        if self.lexer:
-            self.lexer.lineno = value
-
-    # If verbose is True, token will be duplicated to stdout.
+    # If verbose is True, tokens will be duplicated to stdout.
     verbose = False
 
     # File position of the most recent beginning of line
@@ -166,37 +124,12 @@ class LlamaLexer:
 
     def __init__(self, verbose=False):
         """
-        Initialize wrapper object of PLY lexer. To get a working LlamaLexer,
+        Initialize wrapper object of PLY lexer. To get a working lexer,
         invoke build() on the returned object.
         """
         self.verbose = verbose
 
-    # == ERROR PROCESSING ==
-
-    # TODO: Make error style more gcc-like
-    def error_out(self, message, lineno=None, lexpos=None):
-        """Signal lexing error."""
-        if lineno is not None:
-            if lexpos is not None:
-                s = "%d:%d Error: %s" % (lineno, lexpos, message)
-            else:
-                s = "%d: Error: %s" % (lineno, message)
-        else:
-            s = "Error: %s" % (message)
-        err.push_error(lineno or 0, s)
-
-    def warning_out(self, message, lineno=None, lexpos=None):
-        """Signal lexing warning."""
-        if lineno is not None:
-            if lexpos is not None:
-                s = "%s: %d:%d Warning: %s" % (lineno, lexpos, message)
-            else:
-                s = "%s: %d: Warning: %s" % (lineno, message)
-        else:
-            s = "%s: Warning: %s" % (message)
-        err.push_warning(lineno or 0, s)
-
-    # == REQUIRED LEXER INTERFACE ==
+    # == REQUIRED METHODS ==
 
     def build(self, **kwargs):
         """
@@ -234,10 +167,10 @@ class LlamaLexer:
                 )
             return None
 
-        # Track the token's position in the current column.
-        t.lexpos = self.lexpos
+        # Track the token's column instead of lexing position.
+        t.lexpos = self.lexer.lexpos - self.bol + 1
         if self.verbose:
-            print((t.type, t.value, t.lineno, t.lexpos))
+            print(t.type, t.value, t.lineno, t.lexpos)
         return t
 
     def input(self, lexdata):
@@ -246,27 +179,41 @@ class LlamaLexer:
 
     def clone(self):
         """Return a copy of the current lexer."""
-        newLexer = LlamaLexer(verbose=self.verbose)
-        newLexer.lexer = self.lexer.clone()
+        new_lexer = _LexerBuilder(verbose=self.verbose)
+        new_lexer.lexer = self.lexer.clone()
 
-        newLexer.bol = self.bol
-        newLexer.level = self.level
+        new_lexer.bol = self.bol
+        new_lexer.level = self.level
         return newLexer
 
     def skip(self, value=1):
         """Skip 'value' characters in the input string."""
         self.lexer.skip(value)
 
-    # == ITERATOR INTERFACE ==
+    # == ERROR REPORTING ==
 
-    def __iter__(self):
-        return self
+    # TODO: Make error style more gcc-like
+    def error_out(self, message, lineno=None, lexpos=None):
+        """Signal lexing error."""
+        if lineno is not None:
+            if lexpos is not None:
+                s = "%d:%d Error: %s" % (lineno, lexpos, message)
+            else:
+                s = "%d: Error: %s" % (lineno, message)
+        else:
+            s = "Error: %s" % (message)
+        err.push_error(lineno or 0, s)
 
-    def __next__(self):
-        t = self.token()
-        if t is None:
-            raise StopIteration
-        return t
+    def warning_out(self, message, lineno=None, lexpos=None):
+        """Signal lexing warning."""
+        if lineno is not None:
+            if lexpos is not None:
+                s = "%s: %d:%d Warning: %s" % (lineno, lexpos, message)
+            else:
+                s = "%s: %d: Warning: %s" % (lineno, message)
+        else:
+            s = "%s: Warning: %s" % (message)
+        err.push_warning(lineno or 0, s)
 
     # == LEXING OF NON-TOKENS ==
 
@@ -459,3 +406,74 @@ class LlamaLexer:
         )
         t.lexer.skip(1)
         t.lexer.begin('INITIAL')
+
+class Lexer:
+    """ A Llama lexer"""
+
+    # The actual lexer as returned by _LexerBuilder
+    _lexer = None
+
+    # == REQUIRED METHODS (see __LexerBuilder for details) ==
+    token = None
+    input = None
+    clone = None
+    skip = None
+
+    # == EXPORT PLY ATTRIBUTES ==
+    # NOTE: These poke deep inside the _LexerBuilder code...
+    @property
+    def lexdata(self):
+        """Return the lexer's input string."""
+        return self._lexer.lexer.lexdata
+
+    @lexdata.setter
+    def lexdata(self, value):
+        """Set lexer's input string."""
+        self._lexer.lexer.lexdata = value
+
+    @property
+    def lexmatch(self):
+        """Return the latest matched token as a Match object."""
+        return self._lexer.lexer.lexmatch
+
+    @property
+    def lexpos(self):
+        """Return column following last token matched in current line."""
+        return self._lexer.lexer.lexpos - self._lexer.bol + 1
+
+    # NOTE: Since we use lexpos to track column position instead of
+    # file position, there is no meaningful lexpos.setter method.
+    @lexpos.setter
+    def lexpos(self, value=None):
+        raise NotImplementedError
+
+    @property
+    def lineno(self):
+        """Return current line of input"""
+        return self._lexer.lexer.lineno
+
+    @lineno.setter
+    def lineno(self, value):
+        """Update line tracking."""
+        self._lexer.lexer.lineno = value
+
+    def __init__(self, verbose=False, **kwargs):
+        """Create a new lexer."""
+        self._lexer = _LexerBuilder(verbose=verbose)
+        self._lexer.build(**kwargs)
+
+        # Bind methods of interface to _LexerBuilder object methods.
+        self.token = self._lexer.token
+        self.input = self._lexer.input
+        self.clone = self._lexer.clone
+        self.skip  = self._lexer.skip
+
+    # == ITERATOR INTERFACE ==
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        t = self.token()
+        if t is None:
+            raise StopIteration
+        return t
