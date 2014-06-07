@@ -192,27 +192,26 @@ class _LexerBuilder:
 
     # == ERROR REPORTING ==
 
-    # TODO: Make error style more gcc-like
     def error_out(self, message, lineno=None, lexpos=None):
         """Signal lexing error."""
         if lineno is not None:
             if lexpos is not None:
-                s = "%d:%d Error: %s" % (lineno, lexpos, message)
+                s = "%d:%d error: %s" % (lineno, lexpos, message)
             else:
-                s = "%d: Error: %s" % (lineno, message)
+                s = "%d: error: %s" % (lineno, message)
         else:
-            s = "Error: %s" % (message)
+            s = "error: %s" % (message)
         err.push_error(lineno or 0, s)
 
     def warning_out(self, message, lineno=None, lexpos=None):
         """Signal lexing warning."""
         if lineno is not None:
             if lexpos is not None:
-                s = "%s: %d:%d Warning: %s" % (lineno, lexpos, message)
+                s = "%s: %d:%d warning: %s" % (lineno, lexpos, message)
             else:
-                s = "%s: %d: Warning: %s" % (lineno, message)
+                s = "%s: %d: warning: %s" % (lineno, message)
         else:
-            s = "%s: Warning: %s" % (message)
+            s = "%s: warning: %s" % (message)
         err.push_warning(lineno or 0, s)
 
     # == LEXING OF NON-TOKENS ==
@@ -414,12 +413,14 @@ class Lexer:
     _lexer = None
 
     # == REQUIRED METHODS (see __LexerBuilder for details) ==
+
     token = None
     input = None
     clone = None
     skip = None
 
     # == EXPORT PLY ATTRIBUTES ==
+
     # NOTE: These poke deep inside the _LexerBuilder code...
     @property
     def lexdata(self):
@@ -469,6 +470,7 @@ class Lexer:
         self.skip  = self._lexer.skip
 
     # == ITERATOR INTERFACE ==
+
     def __iter__(self):
         return self
 
