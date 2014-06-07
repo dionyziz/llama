@@ -92,10 +92,11 @@ _other_tokens = (
 # All valid_tokens [exported]
 tokens = _reserved_tokens + _other_tokens
 
+
 class _LexerBuilder:
     """
     Implementation of a Llama lexer
-    
+
     Defines tokens and lexing rules, performs error reporting,
     interacts with PLY and tracks line and column numbers.
     """
@@ -167,8 +168,8 @@ class _LexerBuilder:
                 )
             return None
 
-        # Track the token's column instead of lexing position.
-        t.lexpos = self.lexer.lexpos - self.bol + 1
+        # Track the token's (last) column instead of lexing position.
+        t.lexpos = self.lexer.lexpos - self.bol
         if self.verbose:
             print(t.type, t.value, t.lineno, t.lexpos)
         return t
@@ -223,19 +224,19 @@ class _LexerBuilder:
     def t_ANY_newline(self, t):
         r'\n+'
         self.lexer.lineno += len(t.value)
-        st = t.lexer.current_state()
+        st = self.lexer.current_state()
         if st == "string":
             self.error_out(
                 "String spanning multiple lines (unclosed string).",
                 t.lineno
             )
-            t.lexer.begin('INITIAL')
+            self.lexer.begin('INITIAL')
         elif st == "char":
             self.error_out(
                 "Character spanning multiple lines (unclosed character).",
                 t.lineno
             )
-            t.lexer.begin('INITIAL')
+            self.lexer.begin('INITIAL')
         self.bol = t.lexer.lexpos
 
     # Single-line comments. Do not consume the newline.
@@ -249,7 +250,7 @@ class _LexerBuilder:
     def t_INITIAL_comment_LCOMMENT(self, t):
         r'\(\*'
         self.level += 1
-        t.lexer.begin('comment')
+        self.lexer.begin('comment')
 
     # End of block comment
     def t_comment_RCOMMENT(self, t):
@@ -258,7 +259,7 @@ class _LexerBuilder:
             self.level -= 1
         else:
             self.level = 0
-            t.lexer.begin('INITIAL')
+            self.lexer.begin('INITIAL')
 
     # Ignore (almost) anything inside a block comment
     # but stop matching when '(', '*' or a newline appears.
@@ -354,7 +355,7 @@ class _LexerBuilder:
     # Char constants
     def t_INITIAL_LCHAR(self, t):
         r'\''
-        t.lexer.begin('char')
+        self.lexer.begin('char')
 
     def t_char_CCONST(self, t):
         r'(([^\\\'\"])|(\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2}))(\'?)'
@@ -393,7 +394,7 @@ class _LexerBuilder:
                 t.lexpos - self.bol + 1
             )
         t.value = t.value.rstrip('"')
-        t.lexer.begin('INITIAL')
+        self.lexer.begin('INITIAL')
         return t
 
     # Catch-all error reporting
@@ -403,8 +404,9 @@ class _LexerBuilder:
             t.lineno,
             t.lexpos - self.bol + 1
         )
-        t.lexer.skip(1)
-        t.lexer.begin('INITIAL')
+        self.lexer.skip(1)
+        self.lexer.begin('INITIAL')
+
 
 class Lexer:
     """ A Llama lexer"""
@@ -440,6 +442,7 @@ class Lexer:
     @property
     def lexpos(self):
         """Return column following last token matched in current line."""
+        # FIXME: Is that correct?
         return self._lexer.lexer.lexpos - self._lexer.bol + 1
 
     # NOTE: Since we use lexpos to track column position instead of
