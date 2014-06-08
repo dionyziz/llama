@@ -49,19 +49,24 @@ class LlamaParser:
         """program : def_list"""
         p[0] = ast.Program(p[1])
 
+    def p_def_list(self, p):
+        """def_list : empty
+                    | typedef def_list
+                    | letdef def_list"""
+        self._expand_list(p)
+
     def p_empty(self, p):
         """empty :"""
-        return None
-
-    def p_def_list(self, p):
-        """def_list : letdef def_list
-                    | typedef def_list
-                    | empty"""
-        self._expand_list(p)
+        return []
 
     def p_typedef(self, p):
         """typedef : TYPE tdef_and_seq"""
         p[0] = ast.TypeDef(p[2])
+
+    def p_tdef_and_seq(self, p):
+        """tdef_and_seq : tdef
+                        | tdef AND tdef_and_seq"""
+        self._expand_seq(p)
 
     def p_tdef(self, p):
         """tdef : GENID EQ constr_pipe_seq"""
@@ -70,11 +75,6 @@ class LlamaParser:
     def p_constr_pipe_seq(self, p):
         """constr_pipe_seq : constr
                            | constr PIPE constr_pipe_seq"""
-        self._expand_seq(p)
-
-    def p_tdef_and_seq(self, p):
-        """tdef_and_seq : tdef
-                        | tdef AND tdef_and_seq"""
         self._expand_seq(p)
 
     def p_constr(self, p):
@@ -90,42 +90,37 @@ class LlamaParser:
                     | type type_seq"""
         self._expand_seq(p, listIdx=2)
 
-    # Check types during semantic analysis
     def p_type(self, p):
-        """type : UNIT
-                | INT
-                | CHAR
-                | BOOL
-                | FLOAT
-                | paren_type
-                | user_type
-                | ref_type
-                | array_type
-                | function_type"""
+        """type : base_type
+                | derived_type
+                | LPAREN type RPAREN"""
         if len(p) == 2:
-            try:
-                p[0] = {
-                    'unit': type.Unit(),
-                    'int': type.Int(),
-                    'char': type.Char(),
-                    'bool': type.Bool(),
-                    'float': type.Float(),
-                }[p[1]]
-            except:
-                # derived type
-                p[0] = p[1]
+            p[0] = p[1]
+        else:
+            p[0] = p[2]
 
-    def p_paren_type(self, p):
-        """paren_type : LPAREN type RPAREN"""
-        p[0] = p[2]
+    _base_type_map = {
+        'bool': type.Bool,
+        'char': type.Char,
+        'float': type.Float,
+        'int': type.Int,
+        'unit': type.Unit
+    }
 
-    def p_user_type(self, p):
-        """user_type : GENID"""
-        p[0] = type.User(p[1])
+    def p_base_type(self, p):
+        """base_type : BOOL
+                     | CHAR
+                     | FLOAT
+                     | INT
+                     | UNIT"""
+        p[0] = self._base_type_map[p[1]]()
 
-    def p_ref_type(self, p):
-        """ref_type : type REF"""
-        p[0] = type.Ref(p[1])
+    def p_derived_type(self, p):
+        """derived_type : array_type
+                        | function_type
+                        | ref_type
+                        | user_type"""
+        p[0] = p[1]
 
     def p_array_type(self, p):
         """array_type : ARRAY OF type
@@ -135,18 +130,26 @@ class LlamaParser:
         else:
             p[0] = type.Array(p[6], p[3])
 
-    def p_function_type(self, p):
-        """function_type : type ARROW type"""
-        p[0] = type.Function(p[1], p[3])
-
     def p_star_comma_seq(self, p):
         """star_comma_seq : TIMES
                           | TIMES COMMA star_comma_seq"""
-        # count number of dimensions
+        # We 'll be counting stars :)
         if len(p) == 2:
             p[0] = 1
         else:
             p[0] = p[3] + 1
+
+    def p_function_type(self, p):
+        """function_type : type ARROW type"""
+        p[0] = type.Function(p[1], p[3])
+
+    def p_ref_type(self, p):
+        """ref_type : type REF"""
+        p[0] = type.Ref(p[1])
+
+    def p_user_type(self, p):
+        """user_type : GENID"""
+        p[0] = type.User(p[1])
 
     def p_param(self, p):
         """param : GENID

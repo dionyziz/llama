@@ -1,38 +1,47 @@
 import ast
 
-class Base():
+class Type():
+    def __init__(self):
+        raise NotImplementedError
+
+class Base(Type):
     def __init__(self):
         raise NotImplementedError
 
 class Unit(Base):
-    pass
+    def __init__(self):
+        pass
 
 class Int(Base):
-    pass
+    def __init__(self):
+        pass
 
 class Char(Base):
-    pass
+    def __init__(self):
+        pass
 
 class Bool(Base):
-    pass
+    def __init__(self):
+        pass
 
 class Float(Base):
-    pass
+    def __init__(self):
+        pass
 
-class User(Base):
+class User(Type):
     def __init__(self, typename):
         self.typename = typename
 
-class Ref(Base):
+class Ref(Type):
     def __init__(self, refType):
         self.refType = refType
 
-class Array(Base):
-    def __init__(self, refType, dim):
-        self.refType = refType
+class Array(Type):
+    def __init__(self, type, dim=1):
+        self.type = type
         self.dim = dim
 
-class Function(Base):
+class Function(Type):
     def __init__(self, fromType, toType):
         self.fromType = fromType
         self.toType = toType
