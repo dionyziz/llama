@@ -72,8 +72,8 @@ def mk_CLI_parser():
     )
 
     CLI_parser.add_argument(
-        '-pd',
-        '--parser_debug',
+        '-pv',
+        '--parser_verbose',
         help='''
             Output the parser state during parsing (token, item, etc).
             Report any parsing errors to stderr.
@@ -118,7 +118,7 @@ def main():
     opts['output'] = args.output
     opts['prepare'] = args.prepare
     opts['lexer_debug'] = args.lexer_debug
-    opts['parser_debug'] = args.parser_debug
+    opts['parser_verbose'] = args.parser_verbose
 
     # Make a lexer. By default, the lexer is optimized and accepts
     # only ASCII input.
@@ -128,10 +128,12 @@ def main():
         optimize=1,
         reflags=re.ASCII)
 
-    # Make a parser.
-    parser = prs.LlamaParser()
+    # Make a parser. By default, the parser is optimized
+    # (i.e. caches LALR tables accross invocations). If 'debug' is set,
+    # a 'parser.out' is created every time the tables are regenerated.
+    parser = prs.Parser(optimize=1, debug=1)
 
-    # Stop here if this a dry run
+    # Stop here if this a dry run.
     if opts['prepare']:
         print('Finished generating lexer and parser tables. Exiting...')
         return
@@ -139,14 +141,14 @@ def main():
     # Get some input.
     data = input(opts['input'])
 
-    # Initiaize the error logger
+    # Initialize the error logger.
     err.init_logger(opts['input'])
 
-    # Parse.
-    parser.parse(
-        lexer=lexer,
+    # Parse and construct the AST.
+    ast = parser.parse(
         data=data,
-        debug=opts['parser_debug'])
+        lexer=lexer,
+        verbose=opts['parser_verbose'])
 
     # Output all errors and warnings to stderr.
     for msg in err.get_all_signals():

@@ -35,19 +35,22 @@ class TDef(Node):
         self.list = l
 
 class Constr(Node):
-    def __init__(self, name, l):
+    def __init__(self, name, l=None):
         self.name = name
-        self.list = l
+        self.list = l if l is not None else []
 
 class Param(DataNode):
-    def __init__(self, name, type):
+    def __init__(self, name, type=None):
         self.name = name
         self.type = type
 
 class LetDef(Node):
-    def __init__(self, l, isRec):
+    def __init__(self, l):
         self.list = l
-        self.isRec = isRec
+
+class LetRecDef(Node):
+    def __init__(self, l):
+        self.list = l
 
 class Def(Node):
     def __init__():
@@ -68,10 +71,10 @@ class VariableDef(Def):
         self.type = type
 
 class ArrayVariableDef(VariableDef):
-    def __init__(self, name, dataType, arraySize):
+    def __init__(self, name, dimensions, dataType=None):
         self.name = name
-        self.type = type
-        self.arraySize = arraySize
+        self.dimensions = dimensions
+        self.dataType = dataType
 
 class Expression(DataNode):
     pass
@@ -123,9 +126,9 @@ class UnaryExpression(Expression):
         self.a = a
 
 class BinaryExpression(Expression):
-    def __init__(self, operator, a, b):
-        self.operator = operator
+    def __init__(self, a, operator, b):
         self.a = a
+        self.operator = operator
         self.b = b
 
 class GcallExpression(Expression):
@@ -139,7 +142,7 @@ class CcallExpression(Expression):
         self.params = params
 
 class DimExpression(Expression):
-    def __init__(self, name, dimension):
+    def __init__(self, name, dimension=1):
         self.name = name
         self.dim = dimension
 
@@ -152,7 +155,7 @@ class DeleteExpression(Expression):
         self.expr = expr
 
 class IfExpression(Expression):
-    def __init__(self, condition, thenExpr, elseExpr):
+    def __init__(self, condition, thenExpr, elseExpr=None):
         self.condition = condition
         self.thenExpr = thenExpr
         self.elseExpr = elseExpr
