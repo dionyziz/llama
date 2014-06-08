@@ -12,6 +12,7 @@ from collections import defaultdict
 
 import error as err
 
+
 class Entry:
     """An entry of the symbol table. It knows which scope it's in."""
     identifier = None
@@ -112,7 +113,7 @@ class SymbolTable:
         """Close current scope in symbol table. Cleanup scope entries."""
         old_scope = self._pop_scope()
         for entry in old_scope.entries:
-            eid = entry,identifier
+            eid = entry.identifier
             assert eid in self.hash_table, 'Identifier %s not found' % eid
             self.hash_table[entry.identifier].pop()
         return old_scope

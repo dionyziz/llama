@@ -9,7 +9,6 @@
 #          Dionysis Zindros <dionyziz@gmail.com>
 # ----------------------------------------------------------------------
 
-from pprint import pprint
 import ply.yacc as yacc
 
 from lexer import tokens
@@ -66,7 +65,7 @@ class LlamaParser:
 
     def p_tdef(self, p):
         """tdef : GENID EQ constr_pipe_seq"""
-        p[0] = ast.TDef(p[3])
+        p[0] = ast.TDef(p[1], p[3])
 
     def p_constr_pipe_seq(self, p):
         """constr_pipe_seq : constr
@@ -81,7 +80,10 @@ class LlamaParser:
     def p_constr(self, p):
         """constr : CONID
                   | CONID OF type_seq"""
-        p[0] = ast.Constr(p)
+        typeSeq = None
+        if len(p) == 4:
+            typeSeq = p[3]
+        p[0] = ast.Constr(p[1], typeSeq)
 
     def p_type_seq(self, p):
         """type_seq : type
@@ -135,7 +137,7 @@ class LlamaParser:
 
     def p_function_type(self, p):
         """function_type : type ARROW type"""
-        p[0] = ast.FunctionType(p[1], p[3])
+        p[0] = type.Function(p[1], p[3])
 
     def p_star_comma_seq(self, p):
         """star_comma_seq : TIMES
@@ -182,8 +184,8 @@ class LlamaParser:
         """function_def : GENID param_list EQ expr
                         | GENID param_list COLON type EQ expr"""
         if len(p) == 7:
-            type = p[5]
-            body = p[7]
+            type = p[4]
+            body = p[6]
         else:
             type = None
             body = p[4]
@@ -208,7 +210,7 @@ class LlamaParser:
         dataType = None
         if len(p) == 8:
             dataType = p[7]
-        p[0] = ast.VariableDef(p[2], type.Array(refType=dataType, dim=p[4]))
+        p[0] = ast.ArrayVariableDef(p[2], dataType, p[4])
 
     def p_expr_comma_seq(self, p):
         """expr_comma_seq : expr
@@ -248,44 +250,55 @@ class LlamaParser:
 
     def p_iconst_simple_expr(self, p):
         """iconst_simple_expr : ICONST"""
-        p[0] = ast.SimpleExpression(type='ICONST', value=p[1])
+        p[0] = ast.IconstExpression(p[1])
 
     def p_fconst_simple_expr(self, p):
         """fconst_simple_expr : FCONST"""
-        p[0] = ast.SimpleExpression(type='FCONST', value=p[1])
+        p[0] = ast.FconstExpression(p[1])
 
     def p_cconst_simple_expr(self, p):
         """cconst_simple_expr : CCONST"""
-        p[0] = ast.SimpleExpression(type='CCONST', value=p[1])
+        p[0] = ast.CconstExpression(value=p[1])
 
     def p_sconst_simple_expr(self, p):
         """sconst_simple_expr : SCONST"""
-        p[0] = ast.SimpleExpression(type='SCONST', value=p[1])
+        p[0] = ast.SconstExpression(p[1])
 
     def p_bconst_simple_expr(self, p):
         """bconst_simple_expr : TRUE
                               | FALSE"""
-        p[0] = ast.SimpleExpression(type='BCONST', value=p[1])
+        p[0] = ast.BconstExpression(p[1])
 
     def p_uconst_simple_expr(self, p):
         """uconst_simple_expr : LPAREN RPAREN"""
-        p[0] = ast.SimpleExpression(type='UCONST', value=None)
+        p[0] = ast.UconstExpression()
 
     def p_genid_simple_expr(self, p):
         """genid_simple_expr : GENID"""
-        p[0] = ast.SimpleExpression(type='GENID', value=p[1])
+        p[0] = ast.GenidExpression(p[1])
 
     def p_conid_simple_expr(self, p):
         """conid_simple_expr : CONID"""
-        p[0] = ast.SimpleExpression(type='CONID', value=p[1])
+        p[0] = ast.ConidExpression(p[1])
 
     def p_expr(self, p):
         """expr : simpleexpr
+                | gcall_expr
+                | ccall_expr
+                | dim_expr
+                | new_expr
+                | delete_expr
+                | in_expr
+                | begin_end_expr
+                | if_expr
+                | for_expr
+                | while_expr
+                | match_expr
+                | NOT expr
                 | PLUS expr %prec SIGN
                 | MINUS expr %prec SIGN
                 | FPLUS expr %prec SIGN
                 | FMINUS expr %prec SIGN
-                | NOT expr
                 | expr PLUS expr
                 | expr MINUS expr
                 | expr TIMES expr
@@ -307,27 +320,14 @@ class LlamaParser:
                 | expr BOR expr
                 | expr BAND expr
                 | expr SEMICOLON expr
-                | expr ASSIGN expr
-                | genid_expr
-                | conid_expr
-                | dim_expr
-                | new_expr
-                | delete_expr
-                | in_expr
-                | begin_end_expr
-                | if_expr
-                | for_expr
-                | while_expr
-                | match_expr"""
+                | expr ASSIGN expr"""
         if len(p) == 2:
             # delegated to other expression / rule
             p[0] = p[1]
         elif len(p) == 3:
             p[0] = ast.UnaryExpression(p[1], p[2])
-        elif len(p) == 4:
-            p[0] = ast.BinaryExpression(p[2], p[1], p[3])
         else:
-            print("Problem")
+            p[0] = ast.BinaryExpression(p[2], p[1], p[3])
 
         # p[0] = [
         #     lambda: p[1],
@@ -344,51 +344,49 @@ class LlamaParser:
         #     p[0] = ast.BinaryExpression(p[1], p[3])
         #     return
 
-    def p_genid_expr(self, p):
-        """genid_expr : GENID simpleexpr_seq"""
-        p[0] = ast.GenidExpression(p[1], p[2])
+    def p_gcall_expr(self, p):
+        """gcall_expr : GENID simpleexpr_seq"""
+        p[0] = ast.GcallExpression(p[1], p[2])
 
-    def p_conid_expr(self, p):
-        """conid_expr : CONID simpleexpr_seq"""
-        p[0] = ast.ConidExpression(p[1], p[2])
+    def p_ccall_expr(self, p):
+        """ccall_expr : CONID simpleexpr_seq"""
+        p[0] = ast.CcallExpression(p[1], p[2])
 
     def p_dim_expr(self, p):
         """dim_expr : DIM GENID
                     | DIM ICONST GENID"""
         if len(p) == 3:
-            ddim = 0
-            id = p[2]
+            dim = 0
+            name = p[2]
         else:
-            ddim = p[1]
-            id = p[3]
-        p[0] = ast.DimExpression(id, ddim)
+            dim = p[1]
+            name = p[3]
+        p[0] = ast.DimExpression(name, dim)
 
     def p_new_expr(self, p):
         """new_expr : NEW type"""
         p[0] = ast.NewExpression(p[2])
-        pass
 
     def p_delete_expr(self, p):
         """delete_expr : DELETE expr"""
         p[0] = ast.DeleteExpression(p[2])
-        pass
 
     def p_if_expr(self, p):
         """if_expr : IF expr THEN expr
                    | IF expr THEN expr ELSE expr"""
         if len(p) == 5:
-            elsePart = None
+            elseExpr = None
         else:
-            elsePart = p[6]
-        p[0] = ast.IfExpression(p[2], p[4], elsePart)
+            elseExpr = p[6]
+        p[0] = ast.IfExpression(p[2], p[4], elseExpr)
 
     def p_for_expr(self, p):
         """for_expr : FOR GENID EQ expr TO expr DO expr DONE
                     | FOR GENID EQ expr DOWNTO expr DO expr DONE"""
         if p[5] == 'TO':
-            p[0] = ast.ForToExpression(p[2], p[4], p[6], p[8])
+            p[0] = ast.ForExpression(p[2], p[4], p[6], p[8])
         else:
-            p[0] = ast.ForDowntoExpression(p[2], p[4], p[6], p[8])
+            p[0] = ast.ForExpression(p[2], p[4], p[6], p[8], downFlag=True)
 
     def p_while_expr(self, p):
         """while_expr : WHILE expr DO expr DONE"""
@@ -413,12 +411,12 @@ class LlamaParser:
 
     def p_clause(self, p):
         """clause : pattern ARROW expr"""
-        p[0] = ast.ClauseExpression(p[1], p[3])
+        p[0] = ast.Clause(p[1], p[3])
 
     def p_pattern(self, p):
         """pattern : simplepattern
                    | CONID simplepattern_list"""
-        if len(p) == 1:
+        if len(p) == 2:
             p[0] = p[1]
         else:
             p[0] = ast.Pattern(p[1], p[2])
@@ -437,7 +435,7 @@ class LlamaParser:
                          | bconst_simple_pattern
                          | genid_simple_pattern
                          | LPAREN pattern RPAREN"""
-        if len(p) == 1:
+        if len(p) == 2:
             p[0] = p[1]
         else:
             p[0] = p[2]
@@ -446,38 +444,38 @@ class LlamaParser:
         """iconst_simple_pattern : ICONST
                                  | PLUS ICONST"""
         if len(p) == 2:
-            p[0] = ast.SimplePattern(type='ICONST', value=p[1])
+            p[0] = ast.IconstPattern(p[1])
         else:
-            p[0] = ast.SimplePattern(type='ICONST', value=p[2])
+            p[0] = ast.IconstPattern(p[2])
 
     def p_miconst_simple_pattern(self, p):
         """miconst_simple_pattern : MINUS ICONST"""
-        p[0] = ast.SimplePattern(type='MICONST', value=-p[2])
+        p[0] = ast.IconstPattern(-p[2])
 
     def p_fconst_simple_pattern(self, p):
         """fconst_simple_pattern : FCONST
                                  | FPLUS FCONST"""
         if len(p) == 2:
-            p[0] = ast.SimplePattern(type='FCONST', value=p[1])
+            p[0] = ast.FconstPattern(p[1])
         else:
-            p[0] = ast.SimplePattern(type='FCONST', value=p[2])
+            p[0] = ast.FconstPattern(p[2])
 
     def p_mfconst_simple_pattern(self, p):
         """mfconst_simple_pattern : FMINUS FCONST"""
-        p[0] = ast.SimplePattern(type='MFCONST', value=-p[2])
+        p[0] = ast.FconstPattern(-p[2])
 
     def p_cconst_simple_pattern(self, p):
         """cconst_simple_pattern : CCONST"""
-        p[0] = ast.SimplePattern(type='CCONST', value=p[1])
+        p[0] = ast.CconstPattern(p[1])
 
     def p_bconst_simple_pattern(self, p):
         """bconst_simple_pattern : TRUE
                                  | FALSE"""
-        p[0] = ast.SimplePattern(type='BCONST', value=p[1])
+        p[0] = ast.BconstPattern(p[1])
 
     def p_genid_simple_pattern(self, p):
         """genid_simple_pattern : GENID"""
-        p[0] = ast.SimplePattern(type='GENID', value=p[1])
+        p[0] = ast.GenidPattern(p[1])
 
     def p_error(self, p):
         print("Syntax error")
