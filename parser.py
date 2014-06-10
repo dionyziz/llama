@@ -59,7 +59,7 @@ class Parser:
         """letdef : LET REC def_seq
                   | LET def_seq"""
         if len(p) == 4:
-            p[0] = ast.LetRecDef(p[3])
+            p[0] = ast.LetDef(p[3], isRec=True)
         else:
             p[0] = ast.LetDef(p[2])
 
@@ -291,7 +291,7 @@ class Parser:
         if p[5] == 'TO':
             p[0] = ast.ForExpression(p[2], p[4], p[6], p[8])
         else:
-            p[0] = ast.ForExpression(p[2], p[4], p[6], p[8], downFlag=True)
+            p[0] = ast.ForExpression(p[2], p[4], p[6], p[8], isDown=True)
 
     def p_gcall_expr(self, p):
         """gcall_expr : GENID simple_expr_seq"""

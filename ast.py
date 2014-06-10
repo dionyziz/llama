@@ -11,8 +11,6 @@
 # https://github.com/ramen/phply/blob/master/phply/phplex.py
 # ----------------------------------------------------------------------
 
-import type
-
 class Node:
     def __init__(self):
         raise NotImplementedError
@@ -22,22 +20,22 @@ class DataNode(Node):
         raise NotImplementedError
 
 class Program(DataNode):
-    def __init__(self, l):
-        self.list = l
+    def __init__(self, list):
+        self.list = list
 
 class TypeDef(Node):
-    def __init__(self, l):
-        self.list = l
+    def __init__(self, list):
+        self.list = list
 
 class TDef(Node):
-    def __init__(self, name, l):
+    def __init__(self, name, list):
         self.name = name
-        self.list = l
+        self.list = list
 
 class Constr(Node):
-    def __init__(self, name, l=None):
+    def __init__(self, name, list=None):
         self.name = name
-        self.list = l if l is not None else []
+        self.list = list or []
 
 class Param(DataNode):
     def __init__(self, name, type=None):
@@ -45,15 +43,12 @@ class Param(DataNode):
         self.type = type
 
 class LetDef(Node):
-    def __init__(self, l):
-        self.list = l
-
-class LetRecDef(Node):
-    def __init__(self, l):
-        self.list = l
+    def __init__(self, list, isRec=False):
+        self.list = list
+        self.isRec = isRec
 
 class Def(Node):
-    def __init__():
+    def __init__(self):
         raise NotImplementedError
 
 class FunctionDef(Def):
@@ -64,17 +59,15 @@ class FunctionDef(Def):
         self.type = type
 
 class VariableDef(Def):
-    def __init__(self, name, dataType=None):
-        if isinstance(dataType, type.Array):
-            raise TypeError
+    def __init__(self, name, type=None):
         self.name = name
         self.type = type
 
 class ArrayVariableDef(VariableDef):
-    def __init__(self, name, dimensions, dataType=None):
+    def __init__(self, name, dimensions, type=None):
         self.name = name
         self.dimensions = dimensions
-        self.dataType = dataType
+        self.type = type
 
 class Expression(DataNode):
     pass
@@ -84,9 +77,9 @@ class BangExpression(Expression):
         self.expr = expr
 
 class ArrayExpression(Expression):
-    def __init__(self, name, l):
+    def __init__(self, name, list):
         self.name = name
-        self.list = l
+        self.list = list
 
 class IconstExpression(Expression):
     def __init__(self, value):
@@ -121,37 +114,37 @@ class ConidExpression(Expression):
         self.name = name
 
 class UnaryExpression(Expression):
-    def __init__(self, operator, a):
+    def __init__(self, operator, operand):
         self.operator = operator
-        self.a = a
+        self.operand = operand
 
 class BinaryExpression(Expression):
-    def __init__(self, a, operator, b):
-        self.a = a
+    def __init__(self, leftOperand, operator, rightOperand):
+        self.leftOperand = leftOperand
         self.operator = operator
-        self.b = b
+        self.rightOperand = rightOperand
 
 class GcallExpression(Expression):
-    def __init__(self, name, params):
+    def __init__(self, name, list):
         self.name = name
-        self.params = params
+        self.list = list
 
 class CcallExpression(Expression):
-    def __init__(self, name, params):
+    def __init__(self, name, list):
         self.name = name
-        self.params = params
+        self.list = list
 
 class DimExpression(Expression):
     def __init__(self, name, dimension=1):
         self.name = name
-        self.dim = dimension
+        self.dimension = dimension
 
 class NewExpression(Expression):
     def __init__(self, type):
         self.type = type
 
 class DeleteExpression(Expression):
-    def __init__(self, type):
+    def __init__(self, expr):
         self.expr = expr
 
 class IfExpression(Expression):
@@ -161,12 +154,12 @@ class IfExpression(Expression):
         self.elseExpr = elseExpr
 
 class ForExpression(Expression):
-    def __init__(self, counter, startExpr, stopExpr, body, downFlag=False):
+    def __init__(self, counter, startExpr, stopExpr, body, isDown=False):
         self.counter = counter
         self.startExpr = startExpr
         self.stopExpr = stopExpr
         self.body = body
-        self.downFlag = downFlag
+        self.isDown = isDown
 
 class WhileExpression(Expression):
     def __init__(self, condition, body):
@@ -174,13 +167,13 @@ class WhileExpression(Expression):
         self.body = body
 
 class MatchExpression(Expression):
-    def __init__(self, expr, l):
+    def __init__(self, expr, list):
         self.expr = expr
-        self.list = l
+        self.list = list
 
 class LetInExpression(Expression):
-    def __init__(self, definition, expr):
-        self.definition = definition
+    def __init__(self, letdef, expr):
+        self.letdef = letdef
         self.expr = expr
 
 class Clause(Node):
@@ -189,9 +182,9 @@ class Clause(Node):
         self.expr = expr
 
 class Pattern(Node):
-    def __init__(self, name, l):
+    def __init__(self, name, list):
         self.name = name
-        self.list = l
+        self.list = list
 
 class IconstPattern(Node):
     def __init__(self, value):

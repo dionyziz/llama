@@ -4,8 +4,8 @@
 # Symbol Table for the Llama language
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
-# Author: Nick Korasidis <Renelvon@gmail.com>
-#       : Dimitris Koutsoukos <dimkou.shmmy@gmail.com>
+# Authors: Nick Korasidis <Renelvon@gmail.com>
+#          Dimitris Koutsoukos <dimkou.shmmy@gmail.com>
 # ----------------------------------------------------------------------
 
 from collections import defaultdict
@@ -24,11 +24,12 @@ class Entry:
     def __init__(self, identifier, scope):
         self.identifier = identifier
         self.scope = scope
+        # TODO: Initialize lineno and lexpos
 
 
 class Scope:
     """
-    A scope of the symbol table. Contains a set of entries,
+    A scope of the symbol table. Contains a list of entries,
     knows its nesting level and can be optionally hidden from lookup.
     """
     entries = []
@@ -40,9 +41,8 @@ class Scope:
         self.entries = entries
         self.hidden = hidden
         self.nesting = nesting
-        return self
 
-    def hide_scope(self, hidden):
+    def hide_scope(self, hidden=True):
         """Hide visibility of scope."""
         self.hidden = hidden
 
@@ -54,18 +54,16 @@ class SymbolTable:
     nesting = 0       # Inv.: nesting == len(scopes)
     cur_scope = None  # Inv.: cur_scope == _scopes[-1] if _scopes else None
 
-    """
-    Each hashtable entry is a list containing symbols with
-    the same identifier, appearing at increasing scope depth. The last
-    element is the symbol appearing in the current scope.
-    """
+    # Each hashtable entry is a list containing symbols with
+    # the same identifier, appearing at increasing scope depth.
     hash_table = defaultdict(list)
 
     def __init__(self):
-        """
-        Make a new symbol table. The table already
-        contains a scope populated with the library namespace.
-        """
+        """Make a new symbol table and insert the library namespace."""
+        self._insert_library_symbols()
+
+    def _insert_library_symbols(self):
+        """Open a new scope populated with the library namespace."""
         lib_namespace = []  # TODO: Dump library namespace here
 
         lib_scope = Scope(
@@ -79,21 +77,20 @@ class SymbolTable:
             lib_scope.entries.append(entry)
 
         self._push_scope(lib_scope)
-        return self
 
     def _push_scope(self, scope):
-        """Push scope and maintain nesting invariant."""
+        """Push 'scope' and maintain invariants."""
         self._scopes.append(scope)
         self.nesting += 1
-        self.curScope = self._scopes[-1]
+        self.cur_scope = self._scopes[-1]
 
     def _pop_scope(self):
-        """Pop scope and maintain nesting invariant."""
-        assert self.scopes, 'No scope to pop.'
-        self.nesting -= 1
+        """Pop scope and maintain invariants."""
+        assert self._scopes, 'No scope to pop.'
         old_scope = self._scopes.pop()
+        self.nesting -= 1
         if self._scopes:
-            self.cur_scope = _scopes[-1]
+            self.cur_scope = self._scopes[-1]
         else:
             self.cur_scope = None
         return old_scope
@@ -114,25 +111,24 @@ class SymbolTable:
         old_scope = self._pop_scope()
         for entry in old_scope.entries:
             eid = entry.identifier
-            assert eid in self.hash_table, 'Identifier %s not found' % eid
+            assert self.hash_table[eid], 'Identifier %s not found' % eid
             self.hash_table[entry.identifier].pop()
         return old_scope
 
     def insert_scope(self, scope):
-        """Merge scope with current scope."""
+        """Merge 'scope' with current scope."""
         assert self.cur_scope, 'No scope to merge into.'
         for entry in scope.entries:
-            assert self.cur_scope, 'Merging into null scope.'
             entry.scope = self.cur_scope
             self.hash_table[entry.identifier].append(entry)
             self.cur_scope.entries.append(entry)
 
-    def lookup_symbol(identifier, lookup_all, guard=False):
+    def lookup_symbol(self, identifier, lookup_all=False, guard=False):
         """
         Lookup 'identifier' in current scope.
         If 'lookup_all' is True, perform lookup in all scopes.
-        If 'guard' is True, alert if 'identifier' is not present
-        in checked scope(s).
+        If 'guard' is True, alert if 'identifier' is absent from
+        checked scope(s).
         """
         if lookup_all:
             for entry in reversed(self.hash_table[identifier]):
