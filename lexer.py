@@ -185,7 +185,7 @@ class _LexerBuilder:
 
         new_lexer.bol = self.bol
         new_lexer.level = self.level
-        return newLexer
+        return new_lexer
 
     def skip(self, value=1):
         """Skip 'value' characters in the input string."""
