@@ -10,7 +10,6 @@
 
 import ply.yacc as yacc
 
-import error as err
 from lexer import tokens
 
 
@@ -238,13 +237,15 @@ class LlamaParser:
         pass
 
     def p_error(self, p):
-        err.error("error: Syntax error")
+        self.logger.error("error: Syntax error")
 
     parser = None
     tokens = tokens
     debug = False
+    logger = None
 
-    def __init__(self, debug=0):
+    def __init__(self, logger, debug=0):
+        self.logger = logger
         self.parser = yacc.yacc(module=self, optimize=1, debug=debug)
 
     def parse(self, lexer, data, debug=0):

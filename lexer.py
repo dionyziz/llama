@@ -12,8 +12,6 @@
 
 import ply.lex as lex
 
-import error as err
-
 # Represent reserved words as a frozenset for fast lookup
 _reserved_words = frozenset('''
     and
@@ -123,13 +121,18 @@ class _LexerBuilder:
     # Levels of nested comment blocks still open
     level = 0
 
-    def __init__(self, verbose=False):
+    # Logger used for recording events. Possibly shared with other modules.
+    logger = None
+
+    def __init__(self, logger, verbose=False):
         """
         Initialize wrapper object of PLY lexer. To get a working lexer,
         invoke build() on the returned object.
         """
+        self.logger = logger
         self.verbose = verbose
-        err.info(__name__ + ': _LexerBuilder: wrapper initialized')
+        if self.verbose:
+            self.logger.info(__name__ + ': _LexerBuilder: wrapper initialized')
 
     # == REQUIRED METHODS ==
 
@@ -141,7 +144,8 @@ class _LexerBuilder:
         or attributes of the wrapper object are accessed.
         """
         self.lexer = lex.lex(module=self, **kwargs)
-        err.info(__name__ + ': _LexerBuilder: lexer ready ')
+        if self.verbose:
+            self.logger.info(__name__ + ': _LexerBuilder: lexer ready ')
 
     # A wrapper around the function of the inner lexer
     def token(self):
@@ -173,7 +177,13 @@ class _LexerBuilder:
         # Track the token's column instead of lexing position.
         tok.lexpos -= self.bol
         if self.verbose:
-            err.debug("%d:%d \t %s:%s", tok.lineno, tok.lexpos, tok.type, tok.value)
+            self.logger.debug(
+                "%d:%d\t%s\t%s",
+                tok.lineno,
+                tok.lexpos,
+                tok.type,
+                tok.value
+            )
         return tok
 
     def input(self, lexdata):
@@ -190,11 +200,11 @@ class _LexerBuilder:
         """Signal lexing error."""
         if lineno is not None:
             if lexpos is not None:
-                err.error( "%d:%d: error: %s", lineno, lexpos, message)
+                self.logger.error("%d:%d: error: %s", lineno, lexpos, message)
             else:
-                err.error( "%d: error: %s", lineno, message)
+                self.logger.error("%d: error: %s", lineno, message)
         else:
-            err.error( "error: %s", message)
+            self.logger.error("error: %s", message)
 
     # == LEXING OF NON-TOKENS ==
 
@@ -395,22 +405,27 @@ class Lexer:
     # The actual lexer as returned by _LexerBuilder
     _lexer = None
 
+    # Logger used for logging events. Possibly shared with other modules.
+    _logger = None
+
     # == REQUIRED METHODS (see _LexerBuilder for details) ==
 
     token = None
     input = None
     skip = None
 
-    def __init__(self, verbose=False, **kwargs):
+    def __init__(self, logger, verbose=False, **kwargs):
         """Create a new lexer."""
-        self._lexer = _LexerBuilder(verbose=verbose)
+        self._logger = logger
+        self._lexer = _LexerBuilder(logger=logger, verbose=verbose)
         self._lexer.build(**kwargs)
 
         # Bind methods of interface to _LexerBuilder object methods.
         self.token = self._lexer.token
         self.input = self._lexer.input
         self.skip  = self._lexer.skip
-        err.info(__name__ + ': Lexer: lexer ready')
+        if verbose:
+            self._logger.info(__name__ + ': Lexer: lexer ready')
 
     # == EXPORT POSITION ATTRIBUTES ==
 

@@ -38,7 +38,7 @@ def mk_CLI_parser():
             ''',
         nargs='?',
         const=None,
-        default=None
+        default='<stdin>'
     )
 
     CLI_parser.add_argument(
@@ -85,31 +85,31 @@ def mk_CLI_parser():
     return CLI_parser
 
 
-def input(input_file=None):
+def input(input_file):
     """
     Read input from file or stdin (if a file is not provided).
     Return read input as a single string.
     """
-    if input_file:
+    if input_file == '<stdin>':
+        sys.stdout.write("Reading from stdin (type <EOF> to end):\n")
+        sys.stdout.flush()
+        data = sys.stdin.read()
+    else:
         try:
             fd = open(input_file)
             data = fd.read()
             fd.close()
-        except IOError as e:
+        except IOError:
             sys.exit(
                 'Could not open file %s for reading. Aborting.'
                 % input_file
             )
-    else:
-        opts['input'] = '<stdin>'
-        sys.stdout.write("Reading from stdin (type <EOF> to end):\n")
-        sys.stdout.flush()
-        data = sys.stdin.read()
     return data
 
 
-# One function to invoke them all!
 def main():
+    """One function to invoke them all!"""
+
     # Parse command line.
     parser = mk_CLI_parser()
     args = parser.parse_args()
@@ -121,20 +121,24 @@ def main():
     opts['lexer_verbose'] = args.lexer_verbose
     opts['parser_debug'] = args.parser_debug
 
-    # Initiaize the error logger
-    #err.init_logger(inputfile=opts['input'], level=logging.DEBUG)
+    # Create an error logger
+    logger = err.Logger(
+        inputfile=opts['input'],
+        level=logging.DEBUG
+    )
 
     # Make a lexer. By default, the lexer accepts only ASCII
     # and is optimized (i.e caches the lexing tables across
     # invocations).
     lexer = lex.Lexer(
         lextab='lextab',
+        logger=logger,
         optimize=1,
         reflags=re.ASCII,
         verbose=opts['lexer_verbose'])
 
     # Make a parser.
-    parser = prs.LlamaParser()
+    parser = prs.LlamaParser(logger=logger)
 
     # Stop here if this a dry run
     if opts['prepare']:
@@ -143,7 +147,6 @@ def main():
 
     # Get some input.
     data = input(opts['input'])
-
 
     # Parse.
     parser.parse(
