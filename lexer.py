@@ -118,7 +118,7 @@ class _LexerBuilder:
     verbose = False
 
     # File position of the most recent beginning of line
-    bol = 0
+    bol = -1
 
     # Levels of nested comment blocks still open
     level = 0
@@ -168,8 +168,8 @@ class _LexerBuilder:
                 )
             return None
 
-        # Track the token's (last) column instead of lexing position.
-        t.lexpos = self.lexer.lexpos - self.bol
+        # Track the token's column instead of lexing position.
+        t.lexpos -= self.bol
         if self.verbose:
             print(t.type, t.value, t.lineno, t.lexpos)
         return t
@@ -237,7 +237,7 @@ class _LexerBuilder:
                 t.lineno
             )
             self.lexer.begin('INITIAL')
-        self.bol = t.lexer.lexpos
+        self.bol = self.lexer.lexpos - 1
 
     # Single-line comments. Do not consume the newline.
     def t_SCOMMENT(self, t):
@@ -337,7 +337,7 @@ class _LexerBuilder:
             self.error_out(
                 "Floating-point constant is irrepresentable.",
                 t.lineno,
-                t.lexpos - self.bol + 1
+                t.lexpos - self.bol
             )
             t.value = 0.0
         return t
@@ -364,10 +364,10 @@ class _LexerBuilder:
             self.error_out(
                 "Unclosed character literal.",
                 t.lineno,
-                t.lexpos - self.bol + 1
+                t.lexpos - self.bol
             )
         t.value = t.value.rstrip("'")
-        t.lexer.begin('INITIAL')
+        self.lexer.begin('INITIAL')
         return t
 
     def t_char_RCHAR(self, t):
@@ -375,9 +375,9 @@ class _LexerBuilder:
         self.error_out(
             "Empty character literal not allowed.",
             t.lineno,
-            t.lexpos - self.bol + 1
+            t.lexpos - self.bol
         )
-        t.lexer.begin('INITIAL')
+        self.lexer.begin('INITIAL')
 
     # String constants
     # FIXME: Ask if empty string is valid
@@ -391,7 +391,7 @@ class _LexerBuilder:
             self.error_out(
                 "Unclosed string literal.",
                 t.lineno,
-                t.lexpos - self.bol + 1
+                t.lexpos - self.bol
             )
         t.value = t.value.rstrip('"')
         self.lexer.begin('INITIAL')
@@ -402,7 +402,7 @@ class _LexerBuilder:
         self.error_out(
             "Illegal character '%s'" % t.value[0],
             t.lineno,
-            t.lexpos - self.bol + 1
+            t.lexpos - self.bol
         )
         self.lexer.skip(1)
         self.lexer.begin('INITIAL')
@@ -442,24 +442,12 @@ class Lexer:
     @property
     def lexpos(self):
         """Return column following last token matched in current line."""
-        # FIXME: Is that correct?
-        return self._lexer.lexer.lexpos - self._lexer.bol + 1
-
-    # NOTE: Since we use lexpos to track column position instead of
-    # file position, there is no meaningful lexpos.setter method.
-    @lexpos.setter
-    def lexpos(self, value=None):
-        raise NotImplementedError
+        return self._lexer.lexer.lexpos - self._lexer.bol
 
     @property
     def lineno(self):
         """Return current line of input"""
         return self._lexer.lexer.lineno
-
-    @lineno.setter
-    def lineno(self, value):
-        """Update line tracking."""
-        self._lexer.lexer.lineno = value
 
     def __init__(self, verbose=False, **kwargs):
         """Create a new lexer."""
