@@ -147,21 +147,21 @@ class _LexerBuilder:
         Return a token to caller. Detect when <EOF> has been reached.
         Signal abnormal cases.
         """
-        t = self.lexer.token()
-        if t is None:
+        tok = self.lexer.token()
+        if tok is None:
             # Check for abnormal EOF
-            st = self.lexer.current_state()
-            if st == "comment":
+            state = self.lexer.current_state()
+            if state == "comment":
                 self.error_out(
                     "Unclosed comment reaching end of file.",
                     self.lexer.lineno
                 )
-            elif st == "string":
+            elif state == "string":
                 self.error_out(
                     "Unclosed string reaching end of file.",
                     self.lexer.lineno
                 )
-            elif st == "char":
+            elif state == "char":
                 self.error_out(
                     "Unclosed character literal at end of file.",
                     self.lexer.lineno
@@ -169,23 +169,14 @@ class _LexerBuilder:
             return None
 
         # Track the token's column instead of lexing position.
-        t.lexpos -= self.bol
+        tok.lexpos -= self.bol
         if self.verbose:
-            print(t.type, t.value, t.lineno, t.lexpos)
-        return t
+            print(tok.type, tok.value, tok.lineno, tok.lexpos)
+        return tok
 
     def input(self, lexdata):
         """Feed the lexer with input."""
         self.lexer.input(lexdata)
-
-    def clone(self):
-        """Return a copy of the current lexer."""
-        new_lexer = _LexerBuilder(verbose=self.verbose)
-        new_lexer.lexer = self.lexer.clone()
-
-        new_lexer.bol = self.bol
-        new_lexer.level = self.level
-        return new_lexer
 
     def skip(self, value=1):
         """Skip 'value' characters in the input string."""
@@ -197,23 +188,12 @@ class _LexerBuilder:
         """Signal lexing error."""
         if lineno is not None:
             if lexpos is not None:
-                s = "%d:%d error: %s" % (lineno, lexpos, message)
+                msg = "%d:%d error: %s" % (lineno, lexpos, message)
             else:
-                s = "%d: error: %s" % (lineno, message)
+                msg = "%d: error: %s" % (lineno, message)
         else:
-            s = "error: %s" % (message)
-        err.push_error(lineno or 0, s)
-
-    def warning_out(self, message, lineno=None, lexpos=None):
-        """Signal lexing warning."""
-        if lineno is not None:
-            if lexpos is not None:
-                s = "%s: %d:%d warning: %s" % (lineno, lexpos, message)
-            else:
-                s = "%s: %d: warning: %s" % (lineno, message)
-        else:
-            s = "%s: warning: %s" % (message)
-        err.push_warning(lineno or 0, s)
+            msg = "error: %s" % (message)
+        err.push_error(lineno or 0, msg)
 
     # == LEXING OF NON-TOKENS ==
 
@@ -221,39 +201,39 @@ class _LexerBuilder:
     t_INITIAL_ignore = " \r\t"
 
     # Newlines
-    def t_ANY_newline(self, t):
+    def t_ANY_newline(self, tok):
         r'\n+'
-        self.lexer.lineno += len(t.value)
-        st = self.lexer.current_state()
-        if st == "string":
+        self.lexer.lineno += len(tok.value)
+        state = self.lexer.current_state()
+        if state == "string":
             self.error_out(
                 "String spanning multiple lines (unclosed string).",
-                t.lineno
+                tok.lineno
             )
             self.lexer.begin('INITIAL')
-        elif st == "char":
+        elif state == "char":
             self.error_out(
                 "Character spanning multiple lines (unclosed character).",
-                t.lineno
+                tok.lineno
             )
             self.lexer.begin('INITIAL')
         self.bol = self.lexer.lexpos - 1
 
     # Single-line comments. Do not consume the newline.
-    def t_SCOMMENT(self, t):
+    def t_SCOMMENT(self, _):
         r'--[^\n]*'
         pass
 
     t_comment_ignore = " \r\t"
 
     # Start of block comment
-    def t_INITIAL_comment_LCOMMENT(self, t):
+    def t_INITIAL_comment_LCOMMENT(self, _):
         r'\(\*'
         self.level += 1
         self.lexer.begin('comment')
 
     # End of block comment
-    def t_comment_RCOMMENT(self, t):
+    def t_comment_RCOMMENT(self, _):
         r'\*\)'
         if self.level > 1:
             self.level -= 1
@@ -264,7 +244,7 @@ class _LexerBuilder:
     # Ignore (almost) anything inside a block comment
     # but stop matching when '(', '*' or a newline appears.
     # Match each comment-initiating character seperately.
-    def t_comment_SPECIAL(self, t):
+    def t_comment_SPECIAL(self, _):
         r'[(*]|[^\n(*]+'
         pass
 
@@ -322,87 +302,87 @@ class _LexerBuilder:
     t_CONID     = r'[A-Z][A-Za-z0-9_]*'
 
     # Generic identifiers and reserved words
-    def t_GENID(self, t):
+    def t_GENID(self, tok):
         r'[a-z][A-Za-z0-9_]*'
-        if t.value in _reserved_words:
-            t.type = t.value.upper()
-        return t
+        if tok.value in _reserved_words:
+            tok.type = tok.value.upper()
+        return tok
 
     # Floating-point constants
-    def t_FCONST(self, t):
+    def t_FCONST(self, tok):
         r'\d+\.\d+([eE]([+\-]?)\d+)?'
         try:
-            t.value = float(t.value)
+            tok.value = float(tok.value)
         except OverflowError:
             self.error_out(
                 "Floating-point constant is irrepresentable.",
-                t.lineno,
-                t.lexpos - self.bol
+                tok.lineno,
+                tok.lexpos - self.bol
             )
-            t.value = 0.0
-        return t
+            tok.value = 0.0
+        return tok
 
     # Integer constants
-    def t_ICONST(self, t):
+    def t_ICONST(self, tok):
         r'\d+'
-        t.value = int(t.value)
+        tok.value = int(tok.value)
         # TODO Check if constant is too big in another module.
-        return t
+        return tok
 
     # FIXME: Inappropriate (?)
     t_char_string_ignore = "\r\t"
 
     # Char constants
-    def t_INITIAL_LCHAR(self, t):
+    def t_INITIAL_LCHAR(self, _):
         r'\''
         self.lexer.begin('char')
 
-    def t_char_CCONST(self, t):
+    def t_char_CCONST(self, tok):
         r'(([^\\\'\"])|(\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2}))(\'?)'
         # TODO: Unescape it
-        if t.value[-1] != "'":
+        if tok.value[-1] != "'":
             self.error_out(
                 "Unclosed character literal.",
-                t.lineno,
-                t.lexpos - self.bol
+                tok.lineno,
+                tok.lexpos - self.bol
             )
-        t.value = t.value.rstrip("'")
+        tok.value = tok.value.rstrip("'")
         self.lexer.begin('INITIAL')
-        return t
+        return tok
 
-    def t_char_RCHAR(self, t):
+    def t_char_RCHAR(self, tok):
         r'\''
         self.error_out(
             "Empty character literal not allowed.",
-            t.lineno,
-            t.lexpos - self.bol
+            tok.lineno,
+            tok.lexpos - self.bol
         )
         self.lexer.begin('INITIAL')
 
     # String constants
     # FIXME: Ask if empty string is valid
-    def t_INITIAL_LSTRING(self, t):
+    def t_INITIAL_LSTRING(self, _):
         r'"'
-        t.lexer.begin('string')
+        self.lexer.begin('string')
 
-    def t_string_SCONST(self, t):
+    def t_string_SCONST(self, tok):
         r'(([^\\\'\"])|(\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2}))+("?)'
-        if t.value[-1] != '"':
+        if tok.value[-1] != '"':
             self.error_out(
                 "Unclosed string literal.",
-                t.lineno,
-                t.lexpos - self.bol
+                tok.lineno,
+                tok.lexpos - self.bol
             )
-        t.value = t.value.rstrip('"')
+        tok.value = tok.value.rstrip('"')
         self.lexer.begin('INITIAL')
-        return t
+        return tok
 
     # Catch-all error reporting
-    def t_ANY_error(self, t):
+    def t_ANY_error(self, tok):
         self.error_out(
-            "Illegal character '%s'" % t.value[0],
-            t.lineno,
-            t.lexpos - self.bol
+            "Illegal character '%s'" % tok.value[0],
+            tok.lineno,
+            tok.lexpos - self.bol
         )
         self.lexer.skip(1)
         self.lexer.begin('INITIAL')
@@ -414,30 +394,23 @@ class Lexer:
     # The actual lexer as returned by _LexerBuilder
     _lexer = None
 
-    # == REQUIRED METHODS (see __LexerBuilder for details) ==
+    # == REQUIRED METHODS (see _LexerBuilder for details) ==
 
     token = None
     input = None
-    clone = None
     skip = None
 
-    # == EXPORT PLY ATTRIBUTES ==
+    def __init__(self, verbose=False, **kwargs):
+        """Create a new lexer."""
+        self._lexer = _LexerBuilder(verbose=verbose)
+        self._lexer.build(**kwargs)
 
-    # NOTE: These poke deep inside the _LexerBuilder code...
-    @property
-    def lexdata(self):
-        """Return the lexer's input string."""
-        return self._lexer.lexer.lexdata
+        # Bind methods of interface to _LexerBuilder object methods.
+        self.token = self._lexer.token
+        self.input = self._lexer.input
+        self.skip  = self._lexer.skip
 
-    @lexdata.setter
-    def lexdata(self, value):
-        """Set lexer's input string."""
-        self._lexer.lexer.lexdata = value
-
-    @property
-    def lexmatch(self):
-        """Return the latest matched token as a Match object."""
-        return self._lexer.lexer.lexmatch
+    # == EXPORT POSITION ATTRIBUTES ==
 
     @property
     def lexpos(self):
@@ -449,24 +422,13 @@ class Lexer:
         """Return current line of input"""
         return self._lexer.lexer.lineno
 
-    def __init__(self, verbose=False, **kwargs):
-        """Create a new lexer."""
-        self._lexer = _LexerBuilder(verbose=verbose)
-        self._lexer.build(**kwargs)
-
-        # Bind methods of interface to _LexerBuilder object methods.
-        self.token = self._lexer.token
-        self.input = self._lexer.input
-        self.clone = self._lexer.clone
-        self.skip  = self._lexer.skip
-
     # == ITERATOR INTERFACE ==
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        t = self.token()
-        if t is None:
+        tok = self.token()
+        if tok is None:
             raise StopIteration
-        return t
+        return tok
