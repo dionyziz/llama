@@ -1,11 +1,13 @@
+"""
 # ----------------------------------------------------------------------
 # main.py
 #
-# Main module for the Llama language
+# Main module for the Llama compiler
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
 # Author: Nick Korasidis <Renelvon@gmail.com>
 # ----------------------------------------------------------------------
+"""
 
 import argparse
 import collections

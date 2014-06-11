@@ -1,3 +1,4 @@
+"""
 # ----------------------------------------------------------------------
 # lexer.py
 #
@@ -9,6 +10,7 @@
 # Lexer design is heavily inspired from the PHPLY lexer
 # https://github.com/ramen/phply/blob/master/phply/phplex.py
 # ----------------------------------------------------------------------
+"""
 
 import ply.lex as lex
 
@@ -104,9 +106,9 @@ class _LexerBuilder:
 
     # Lexer states
     states = (
-        ('comment', 'exclusive'),
-        ('char',    'exclusive'),
-        ('string',  'exclusive')
+        ('char', 'exclusive'),
+        ('string', 'exclusive'),
+        ('comment', 'exclusive')
     )
 
     # The raw lexer derived from PLY.
