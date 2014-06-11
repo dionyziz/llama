@@ -9,6 +9,7 @@
 
 import argparse
 import collections
+import logging
 import re
 import sys
 
@@ -120,6 +121,9 @@ def main():
     opts['lexer_verbose'] = args.lexer_verbose
     opts['parser_debug'] = args.parser_debug
 
+    # Initiaize the error logger
+    #err.init_logger(inputfile=opts['input'], level=logging.DEBUG)
+
     # Make a lexer. By default, the lexer accepts only ASCII
     # and is optimized (i.e caches the lexing tables across
     # invocations).
@@ -140,18 +144,12 @@ def main():
     # Get some input.
     data = input(opts['input'])
 
-    # Initiaize the error logger
-    err.init_logger(opts['input'])
 
     # Parse.
     parser.parse(
         lexer=lexer,
         data=data,
         debug=opts['parser_debug'])
-
-    # Output all errors and warnings to stderr.
-    for msg in err.get_all_signals():
-        print(msg, file=sys.stderr)
 
 if __name__ == '__main__':
     main()

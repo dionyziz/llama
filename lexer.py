@@ -114,7 +114,7 @@ class _LexerBuilder:
     # The raw lexer derived from PLY.
     lexer = None
 
-    # If verbose is True, tokens will be duplicated to stdout.
+    # If 'verbose' is True, each token will be stored as a DEBUG event.
     verbose = False
 
     # File position of the most recent beginning of line
@@ -129,6 +129,7 @@ class _LexerBuilder:
         invoke build() on the returned object.
         """
         self.verbose = verbose
+        err.info(__name__ + ': _LexerBuilder: wrapper initialized')
 
     # == REQUIRED METHODS ==
 
@@ -140,6 +141,7 @@ class _LexerBuilder:
         or attributes of the wrapper object are accessed.
         """
         self.lexer = lex.lex(module=self, **kwargs)
+        err.info(__name__ + ': _LexerBuilder: lexer ready ')
 
     # A wrapper around the function of the inner lexer
     def token(self):
@@ -171,7 +173,7 @@ class _LexerBuilder:
         # Track the token's column instead of lexing position.
         tok.lexpos -= self.bol
         if self.verbose:
-            print(tok.type, tok.value, tok.lineno, tok.lexpos)
+            err.debug("%d:%d \t %s:%s", tok.lineno, tok.lexpos, tok.type, tok.value)
         return tok
 
     def input(self, lexdata):
@@ -188,12 +190,11 @@ class _LexerBuilder:
         """Signal lexing error."""
         if lineno is not None:
             if lexpos is not None:
-                msg = "%d:%d error: %s" % (lineno, lexpos, message)
+                err.error( "%d:%d: error: %s", lineno, lexpos, message)
             else:
-                msg = "%d: error: %s" % (lineno, message)
+                err.error( "%d: error: %s", lineno, message)
         else:
-            msg = "error: %s" % (message)
-        err.push_error(lineno or 0, msg)
+            err.error( "error: %s", message)
 
     # == LEXING OF NON-TOKENS ==
 
@@ -409,6 +410,7 @@ class Lexer:
         self.token = self._lexer.token
         self.input = self._lexer.input
         self.skip  = self._lexer.skip
+        err.info(__name__ + ': Lexer: lexer ready')
 
     # == EXPORT POSITION ATTRIBUTES ==
 
