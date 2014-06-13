@@ -12,7 +12,7 @@
 
 import ply.yacc as yacc
 
-import lexer
+import lexer as lex
 
 
 class LlamaParser:
@@ -250,7 +250,7 @@ class LlamaParser:
         )
 
     parser = None
-    tokens = lexer.tokens
+    tokens = lex.tokens
     debug = False
     logger = None
 

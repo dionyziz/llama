@@ -21,18 +21,18 @@ import parser as prs
 
 # Compiler invocation options and switches.
 # Available to all modules.
-opts = collections.defaultdict(lambda: None)
+OPTS = collections.defaultdict(lambda: None)
 
 
-def mk_CLI_parser():
-    """Generate a CLI parser for the llama compiler."""
+def mk_cli_parser():
+    """Generate a cli parser for the llama compiler."""
 
-    CLI_parser = argparse.ArgumentParser(
+    cli_parser = argparse.ArgumentParser(
         description='Llama compiler.',
         epilog='Use at your own RISC.'
     )
 
-    CLI_parser.add_argument(
+    cli_parser.add_argument(
         '-i',
         '--input',
         help='''
@@ -43,7 +43,7 @@ def mk_CLI_parser():
         default='<stdin>'
     )
 
-    CLI_parser.add_argument(
+    cli_parser.add_argument(
         '-o',
         '--output',
         help='''
@@ -53,7 +53,7 @@ def mk_CLI_parser():
         default='a.out'
     )
 
-    CLI_parser.add_argument(
+    cli_parser.add_argument(
         '-pp',
         '--prepare',
         help='''
@@ -63,7 +63,7 @@ def mk_CLI_parser():
         default=False
     )
 
-    CLI_parser.add_argument(
+    cli_parser.add_argument(
         '-lv',
         '--lexer_verbose',
         help='''
@@ -74,7 +74,7 @@ def mk_CLI_parser():
         default=False
     )
 
-    CLI_parser.add_argument(
+    cli_parser.add_argument(
         '-pd',
         '--parser_debug',
         help='''
@@ -84,13 +84,13 @@ def mk_CLI_parser():
         action='store_true',
         default=0
     )
-    return CLI_parser
+    return cli_parser
 
 
-def input(input_file):
+def read_program(input_file):
     """
     Read input from file or stdin (if a file is not provided).
-    Return read input as a single string.
+    Return read program as a single string.
     """
     if input_file == '<stdin>':
         sys.stdout.write("Reading from stdin (type <EOF> to end):\n")
@@ -98,9 +98,9 @@ def input(input_file):
         data = sys.stdin.read()
     else:
         try:
-            fd = open(input_file)
-            data = fd.read()
-            fd.close()
+            file = open(input_file)
+            data = file.read()
+            file.close()
         except IOError:
             sys.exit(
                 'Could not open file %s for reading. Aborting.'
@@ -113,19 +113,19 @@ def main():
     """One function to invoke them all!"""
 
     # Parse command line.
-    parser = mk_CLI_parser()
+    parser = mk_cli_parser()
     args = parser.parse_args()
 
     # Store options & switches in global dict.
-    opts['input'] = args.input
-    opts['output'] = args.output
-    opts['prepare'] = args.prepare
-    opts['lexer_verbose'] = args.lexer_verbose
-    opts['parser_debug'] = args.parser_debug
+    OPTS['input'] = args.input
+    OPTS['output'] = args.output
+    OPTS['prepare'] = args.prepare
+    OPTS['lexer_verbose'] = args.lexer_verbose
+    OPTS['parser_debug'] = args.parser_debug
 
     # Create an error logger
     logger = err.Logger(
-        inputfile=opts['input'],
+        inputfile=OPTS['input'],
         level=logging.DEBUG
     )
 
@@ -137,24 +137,24 @@ def main():
         logger=logger,
         optimize=1,
         reflags=re.ASCII,
-        verbose=opts['lexer_verbose'])
+        verbose=OPTS['lexer_verbose'])
 
     # Make a parser.
     parser = prs.LlamaParser(logger=logger)
 
     # Stop here if this a dry run
-    if opts['prepare']:
+    if OPTS['prepare']:
         print('Finished generating lexer and parser tables. Exiting...')
         return
 
     # Get some input.
-    data = input(opts['input'])
+    data = read_program(OPTS['input'])
 
     # Parse.
     parser.parse(
         lexer=lexer,
         data=data,
-        debug=opts['parser_debug'])
+        debug=OPTS['parser_debug'])
 
 if __name__ == '__main__':
     main()
