@@ -1,0 +1,35 @@
+---v RIGHT v---
+type color = Red | Green | Blue
+
+type number = Integer of int | Real of float | Complex of float float
+
+type list = Nil | Cons of int list
+
+type tree = Leaf | Node of int forest
+and  forest = Empty | NonEmpty of tree forest
+
+---x WRONG x---
+-- No type redefinition
+type same = Foo | Bar
+type same = Foo2 | Bar2
+
+-- No constructor sharing
+type one = Con1 | Con2
+type two = Con1 | Con2
+
+-- No constructor reuse
+type dup = ConDup | ConDup
+
+-- No reference to undefined type
+type what = What of undeftype
+
+-- No redefinition of builtin types
+-- FIXME: These are currently treated as syntax errors, because a type must begin with a GENID
+type bool = BoolCon
+type int = IntCon
+type float = FloatCon
+type char = CharCon
+type unit = UnitCon
+
+-- TODO: Is type string allowed?
+-- TODO: Emmit warnings when typenames clash with definition names.
