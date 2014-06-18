@@ -10,44 +10,63 @@
 # ----------------------------------------------------------------------
 
 class Type():
+    name = None
+
     def __init__(self):
         raise NotImplementedError
 
-class Base(Type):
+    def __eq__(self, other):
+        """Simple and strict type equality. Override as needed."""
+        return self.name == other.name
+
+    def __hash__(self):
+        """Simple hash. Override as needed."""
+        return hash(self.name)
+
+class BaseType(Type):
     def __init__(self):
         raise NotImplementedError
 
-class Unit(Base):
+class Unit(BaseType):
     name = 'unit'
+
     def __init__(self):
         pass
 
-class Int(Base):
+class Int(BaseType):
     name = 'int'
+
     def __init__(self):
         pass
 
-class Char(Base):
+class Char(BaseType):
     name = 'char'
+
     def __init__(self):
         pass
 
-class String(Char):
+# NOTE: Why did this inherit from Char?
+class String(BaseType):
     name = 'string'
+
     def __init__(self):
         pass
 
-class Bool(Base):
+class Bool(BaseType):
     name = 'bool'
+
     def __init__(self):
         pass
 
-class Float(Base):
+class Float(BaseType):
     name = 'float'
+
     def __init__(self):
         pass
 
 class User(Type):
+    name = None
+
     def __init__(self, name):
         self.name = name
 
@@ -55,15 +74,36 @@ class Ref(Type):
     def __init__(self, type):
         self.type = type
 
+    def __eq__(self, other):
+        return isinstance(other, Ref) and self.type == other.type
+
+    def __hash__(self):
+        # Merkle-Damgard!
+        return hash('ref' + hash(self.type))
+
 class Array(Type):
-    def __init__(self, type, dim=1):
+    def __init__(self, type, dimensions=1):
         self.type = type
-        self.dim = dim
+        self.dimensions = dimensions
+
+    def __eq__(self, other):
+        return isinstance(other, Array) and self.type == other.type and self.dimensions == other.dimensions
+
+    def __hash__(self):
+        # Merkle-Damgard!
+        return hash('array' + str(self.dimensions) + hash(self.type))
 
 class Function(Type):
     def __init__(self, fromType, toType):
         self.fromType = fromType
         self.toType = toType
+
+    def __eq__(self, other):
+        return isinstance(other, Function) and self.fromType == other.fromType and self.toType == other.toType
+
+    def __hash__(self):
+        # Merkle-Damgard!
+        return hash('function' + hash(self.fromType) + hash(self.toType))
 
 class TypeTable(Type):
     """
@@ -75,9 +115,9 @@ class TypeTable(Type):
     knownTypes = {'bool', 'int', 'float', 'char', 'unit'}
 
     # Dictionary of constructors encountered so far.
-    # Each key contains a tuple (t, params), where:
-    #   t is the type to which the constructor belongs
-    #   params are the arguments of the constructor
+    # Each key contains a tuple (t, params):
+    #   t       type which the constructor belongs to
+    #   params  type arguments of the constructor
     knownConstructors = {}
 
     # Logger used for logging events. Possibly shared with other modules.
@@ -97,27 +137,30 @@ class TypeTable(Type):
         for newtype in typeDefList:
             if newtype.name in self.knownTypes:
                 self._logger.error(
-                    #FIXME Add meaningful line
+                    # FIXME Add meaningful line
                     "error: Type reuse"
-                    #TODO Show previous definition
+                    # TODO Show previous definition
                 )
             else:
                 self.knownTypes.add(newtype.name)
 
         # Process each constructor.
         for tdef in typeDefList:
-            for c in tdef:
-                if c.name in self.knownConstructors:
+            for constructor in tdef:
+                if constructor.name in self.knownConstructors:
                     self._logger.error(
-                        #FIXME add meaningful line
+                        # FIXME add meaningful line
                         "error: Constructor reuse"
-                        #TODO Show previous use
+                        # TODO Show previous use
                     )
                 else:
-                    for t in c.list:
-                        if t.name not in self.knownTypes:
+                    for argType in constructor.list:
+                        if argType.name not in self.knownTypes:
                             self._logger.error(
-                                #FIXME Add meaningful line
+                                # FIXME Add meaningful line
                                 "error: Type not defined"
                             )
-                    self.knownConstructors[c.name] = (tdef.name, c.list)
+                    self.knownConstructors[constructor.name] = (
+                        tdef.name,
+                        constructor.list
+                    )
