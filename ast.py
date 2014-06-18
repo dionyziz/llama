@@ -157,10 +157,17 @@ class TypeDefList(Node):
     def __init__(self, list):
         self.list = list
 
+    def __iter__(self):
+        return iter(self.list)
+
 class TDef(Node):
     def __init__(self, name, list):
         self.name = name
         self.list = list
+
+# FIXME Refactor me
+    def __iter__(self):
+        return iter(self.list)
 
 class Constructor(Node):
     def __init__(self, name, list=None):
