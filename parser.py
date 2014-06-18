@@ -1,3 +1,4 @@
+"""
 # ----------------------------------------------------------------------
 # parser.py
 #
@@ -8,15 +9,17 @@
 #          Nick Korasidis <Renelvon@gmail.com>
 #          Dionysis Zindros <dionyziz@gmail.com>
 # ----------------------------------------------------------------------
+"""
 
 import ply.yacc as yacc
 
-from lexer import tokens
 import ast
+import lexer as lex
 import type
 
 
 class Parser:
+    """A parser for the Llama language"""
     precedence = (
         # Type operator precedence
         ('right', 'ARROW'),
@@ -454,7 +457,14 @@ class Parser:
         self._expand_seq(p, list_idx=2)
 
     def p_error(self, p):
-        print("Syntax error")
+        """Signal syntax error"""
+        self.logger.error(
+            "%d:%d: error: Syntax error on token %s\t%s",
+            p.lineno,
+            p.lexpos,
+            p.type,
+            p.value
+        )
 
     def _expand_seq(self, p, last_idx=1, list_idx=3):
         if len(p) == last_idx + 1:
@@ -472,11 +482,13 @@ class Parser:
             p[0] = p[2]
 
     parser = None
-    tokens = tokens
+    tokens = lex.tokens
+    logger = None
     verbose = False
 
-    def __init__(self, **kwargs):
+    def __init__(self, logger, **kwargs):
         """Create a parser for the entire Llama grammar."""
+        self.logger = logger
         self.parser = yacc.yacc(module=self, start='program', **kwargs)
 
     def parse(self, data, lexer, verbose=False):

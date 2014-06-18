@@ -1,16 +1,20 @@
 PYTHON=python3
 PREPARE_FLAG=--prepare
 OPT=-OO
+SOURCEFILES=lexer.py parser.py error.py main.py
 
-.PHONY: clean prepare test alltest
+.PHONY: beauty clean prepare static test
 
 all: clean prepare test
 
-test:
-	$(PYTHON) main.py -i test/correct/fibonacci.lla
+beauty:
+	pep8 --ignore=E221 $(SOURCEFILES)
 
-alltest: clean prepare ptest.sh
+test: clean prepare ptest.sh
 	./ptest.sh
+
+static:
+	pylint -E $(SOURCEFILES)
 
 prepare:
 	$(PYTHON) main.py $(PREPARE_FLAG)

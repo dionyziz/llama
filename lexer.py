@@ -1,3 +1,4 @@
+"""
 # ----------------------------------------------------------------------
 # lexer.py
 #
@@ -9,10 +10,9 @@
 # Lexer design is heavily inspired from the PHPLY lexer
 # https://github.com/ramen/phply/blob/master/phply/phplex.py
 # ----------------------------------------------------------------------
+"""
 
 import ply.lex as lex
-
-import error as err
 
 # Represent reserved words as a frozenset for fast lookup
 _reserved_words = frozenset('''
@@ -93,110 +93,50 @@ _other_tokens = (
 tokens = _reserved_tokens + _other_tokens
 
 
-class LlamaLexer:
-    """An instrumented llama lexer"""
+class _LexerBuilder:
+    """
+    Implementation of a Llama lexer
 
-    # Token list needed by PLY
+    Defines tokens and lexing rules, performs error reporting,
+    interacts with PLY and tracks line and column numbers.
+    """
+
+    # Token list needed by PLY module
     tokens = tokens
 
     # Lexer states
     states = (
-        ('comment', 'exclusive'),
-        ('char',    'exclusive'),
-        ('string',  'exclusive')
+        ('char', 'exclusive'),
+        ('string', 'exclusive'),
+        ('comment', 'exclusive')
     )
 
-    # The inner lexer, constructed by PLY.
+    # The raw lexer derived from PLY.
     lexer = None
 
-    # == REQUIRED ATTRIBUTES (export PLY interface) ==
-    @property
-    def lexdata(self):
-        """The lexer's input string."""
-        if self.lexer:
-            return self.lexer.lexdata
-        return None
-
-    @lexdata.setter
-    def lexdata(self, value):
-        """Set lexer's input string."""
-        if self.lexer:
-            self.lexer.lexdata = value
-
-    @property
-    def lexmatch(self):
-        """The latest matched token as a Match object."""
-        if self.lexer:
-            return self.lexer.lexmatch
-        return None
-
-    @property
-    def lexpos(self):
-        """Column following last token matched in current line."""
-        if self.lexer:
-            return self.lexer.lexpos - self.bol + 1
-        return None
-
-    # NOTE: There is no meaningful lexpos.setter method to define.
-    @lexpos.setter
-    def lexpos(self, value=None):
-        raise NotImplementedError
-
-    @property
-    def lineno(self):
-        """Current line of input"""
-        if self.lexer:
-            return self.lexer.lineno
-        return None
-
-    @lineno.setter
-    def lineno(self, value):
-        """Update line tracking"""
-        if self.lexer:
-            self.lexer.lineno = value
-
-    # If debug is True, token will be duplicated to stdout.
-    debug = False
+    # If 'verbose' is True, each token will be stored as a DEBUG event.
+    verbose = False
 
     # File position of the most recent beginning of line
-    bol = 0
+    bol = -1
 
     # Levels of nested comment blocks still open
     level = 0
 
-    def __init__(self, debug=False):
+    # Logger used for recording events. Possibly shared with other modules.
+    logger = None
+
+    def __init__(self, logger, verbose=False):
         """
-        Initialize wrapper object of PLY lexer. To get a working LlamaLexer,
+        Initialize wrapper object of PLY lexer. To get a working lexer,
         invoke build() on the returned object.
         """
-        self.debug = debug
+        self.logger = logger
+        self.verbose = verbose
+        if self.verbose:
+            self.logger.info(__name__ + ': _LexerBuilder: wrapper initialized')
 
-    # == ERROR PROCESSING ==
-
-    # TODO: Make error style more gcc-like
-    def error_out(self, message, lineno=None, lexpos=None):
-        """Signal lexing error."""
-        if lineno is not None:
-            if lexpos is not None:
-                s = "%d:%d Error: %s" % (lineno, lexpos, message)
-            else:
-                s = "%d: Error: %s" % (lineno, message)
-        else:
-            s = "Error: %s" % (message)
-        err.push_error(lineno or 0, s)
-
-    def warning_out(self, message, lineno=None, lexpos=None):
-        """Signal lexing warning."""
-        if lineno is not None:
-            if lexpos is not None:
-                s = "%s: %d:%d Warning: %s" % (lineno, lexpos, message)
-            else:
-                s = "%s: %d: Warning: %s" % (lineno, message)
-        else:
-            s = "%s: Warning: %s" % (message)
-        err.push_warning(lineno or 0, s)
-
-    # == REQUIRED LEXER INTERFACE ==
+    # == REQUIRED METHODS ==
 
     def build(self, **kwargs):
         """
@@ -206,6 +146,8 @@ class LlamaLexer:
         or attributes of the wrapper object are accessed.
         """
         self.lexer = lex.lex(module=self, **kwargs)
+        if self.verbose:
+            self.logger.info(__name__ + ': _LexerBuilder: lexer ready ')
 
     # A wrapper around the function of the inner lexer
     def token(self):
@@ -213,60 +155,58 @@ class LlamaLexer:
         Return a token to caller. Detect when <EOF> has been reached.
         Signal abnormal cases.
         """
-        t = self.lexer.token()
-        if t is None:
+        tok = self.lexer.token()
+        if tok is None:
             # Check for abnormal EOF
-            st = self.lexer.current_state()
-            if st == "comment":
+            state = self.lexer.current_state()
+            if state == "comment":
                 self.error_out(
                     "Unclosed comment reaching end of file.",
                     self.lexer.lineno
                 )
-            elif st == "string":
+            elif state == "string":
                 self.error_out(
                     "Unclosed string reaching end of file.",
                     self.lexer.lineno
                 )
-            elif st == "char":
+            elif state == "char":
                 self.error_out(
                     "Unclosed character literal at end of file.",
                     self.lexer.lineno
                 )
             return None
 
-        # Track the token's position in the current column.
-        t.lexpos = self.lexpos
-        if self.debug:
-            print((t.type, t.value, t.lineno, t.lexpos))
-        return t
+        # Track the token's column instead of lexing position.
+        tok.lexpos -= self.bol
+        if self.verbose:
+            self.logger.debug(
+                "%d:%d\t%s\t%s",
+                tok.lineno,
+                tok.lexpos,
+                tok.type,
+                tok.value
+            )
+        return tok
 
     def input(self, lexdata):
         """Feed the lexer with input."""
         self.lexer.input(lexdata)
 
-    def clone(self):
-        """Return a copy of the current lexer."""
-        newLexer = LlamaLexer(debug=self.debug)
-        newLexer.lexer = self.lexer.clone()
-
-        newLexer.bol = self.bol
-        newLexer.level = self.level
-        return newLexer
-
     def skip(self, value=1):
         """Skip 'value' characters in the input string."""
         self.lexer.skip(value)
 
-    # == ITERATOR INTERFACE ==
+    # == ERROR REPORTING ==
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        t = self.token()
-        if t is None:
-            raise StopIteration
-        return t
+    def error_out(self, message, lineno=None, lexpos=None):
+        """Signal lexing error."""
+        if lineno is not None:
+            if lexpos is not None:
+                self.logger.error("%d:%d: error: %s", lineno, lexpos, message)
+            else:
+                self.logger.error("%d: error: %s", lineno, message)
+        else:
+            self.logger.error("error: %s", message)
 
     # == LEXING OF NON-TOKENS ==
 
@@ -274,50 +214,50 @@ class LlamaLexer:
     t_INITIAL_ignore = " \r\t"
 
     # Newlines
-    def t_ANY_newline(self, t):
+    def t_ANY_newline(self, tok):
         r'\n+'
-        self.lexer.lineno += len(t.value)
-        st = t.lexer.current_state()
-        if st == "string":
+        self.lexer.lineno += len(tok.value)
+        state = self.lexer.current_state()
+        if state == "string":
             self.error_out(
                 "String spanning multiple lines (unclosed string).",
-                t.lineno
+                tok.lineno
             )
-            t.lexer.begin('INITIAL')
-        elif st == "char":
+            self.lexer.begin('INITIAL')
+        elif state == "char":
             self.error_out(
                 "Character spanning multiple lines (unclosed character).",
-                t.lineno
+                tok.lineno
             )
-            t.lexer.begin('INITIAL')
-        self.bol = t.lexer.lexpos
+            self.lexer.begin('INITIAL')
+        self.bol = self.lexer.lexpos - 1
 
     # Single-line comments. Do not consume the newline.
-    def t_SCOMMENT(self, t):
+    def t_SCOMMENT(self, _):
         r'--[^\n]*'
         pass
 
     t_comment_ignore = " \r\t"
 
     # Start of block comment
-    def t_INITIAL_comment_LCOMMENT(self, t):
+    def t_INITIAL_comment_LCOMMENT(self, _):
         r'\(\*'
         self.level += 1
-        t.lexer.begin('comment')
+        self.lexer.begin('comment')
 
     # End of block comment
-    def t_comment_RCOMMENT(self, t):
+    def t_comment_RCOMMENT(self, _):
         r'\*\)'
         if self.level > 1:
             self.level -= 1
         else:
             self.level = 0
-            t.lexer.begin('INITIAL')
+            self.lexer.begin('INITIAL')
 
     # Ignore (almost) anything inside a block comment
     # but stop matching when '(', '*' or a newline appears.
     # Match each comment-initiating character seperately.
-    def t_comment_SPECIAL(self, t):
+    def t_comment_SPECIAL(self, _):
         r'[(*]|[^\n(*]+'
         pass
 
@@ -375,87 +315,139 @@ class LlamaLexer:
     t_CONID     = r'[A-Z][A-Za-z0-9_]*'
 
     # Generic identifiers and reserved words
-    def t_GENID(self, t):
+    def t_GENID(self, tok):
         r'[a-z][A-Za-z0-9_]*'
-        if t.value in _reserved_words:
-            t.type = t.value.upper()
-        return t
+        if tok.value in _reserved_words:
+            tok.type = tok.value.upper()
+        return tok
 
     # Floating-point constants
-    def t_FCONST(self, t):
+    def t_FCONST(self, tok):
         r'\d+\.\d+([eE]([+\-]?)\d+)?'
         try:
-            t.value = float(t.value)
+            tok.value = float(tok.value)
         except OverflowError:
             self.error_out(
                 "Floating-point constant is irrepresentable.",
-                t.lineno,
-                t.lexpos - self.bol + 1
+                tok.lineno,
+                tok.lexpos - self.bol
             )
-            t.value = 0.0
-        return t
+            tok.value = 0.0
+        return tok
 
     # Integer constants
-    def t_ICONST(self, t):
+    def t_ICONST(self, tok):
         r'\d+'
-        t.value = int(t.value)
+        tok.value = int(tok.value)
         # TODO Check if constant is too big in another module.
-        return t
+        return tok
 
     # FIXME: Inappropriate (?)
     t_char_string_ignore = "\r\t"
 
     # Char constants
-    def t_INITIAL_LCHAR(self, t):
+    def t_INITIAL_LCHAR(self, _):
         r'\''
-        t.lexer.begin('char')
+        self.lexer.begin('char')
 
-    def t_char_CCONST(self, t):
+    def t_char_CCONST(self, tok):
         r'(([^\\\'\"])|(\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2}))(\'?)'
         # TODO: Unescape it
-        if t.value[-1] != "'":
+        if tok.value[-1] != "'":
             self.error_out(
                 "Unclosed character literal.",
-                t.lineno,
-                t.lexpos - self.bol + 1
+                tok.lineno,
+                tok.lexpos - self.bol
             )
-        t.value = t.value.rstrip("'")
-        t.lexer.begin('INITIAL')
-        return t
+        tok.value = tok.value.rstrip("'")
+        self.lexer.begin('INITIAL')
+        return tok
 
-    def t_char_RCHAR(self, t):
+    def t_char_RCHAR(self, tok):
         r'\''
         self.error_out(
             "Empty character literal not allowed.",
-            t.lineno,
-            t.lexpos - self.bol + 1
+            tok.lineno,
+            tok.lexpos - self.bol
         )
-        t.lexer.begin('INITIAL')
+        self.lexer.begin('INITIAL')
 
     # String constants
     # FIXME: Ask if empty string is valid
-    def t_INITIAL_LSTRING(self, t):
+    def t_INITIAL_LSTRING(self, _):
         r'"'
-        t.lexer.begin('string')
+        self.lexer.begin('string')
 
-    def t_string_SCONST(self, t):
+    def t_string_SCONST(self, tok):
         r'(([^\\\'\"])|(\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2}))+("?)'
-        if t.value[-1] != '"':
+        if tok.value[-1] != '"':
             self.error_out(
                 "Unclosed string literal.",
-                t.lineno,
-                t.lexpos - self.bol + 1
+                tok.lineno,
+                tok.lexpos - self.bol
             )
-        t.value = t.value.rstrip('"')
-        t.lexer.begin('INITIAL')
-        return t
+        tok.value = tok.value.rstrip('"')
+        self.lexer.begin('INITIAL')
+        return tok
 
     # Catch-all error reporting
-    def t_ANY_error(self, t):
+    def t_ANY_error(self, tok):
         self.error_out(
-            "Illegal character '%s'" % t.value[0],
-            t.lineno,
-            t.lexpos - self.bol + 1
+            "Illegal character '%s'" % tok.value[0],
+            tok.lineno,
+            tok.lexpos - self.bol
         )
-        t.lexer.skip(1)
-        t.lexer.begin('INITIAL')
+        self.lexer.skip(1)
+        self.lexer.begin('INITIAL')
+
+
+class Lexer:
+    """ A Llama lexer"""
+
+    # The actual lexer as returned by _LexerBuilder
+    _lexer = None
+
+    # Logger used for logging events. Possibly shared with other modules.
+    _logger = None
+
+    # == REQUIRED METHODS (see _LexerBuilder for details) ==
+
+    token = None
+    input = None
+    skip = None
+
+    def __init__(self, logger, verbose=False, **kwargs):
+        """Create a new lexer."""
+        self._logger = logger
+        self._lexer = _LexerBuilder(logger=logger, verbose=verbose)
+        self._lexer.build(**kwargs)
+
+        # Bind methods of interface to _LexerBuilder object methods.
+        self.token = self._lexer.token
+        self.input = self._lexer.input
+        self.skip  = self._lexer.skip
+        if verbose:
+            self._logger.info(__name__ + ': Lexer: lexer ready')
+
+    # == EXPORT POSITION ATTRIBUTES ==
+
+    @property
+    def lexpos(self):
+        """Return column following last token matched in current line."""
+        return self._lexer.lexer.lexpos - self._lexer.bol
+
+    @property
+    def lineno(self):
+        """Return current line of input"""
+        return self._lexer.lexer.lineno
+
+    # == ITERATOR INTERFACE ==
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        tok = self.token()
+        if tok is None:
+            raise StopIteration
+        return tok
