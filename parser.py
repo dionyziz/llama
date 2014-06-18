@@ -215,7 +215,7 @@ class Parser:
 
     def p_ccall_expr(self, p):
         """ccall_expr : CONID simple_expr_seq"""
-        p[0] = ast.CcallExpression(p[1], p[2])
+        p[0] = ast.ConstructorCallExpression(p[1], p[2])
 
     def p_simple_expr_seq(self, p):
         """simple_expr_seq : simple_expr simple_expr_seq
@@ -239,18 +239,19 @@ class Parser:
         elif len(p) == 4:
             p[0] = p[2]
         elif len(p) == 3:
-            p[0] = ast.BangExpression(p[2])
+            # bang
+            p[0] = ast.UnaryExpression(p[1], p[2])
         else:
             p[0] = p[1]
 
     def p_bconst_simple_expr(self, p):
         """bconst_simple_expr : TRUE
                               | FALSE"""
-        p[0] = ast.BconstExpression(p[1])
+        p[0] = ast.ConstExpression(type.Bool(), p[1])
 
     def p_cconst_simple_expr(self, p):
         """cconst_simple_expr : CCONST"""
-        p[0] = ast.CconstExpression(p[1])
+        p[0] = ast.ConstExpression(type.Char(), p[1])
 
     def p_conid_simple_expr(self, p):
         """conid_simple_expr : CONID"""
@@ -258,11 +259,11 @@ class Parser:
 
     def p_iconst_simple_expr(self, p):
         """iconst_simple_expr : ICONST"""
-        p[0] = ast.IconstExpression(p[1])
+        p[0] = ast.ConstExpression(type.Int(), p[1])
 
     def p_fconst_simple_expr(self, p):
         """fconst_simple_expr : FCONST"""
-        p[0] = ast.FconstExpression(p[1])
+        p[0] = ast.ConstExpression(type.Float(), p[1])
 
     def p_genid_simple_expr(self, p):
         """genid_simple_expr : GENID"""
@@ -270,11 +271,11 @@ class Parser:
 
     def p_sconst_simple_expr(self, p):
         """sconst_simple_expr : SCONST"""
-        p[0] = ast.SconstExpression(p[1])
+        p[0] = ast.ConstExpression(type.String(), p[1])
 
     def p_uconst_simple_expr(self, p):
         """uconst_simple_expr : LPAREN RPAREN"""
-        p[0] = ast.UconstExpression()
+        p[0] = ast.ConstExpression(type.Unit())
 
     def p_delete_expr(self, p):
         """delete_expr : DELETE expr"""
@@ -298,7 +299,7 @@ class Parser:
 
     def p_gcall_expr(self, p):
         """gcall_expr : GENID simple_expr_seq"""
-        p[0] = ast.GcallExpression(p[1], p[2])
+        p[0] = ast.FunctionCallExpression(p[1], p[2])
 
     def p_in_expr(self, p):
         """in_expr : letdef IN expr"""
@@ -357,19 +358,23 @@ class Parser:
     def p_bconst_simple_pattern(self, p):
         """bconst_simple_pattern : TRUE
                                  | FALSE"""
-        p[0] = ast.BconstPattern(p[1])
+        p[0] = ast.ConstExpression(type.Bool(), p[1])
 
     def p_cconst_simple_pattern(self, p):
         """cconst_simple_pattern : CCONST"""
-        p[0] = ast.CconstPattern(p[1])
+        p[0] = ast.ConstExpression(type.Char(), p[1])
 
     def p_fconst_simple_pattern(self, p):
         """fconst_simple_pattern : FPLUS FCONST
                                  | FCONST"""
         if len(p) == 3:
-            p[0] = ast.FconstPattern(p[2])
+            p[0] = ast.ConstPattern(type.Float(), p[2])
         else:
-            p[0] = ast.FconstPattern(p[1])
+            p[0] = ast.ConstPattern(type.Float(), p[1])
+
+    def p_mfconst_simple_pattern(self, p):
+        """mfconst_simple_pattern : FMINUS FCONST"""
+        p[0] = ast.ConstPattern(type.Float(), -p[2])
 
     def p_genid_simple_pattern(self, p):
         """genid_simple_pattern : GENID"""
@@ -379,17 +384,13 @@ class Parser:
         """iconst_simple_pattern : PLUS ICONST
                                  | ICONST"""
         if len(p) == 3:
-            p[0] = ast.IconstPattern(p[2])
+            p[0] = ast.ConstPattern(type.Int(), p[2])
         else:
-            p[0] = ast.IconstPattern(p[1])
-
-    def p_mfconst_simple_pattern(self, p):
-        """mfconst_simple_pattern : FMINUS FCONST"""
-        p[0] = ast.FconstPattern(-p[2])
+            p[0] = ast.ConstPattern(type.Int(), p[1])
 
     def p_miconst_simple_pattern(self, p):
         """miconst_simple_pattern : MINUS ICONST"""
-        p[0] = ast.IconstPattern(-p[2])
+        p[0] = ast.ConstPattern(type.Int(), -p[2])
 
     def p_new_expr(self, p):
         """new_expr : NEW type"""
@@ -427,7 +428,7 @@ class Parser:
 
     def p_typedef(self, p):
         """typedef : TYPE tdef_and_seq"""
-        p[0] = ast.TypeDef(p[2])
+        p[0] = ast.TypeDefList(p[2])
 
     def p_tdef_and_seq(self, p):
         """tdef_and_seq : tdef AND tdef_and_seq
@@ -447,9 +448,9 @@ class Parser:
         """constr : CONID OF type_seq
                   | CONID"""
         if len(p) == 4:
-            p[0] = ast.Constr(p[1], p[3])
+            p[0] = ast.Constructor(p[1], p[3])
         else:
-            p[0] = ast.Constr(p[1])
+            p[0] = ast.Constructor(p[1])
 
     def p_type_seq(self, p):
         """type_seq : type type_seq

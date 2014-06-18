@@ -27,6 +27,10 @@ class Char(Base):
     def __init__(self):
         pass
 
+class String(Char):
+    def __init__(self):
+        pass
+
 class Bool(Base):
     def __init__(self):
         pass

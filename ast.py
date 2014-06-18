@@ -5,10 +5,8 @@
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
 # Author: Dionysis Zindros <dionyziz@gmail.com>
-#         Nick Korasidis <Renelvon@gmail.com>
+#         Nick Korasidis <renelvon@gmail.com>
 #
-# Lexer design is heavily inspired from the PHPLY lexer
-# https://github.com/ramen/phply/blob/master/phply/phplex.py
 # ----------------------------------------------------------------------
 
 class Node:
@@ -45,7 +43,8 @@ class Param(DataNode):
         self.type = type
 
 class Expression(DataNode):
-    pass
+    def __init__(self):
+        raise NotImplementedError
 
 class BinaryExpression(Expression):
     def __init__(self, leftOperand, operator, rightOperand):
@@ -58,7 +57,7 @@ class UnaryExpression(Expression):
         self.operator = operator
         self.operand = operand
 
-class CcallExpression(Expression):
+class ConstructorCallExpression(Expression):
     def __init__(self, name, list):
         self.name = name
         self.list = list
@@ -68,41 +67,18 @@ class ArrayExpression(Expression):
         self.name = name
         self.list = list
 
-class BangExpression(Expression):
-    def __init__(self, expr):
-        self.expr = expr
-
-class BconstExpression(Expression):
-    def __init__(self, value):
-        self.value = value
-
-class CconstExpression(Expression):
-    def __init__(self, value):
+class ConstExpression(Expression):
+    def __init__(self, type, value=None):
+        self.type = type
         self.value = value
 
 class ConidExpression(Expression):
     def __init__(self, name):
         self.name = name
 
-class FconstExpression(Expression):
-    def __init__(self, value):
-        self.value = value
-
 class GenidExpression(Expression):
     def __init__(self, name):
         self.name = name
-
-class IconstExpression(Expression):
-    def __init__(self, value):
-        self.value = value
-
-class SconstExpression(Expression):
-    def __init__(self, value):
-        self.value = value
-
-class UconstExpression(Expression):
-    def __init__(self):
-        pass
 
 class DeleteExpression(Expression):
     def __init__(self, expr):
@@ -121,7 +97,7 @@ class ForExpression(Expression):
         self.body = body
         self.isDown = isDown
 
-class GcallExpression(Expression):
+class FunctionCallExpression(Expression):
     def __init__(self, name, list):
         self.name = name
         self.list = list
@@ -152,29 +128,9 @@ class Pattern(Node):
         self.name = name
         self.list = list
 
-class BconstPattern(Node):
-    def __init__(self, value):
-        self.value = value
-
-class CconstPattern(Node):
-    def __init__(self, value):
-        self.value = value
-
-class FconstPattern(Node):
-    def __init__(self, value):
-        self.value = value
-
 class GenidPattern(Node):
     def __init__(self, name):
         self.name = name
-
-class IconstPattern(Node):
-    def __init__(self, value):
-        self.value = value
-
-class SconstPattern(Node):
-    def __init__(self, value):
-        self.value = value
 
 class NewExpression(Expression):
     def __init__(self, type):
@@ -191,12 +147,12 @@ class VariableDef(Def):
         self.type = type
 
 class ArrayVariableDef(VariableDef):
-    def __init__(self, name, dimensions, type=None):
+    def __init__(self, name, dimensions, itemType=None):
         self.name = name
         self.dimensions = dimensions
-        self.type = type
+        self.type = type.Array(itemType, dimensions)
 
-class TypeDef(Node):
+class TypeDefList(Node):
     def __init__(self, list):
         self.list = list
 
@@ -205,7 +161,7 @@ class TDef(Node):
         self.name = name
         self.list = list
 
-class Constr(Node):
+class Constructor(Node):
     def __init__(self, name, list=None):
         self.name = name
         self.list = list or []
