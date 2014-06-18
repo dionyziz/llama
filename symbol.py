@@ -58,8 +58,9 @@ class SymbolTable:
     # the same identifier, appearing at increasing scope depth.
     hash_table = defaultdict(list)
 
-    def __init__(self):
+    def __init__(self, logger):
         """Make a new symbol table and insert the library namespace."""
+        self._logger = logger
         self._insert_library_symbols()
 
     def _insert_library_symbols(self):
@@ -115,13 +116,14 @@ class SymbolTable:
             self.hash_table[entry.identifier].pop()
         return old_scope
 
-    def insert_scope(self, scope):
-        """Merge 'scope' with current scope."""
-        assert self.cur_scope, 'No scope to merge into.'
-        for entry in scope.entries:
-            entry.scope = self.cur_scope
-            self.hash_table[entry.identifier].append(entry)
-            self.cur_scope.entries.append(entry)
+#     def insert_scope(self, scope):
+#         """Merge 'scope' with current scope."""
+#         assert self.cur_scope, 'No scope to merge into.'
+#         for entry in scope.entries:
+#             entry.scope = self.cur_scope
+#             self.hash_table[entry.identifier].append(entry)
+#             self.cur_scope.entries.append(entry)
+#
 
     def lookup_symbol(self, identifier, lookup_all=False, guard=False):
         """
@@ -135,18 +137,26 @@ class SymbolTable:
                 if not entry.scope.hidden:
                     return entry
         else:
-            for entry in reversed(self.hash_table[identifier]):
-                if not entry.scope.hidden:
-                    if entry.scope.nesting < self.nesting:
-                        break
-                    return entry
+            entry = self._find_identifier_in_current_scope(identifier)
+            if entry is not None:
+                return entry
 
         if guard:
-            err.push_error(
-                0,  # FIXME: Meaningful line?
+            self._logger.error(
+                # FIXME: Meaningful line?
                 "Unknown identifier: %s" % identifier
             )
         return None
+
+    def _find_identifier_in_current_scope(self, identifier):
+        assert self.cur_scope, 'No scope to check for identifier.'
+
+        entry = self.hash_table[identifier][-1]
+
+        if entry.scope.nesting != self.nesting:
+            return None
+
+        return entry
 
     def insert_symbol(self, identifier, guard=False):
         """
@@ -154,18 +164,18 @@ class SymbolTable:
         If 'guard' is True, alert if an alias is already present.
         """
         assert self.cur_scope, 'No scope to insert into.'
-        if guard:
-            for entry in reversed(self.hash_table[identifier]):
-                if entry.scope.nesting < self.nesting:
-                    break
 
-                if entry.identifier == identifier:
-                    err.push_error(
-                        0,  # FIXME: Meaningful line?
-                        "Duplicate identifier: %s" % identifier
-                        # TODO: Show line of previous declaration
-                    )
-                    return None
+        if guard:
+            entry = self._find_identifier_in_current_scope(identifier)
+
+            if entry is not None:
+                self._logger.error(
+                    # FIXME: Meaningful line?
+                    "Duplicate identifier: %s" % identifier
+                    # TODO: Show line of previous declaration
+                )
+
+                return entry
 
         new_entry = Entry(identifier=identifier, scope=self.cur_scope)
         self.hash_table[identifier].append(new_entry)

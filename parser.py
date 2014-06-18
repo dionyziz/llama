@@ -368,13 +368,13 @@ class Parser:
         """fconst_simple_pattern : FPLUS FCONST
                                  | FCONST"""
         if len(p) == 3:
-            p[0] = ast.ConstPattern(type.Float(), p[2])
+            p[0] = ast.ConstExpression(type.Float(), p[2])
         else:
-            p[0] = ast.ConstPattern(type.Float(), p[1])
+            p[0] = ast.ConstExpression(type.Float(), p[1])
 
     def p_mfconst_simple_pattern(self, p):
         """mfconst_simple_pattern : FMINUS FCONST"""
-        p[0] = ast.ConstPattern(type.Float(), -p[2])
+        p[0] = ast.ConstExpression(type.Float(), -p[2])
 
     def p_genid_simple_pattern(self, p):
         """genid_simple_pattern : GENID"""
@@ -384,13 +384,13 @@ class Parser:
         """iconst_simple_pattern : PLUS ICONST
                                  | ICONST"""
         if len(p) == 3:
-            p[0] = ast.ConstPattern(type.Int(), p[2])
+            p[0] = ast.ConstExpression(type.Int(), p[2])
         else:
-            p[0] = ast.ConstPattern(type.Int(), p[1])
+            p[0] = ast.ConstExpression(type.Int(), p[1])
 
     def p_miconst_simple_pattern(self, p):
         """miconst_simple_pattern : MINUS ICONST"""
-        p[0] = ast.ConstPattern(type.Int(), -p[2])
+        p[0] = ast.ConstExpression(type.Int(), -p[2])
 
     def p_new_expr(self, p):
         """new_expr : NEW type"""

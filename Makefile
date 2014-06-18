@@ -1,7 +1,7 @@
 PYTHON=python3
 PREPARE_FLAG=--prepare
 OPT=-OO
-SOURCEFILES=lexer.py parser.py error.py main.py
+SOURCEFILES=lexer.py parser.py error.py main.py symbol.py
 
 .PHONY: beauty clean prepare static test
 
