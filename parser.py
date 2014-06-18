@@ -429,6 +429,7 @@ class Parser:
     def p_typedef(self, p):
         """typedef : TYPE tdef_and_seq"""
         p[0] = ast.TypeDefList(p[2])
+        self.typeTable.process(p[0])
 
     def p_tdef_and_seq(self, p):
         """tdef_and_seq : tdef AND tdef_and_seq
@@ -485,11 +486,13 @@ class Parser:
     parser = None
     tokens = lex.tokens
     logger = None
+    typeTable = None
     verbose = False
 
     def __init__(self, logger, **kwargs):
         """Create a parser for the entire Llama grammar."""
         self.logger = logger
+        self.typeTable = type.TypeTable()
         self.parser = yacc.yacc(module=self, start='program', **kwargs)
 
     def parse(self, data, lexer, verbose=False):
