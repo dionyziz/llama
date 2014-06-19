@@ -17,58 +17,44 @@ class Type():
 
     def __eq__(self, other):
         """Simple and strict type equality. Override as needed."""
+        if self.name is None or other.name is None:
+            return False
         return self.name == other.name
 
     def __hash__(self):
         """Simple hash. Override as needed."""
         return hash(self.name)
 
-class BaseType(Type):
+class Builtin(Type):
     def __init__(self):
-        raise NotImplementedError
+        self.name = self.__class__.__name__.lower()
 
-class Unit(BaseType):
-    name = 'unit'
+class Unit(Builtin):
+    pass
 
-    def __init__(self):
-        pass
+class Int(Builtin):
+    pass
 
-class Int(BaseType):
-    name = 'int'
+class Char(Builtin):
+    pass
 
-    def __init__(self):
-        pass
+class String(Builtin):
+    pass
 
-class Char(BaseType):
-    name = 'char'
+class Bool(Builtin):
+    pass
 
-    def __init__(self):
-        pass
-
-# NOTE: Why did this inherit from Char?
-class String(BaseType):
-    name = 'string'
-
-    def __init__(self):
-        pass
-
-class Bool(BaseType):
-    name = 'bool'
-
-    def __init__(self):
-        pass
-
-class Float(BaseType):
-    name = 'float'
-
-    def __init__(self):
-        pass
+class Float(Builtin):
+    pass
 
 class User(Type):
     name = None
 
     def __init__(self, name):
         self.name = name
+
+    def __hash__(self):
+        return hash('user' + self.name)
 
 class Ref(Type):
     def __init__(self, type):
