@@ -138,7 +138,7 @@ class TypeTable(Type):
             if newtype.name in self.knownTypes:
                 self._logger.error(
                     # FIXME Add meaningful line
-                    "error: Type reuse"
+                    "error: Type reuse: %s" % (newtype.name)
                     # TODO Show previous definition
                 )
             else:
@@ -150,7 +150,7 @@ class TypeTable(Type):
                 if constructor.name in self.knownConstructors:
                     self._logger.error(
                         # FIXME add meaningful line
-                        "error: Constructor reuse"
+                        "error: Constructor reuse: %s" % (constructor.name)
                         # TODO Show previous use
                     )
                 else:
@@ -158,7 +158,7 @@ class TypeTable(Type):
                         if argType.name not in self.knownTypes:
                             self._logger.error(
                                 # FIXME Add meaningful line
-                                "error: Type not defined"
+                                "error: Type not defined: %s" % (argType.name)
                             )
                     self.knownConstructors[constructor.name] = (
                         tdef.name,
