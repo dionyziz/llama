@@ -16,21 +16,34 @@ class LoggerMock():
         pass
 
 class TestLexer(unittest.TestCase):
-    def _lex_data(self, data):
-        lex = lexer.Lexer() 
-        lex.input(data)
+    def _lex_data(self, input):
+        mock = LoggerMock()
+        lex = lexer.Lexer(logger=mock)
+        lex.input(input)
         token_list = list(lex)
-        return token_list
+
+        return (token_list, mock)
 
     def _assert_individual_token(self, input, expected_token_type, expected_token_value):
-        l = self._lex_data(input)
+        l, mock = self._lex_data(input)
         len(l).should.be.equal(1)
         tok = l[0]
         tok.type.should.be.equal(expected_token_type)
         tok.value.should.be.equal(expected_token_value)
+        mock.lexing_success.should.be.ok
+
+    def _assert_lex_failed(self, input):
+        mock = LoggerMock()
+        lex = lexer.Lexer(logger=mock)
+        lex.input(input)
+        # force evaluation
+        list(lex)
+        mock.lexing_success.shouldnt.be.ok
 
     def test_empty(self):
-        self._lex_data("").should.be.empty
+        l, mock = self._lex_data("")
+        l.should.be.empty
+        mock.lexing_success.should.be.ok
 
     def test_keywords(self):
         for input_program, token in lexer.reserved_tokens.items():
