@@ -115,9 +115,9 @@ class TypeTable(Type):
     knownTypes = {'bool', 'int', 'float', 'char', 'string', 'unit'}
 
     # Dictionary of constructors encountered so far.
-    # Each key contains a tuple (t, params):
-    #   t       type which the constructor belongs to
-    #   params  type arguments of the constructor
+    # Each key contains a dict:
+    #   type:    type which the constructor belongs to
+    #   params:  type arguments of the constructor
     knownConstructors = {}
 
     # Logger used for logging events. Possibly shared with other modules.
@@ -160,7 +160,7 @@ class TypeTable(Type):
                                 # FIXME Add meaningful line
                                 "error: Type not defined: %s" % (argType.name)
                             )
-                    self.knownConstructors[constructor.name] = (
-                        tdef.name,
-                        constructor.list
-                    )
+                    self.knownConstructors[constructor.name] = {
+                        "type": tdef.name,
+                        "params": constructor.list
+                    }
