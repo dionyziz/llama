@@ -91,7 +91,7 @@ class Function(Type):
         # Merkle-Damgard!
         return hash('function' + hash(self.fromType) + hash(self.toType))
 
-class TypeTable(Type):
+class Table(Type):
     """
     Database of all the program's types. Enables semantic checking
     of user defined types and more.
