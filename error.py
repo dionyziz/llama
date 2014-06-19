@@ -16,13 +16,13 @@ class DummyLogger:
     DummyLogger class implements the Logger interface in a dummy way
     to enable better testability.
     """
-    def info(self):
+    def info(self, *args):
         pass
-    def error(self):
+    def error(self, *args):
         pass
-    def warning(self):
+    def warning(self, *args):
         pass
-    def debug(self):
+    def debug(self, *args):
         pass
 
 class Logger:
