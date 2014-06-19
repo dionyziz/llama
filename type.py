@@ -111,8 +111,8 @@ class TypeTable(Type):
     of user defined types and more.
     """
 
-    # Set of types encountered so far. Basic types always available.
-    knownTypes = {'bool', 'int', 'float', 'char', 'unit'}
+    # Set of types encountered so far. Built-in types always available.
+    knownTypes = {'bool', 'int', 'float', 'char', 'string', 'unit'}
 
     # Dictionary of constructors encountered so far.
     # Each key contains a tuple (t, params):
