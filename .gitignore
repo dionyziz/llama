@@ -4,3 +4,5 @@ parsetab.py
 parser.out
 __pycache__
 py3env
+*.pyo
+*.pyc
