@@ -90,6 +90,16 @@ other_tokens = (
     'COMMA', 'COLON'
 )
 
+escape_sequences = {
+    r"\n": "\n",
+    r"\t": "\t",
+    r"\r": "\r",
+    r"\0": "\0",
+    r"\\": "\\",
+    r"\'": "\'",
+    r'\"': '\"'
+}
+
 # All valid_tokens [exported]
 tokens = tuple(reserved_tokens.values()) + other_tokens
 
@@ -355,14 +365,23 @@ class _LexerBuilder:
 
     def t_char_CCONST(self, tok):
         r'(([^\\\'\"])|(\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2}))(\'?)'
-        # TODO: Unescape it
+        def _translate_escaped_character(char):
+            try:
+                return escape_sequences[char]
+            except KeyError:
+                assert(char[1] == 'x')
+                return chr(int(char[2:], 16))
+
         if tok.value[-1] != "'":
             self.error_out(
                 "Unclosed character literal.",
                 tok.lineno,
                 tok.lexpos - self.bol
             )
-        tok.value = tok.value.rstrip("'")
+        if tok.value[-1] == "'":
+            tok.value = tok.value[:-1]
+        if tok.value[0] == '\\':
+            tok.value = _translate_escaped_character(tok.value)
         self.lexer.begin('INITIAL')
         return tok
 
