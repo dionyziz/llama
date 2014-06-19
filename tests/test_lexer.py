@@ -56,6 +56,12 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token("koko_lala", "GENID", "koko_lala")
         self._assert_individual_token("koko_42", "GENID", "koko_42")
 
+        self._assert_lex_failed("_koko")
+        # self._assert_lex_failed("42koko")
+        self._assert_lex_failed("@koko")
+        self._assert_lex_failed("\\koko")
+        self._assert_lex_failed("\\x42")
+
     def test_conid(self):
         self._assert_individual_token("Koko", "CONID", "Koko")
         self._assert_individual_token("A", "CONID", "A")
