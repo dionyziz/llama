@@ -53,6 +53,8 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token("koko", "GENID", "koko")
         self._assert_individual_token("a", "GENID", "a")
         self._assert_individual_token(2048 * "koko", "GENID", 2048 * "koko")
+        self._assert_individual_token("koko_lala", "GENID", "koko_lala")
+        self._assert_individual_token("koko_42", "GENID", "koko_42")
 
     def test_conid(self):
         self._assert_individual_token("Koko", "CONID", "Koko")
