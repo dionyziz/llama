@@ -16,7 +16,7 @@ from error import DummyLogger
 import ply.lex as lex
 
 # Represent reserved words as a frozenset for fast lookup
-_reserved_words = frozenset('''
+reserved_words = frozenset('''
     and
     array
     begin
@@ -54,9 +54,9 @@ _reserved_words = frozenset('''
     '''.split()
 )
 
-_reserved_tokens = tuple(s.upper() for s in _reserved_words)
+reserved_tokens = {s: s.upper() for s in reserved_words}
 
-_other_tokens = (
+other_tokens = (
     # Identifiers (generic variable identifiers, constructor identifiers)
     'GENID', 'CONID',
 
@@ -91,7 +91,7 @@ _other_tokens = (
 )
 
 # All valid_tokens [exported]
-tokens = _reserved_tokens + _other_tokens
+tokens = tuple(reserved_tokens.values()) + other_tokens
 
 
 class _LexerBuilder:
@@ -318,8 +318,10 @@ class _LexerBuilder:
     # Generic identifiers and reserved words
     def t_GENID(self, tok):
         r'[a-z][A-Za-z0-9_]*'
-        if tok.value in _reserved_words:
-            tok.type = tok.value.upper()
+        try:
+            tok.type = reserved_tokens[tok.value]
+        except KeyError:
+            pass
         return tok
 
     # Floating-point constants
