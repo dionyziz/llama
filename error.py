@@ -11,6 +11,20 @@
 import logging
 
 
+class DummyLogger:
+    """
+    DummyLogger class implements the Logger interface in a dummy way
+    to enable better testability.
+    """
+    def info(self):
+        pass
+    def error(self):
+        pass
+    def warning(self):
+        pass
+    def debug(self):
+        pass
+
 class Logger:
     """
     Simple error logger for the llama compiler. Provides methods for

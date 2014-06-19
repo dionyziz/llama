@@ -12,6 +12,7 @@
 # ----------------------------------------------------------------------
 """
 
+from error import DummyLogger
 import ply.lex as lex
 
 # Represent reserved words as a frozenset for fast lookup
@@ -416,9 +417,14 @@ class Lexer:
     input = None
     skip = None
 
-    def __init__(self, logger, verbose=False, **kwargs):
+    def __init__(self, logger = None, verbose=False, **kwargs):
         """Create a new lexer."""
-        self._logger = logger
+
+        if logger is None:
+            self._logger = DummyLogger()
+        else:
+            self._logger = logger
+
         self._lexer = _LexerBuilder(logger=logger, verbose=verbose)
         self._lexer.build(**kwargs)
 
