@@ -72,3 +72,24 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token("17", "ICONST", 17)
         self._assert_individual_token("0", "ICONST", 0)
         self._assert_individual_token("00042", "ICONST", 42)
+
+    def test_fconst(self):
+        self._assert_individual_token("42.5", "FCONST", 42.5)
+        inputs = ["42.0", "4.2e1", "4.2E1", "0.420e+2", "42000.0e-3", "42000.0E-3"]
+        for input in inputs:
+            self._assert_individual_token(input, "FCONST", 42.0)
+
+        self._assert_lex_failed("42.5.2")
+        self._assert_lex_failed(".2")
+        self._assert_lex_failed("4.2e1.0")
+
+    def test_cconst(self):
+        self._assert_individual_token(r"'a'", "CCONST", "a")
+        self._assert_individual_token(r"'0'", "CCONST", "0")
+        for escaped, literal in lexer.escape_sequences.items():
+            self._assert_individual_token("'%s'" % (escaped), "CCONST", literal)
+        self._assert_individual_token(r"'\x61'", "CCONST", "a")
+
+        self._assert_lex_failed(r"'ab'")
+        self._assert_lex_failed(r"'\xbad'")
+        self._assert_lex_failed(r"'\xg0'")
