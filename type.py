@@ -98,7 +98,7 @@ class Table(Type):
     """
 
     # Set of types encountered so far. Built-in types always available.
-    knownTypes = {'bool', 'int', 'float', 'char', 'string', 'unit'}
+    knownTypes = {Bool(), Int(), Float(), Char(), Unit(), String()}
 
     # Dictionary of constructors encountered so far.
     # Each key contains a dict:
@@ -120,15 +120,16 @@ class Table(Type):
         """
 
         # First, insert all newly-defined types.
-        for newtype in typeDefList:
-            if newtype.name in self.knownTypes:
+        for tdef in typeDefList:
+            newtype = User(tdef.name)
+            if newtype in self.knownTypes:
                 self._logger.error(
                     # FIXME Add meaningful line
                     "error: Type reuse: %s" % (newtype.name)
                     # TODO Show previous definition
                 )
             else:
-                self.knownTypes.add(newtype.name)
+                self.knownTypes.add(newtype)
 
         # Process each constructor.
         for tdef in typeDefList:
@@ -141,12 +142,13 @@ class Table(Type):
                     )
                 else:
                     for argType in constructor.list:
-                        if argType.name not in self.knownTypes:
+                        if argType not in self.knownTypes:
                             self._logger.error(
                                 # FIXME Add meaningful line
                                 "error: Type not defined: %s" % (argType.name)
                             )
+                    userType = User(tdef.name)
                     self.knownConstructors[constructor.name] = {
-                        "type": tdef.name,
+                        "type": userType,
                         "params": constructor.list
                     }
