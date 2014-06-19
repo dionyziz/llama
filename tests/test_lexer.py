@@ -2,6 +2,19 @@ import unittest
 import sure
 import lexer
 
+
+class LoggerMock():
+    lexing_success = True
+
+    def error(self, *args):
+        self.lexing_success = False
+    def warning(self, *args):
+        pass
+    def debug(self, *args):
+        pass
+    def info(self, *args):
+        pass
+
 class TestLexer(unittest.TestCase):
     def _lex_data(self, data):
         lex = lexer.Lexer() 
