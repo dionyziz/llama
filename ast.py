@@ -14,6 +14,15 @@ class Node:
     def __init__(self):
         raise NotImplementedError
 
+class ListNode(Node):
+    list = None
+
+    def __init__(self):
+        raise NotImplementedError
+
+    def __iter__(self):
+        return iter(self.list)
+
 class DataNode(Node):
     def __init__(self):
         raise NotImplementedError
@@ -153,24 +162,16 @@ class ArrayVariableDef(VariableDef):
         self.dimensions = dimensions
         self.type = type.Array(itemType, dimensions)
 
-class TypeDefList(Node):
+class TypeDefList(ListNode):
     def __init__(self, list):
         self.list = list
 
-    def __iter__(self):
-        return iter(self.list)
-
-class TDef(Node):
+class TDef(ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
 
-# FIXME Refactor me
-    def __iter__(self):
-        return iter(self.list)
-
-class Constructor(Node):
+class Constructor(ListNode):
     def __init__(self, name, list=None):
         self.name = name
         self.list = list or []
-
