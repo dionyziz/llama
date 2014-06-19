@@ -12,6 +12,7 @@ beauty:
 
 test: clean prepare ptest.sh
 	./ptest.sh
+	nosetests
 
 static:
 	pylint -E $(SOURCEFILES)
