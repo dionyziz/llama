@@ -99,14 +99,14 @@ class Parser:
 
     def p_type(self, p):
         """type : LPAREN type RPAREN
-                | base_type
+                | builtin_type
                 | derived_type"""
         if len(p) == 3:
             p[0] = p[2]
         else:
             p[0] = p[1]
 
-    _base_type_map = {
+    _builtin_type_map = {
         'bool': type.Bool,
         'char': type.Char,
         'float': type.Float,
@@ -114,13 +114,13 @@ class Parser:
         'unit': type.Unit
     }
 
-    def p_base_type(self, p):
-        """base_type : BOOL
-                     | CHAR
-                     | FLOAT
-                     | INT
-                     | UNIT"""
-        p[0] = self._base_type_map[p[1]]()
+    def p_builtin_type(self, p):
+        """builtin_type : BOOL
+                        | CHAR
+                        | FLOAT
+                        | INT
+                        | UNIT"""
+        p[0] = self._builtin_type_map[p[1]]()
 
     def p_derived_type(self, p):
         """derived_type : array_type
