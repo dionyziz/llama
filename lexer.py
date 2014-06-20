@@ -66,7 +66,10 @@ escape_sequences = {
     r'\"': '\"'
 }
 
-_unescape_char = lambda c: bytes(c, 'ascii').decode('unicode_escape')
+
+def unescape(string):
+    """Return unescaped string."""
+    return bytes(string, 'ascii').decode('unicode_escape')
 
 operators = {
     # Integer operators
@@ -408,8 +411,7 @@ class _LexerBuilder:
         else:
             tok.value = tok.value[:-1]
 
-        if tok.value[0] == '\\':
-            tok.value = _unescape_char(tok.value)
+        tok.value = unescape(tok.value)
         self.lexer.begin('INITIAL')
         return tok
 
@@ -428,7 +430,7 @@ class _LexerBuilder:
         r'"'
         self.lexer.begin('string')
 
-    @lex.TOKEN(char + r'+("?)')
+    @lex.TOKEN(char + '+("?)')
     def t_string_SCONST(self, tok):
         if tok.value[-1] != '"':
             self.error_out(
@@ -436,7 +438,11 @@ class _LexerBuilder:
                 tok.lineno,
                 tok.lexpos - self.bol
             )
-        tok.value = tok.value.rstrip('"')
+        else:
+            tok.value = tok.value[:-1]
+
+        tok.value = list(unescape(tok.value))
+        tok.value.append('\0')
         self.lexer.begin('INITIAL')
         return tok
 
