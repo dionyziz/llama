@@ -394,15 +394,14 @@ class _LexerBuilder:
         r'\''
         self.lexer.begin('char')
 
-    def t_char_CCONST(self, tok):
-        r'(([^\\\'\"])|(\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2}))(\'?)'
-        def _translate_escaped_character(char):
-            try:
-                return escape_sequences[char]
-            except KeyError:
-                assert(char[1] == 'x')
-                return chr(int(char[2:], 16))
+    hex_char = r'\\x[a-fA-F0-9]{2}'
+    escape_char = r'\\[ntr0"\'\\]'
+    normal_char = r'[^\"\'\\]'
+    char = r'((' + normal_char + r')|(' + escape_char + r')|(' + hex_char + r'))'
+    rquoted_char = char + r'(\'?)'
 
+    @lex.TOKEN(rquoted_char)
+    def t_char_CCONST(self, tok):
         if tok.value[-1] != "'":
             self.error_out(
                 "Unclosed character literal.",
