@@ -89,10 +89,13 @@ class TestLexer(unittest.TestCase):
         for escaped, literal in lexer.escape_sequences.items():
             self._assert_individual_token("'%s'" % (escaped), "CCONST", literal)
         self._assert_individual_token(r"'\x61'", "CCONST", "a")
+        self._assert_individual_token(r"'\x1d'", "CCONST", "\x1d")
 
         self._assert_lex_failed(r"'ab'")
         self._assert_lex_failed(r"'\xbad'")
         self._assert_lex_failed(r"'\xg0'")
+        self._assert_lex_failed("'a\n'")
+        self._assert_lex_failed(r"'a")
 
     def test_operators(self):
         for input, token in lexer.operators.items():
