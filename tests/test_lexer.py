@@ -1,5 +1,8 @@
+import re
 import unittest
+
 import sure
+
 import lexer
 
 
@@ -97,21 +100,21 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failed("'a\n'")
         self._assert_lex_failed(r"'a")
 
-    """
     def test_sconst(self):
-        explode = lambda s: list(s) + ['\0']
-        testcases = (
-                "abc",
-                "Route66",
-                "Helloworld!\n",
-                "Name:\t\"DouglasAdams\"\nValue\t42\n"
-                )
-        for input in testcases:
-            self._assert_individual_token(r'"%s"' % (input), "SCONST", explode(input))
-
         for escaped, literal in lexer.escape_sequences.items():
             self._assert_individual_token('"%s"' % (escaped), "SCONST", [literal, '\0'])
-    """
+
+        explode = lambda s: list(lexer.unescape(s)) + ['\0']
+        testcases = (
+                r"abc",
+                r"Route66",
+                r"Helloworld!\n",
+                r"\"",
+                r"Name:\t\"DouglasAdams\"\nValue\t42\n"
+        )
+
+        for input in testcases:
+            self._assert_individual_token('"%s"' % (input), "SCONST", explode(input))
 
     def test_operators(self):
         for input, token in lexer.operators.items():
