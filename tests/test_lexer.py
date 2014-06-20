@@ -93,3 +93,11 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failed(r"'ab'")
         self._assert_lex_failed(r"'\xbad'")
         self._assert_lex_failed(r"'\xg0'")
+
+    def test_operators(self):
+        for input, token in lexer.operators.items():
+            self._assert_individual_token(input, token, input)
+
+    def test_delimiters(self):
+        for input, token in lexer.delimiters.items():
+            self._assert_individual_token(input, token, input)

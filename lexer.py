@@ -86,9 +86,9 @@ operators = {
     '=': 'EQ',
     '<=': 'LE',
     '>=': 'GE',
-    '!=': 'NEQ',
+    '<>': 'NEQ',
     '==': 'NATEQ',
-    '<>': 'NATNEQ',
+    '!=': 'NATNEQ',
 
     # Boolean operators
     '&&': 'BAND',
