@@ -56,40 +56,6 @@ reserved_words = frozenset('''
 
 reserved_tokens = {s: s.upper() for s in reserved_words}
 
-other_tokens = (
-    # Identifiers (generic variable identifiers, constructor identifiers)
-    'GENID', 'CONID',
-
-    # Literals (int constant, float constant, char constant, string const)
-    'ICONST', 'FCONST', 'CCONST', 'SCONST',
-
-    # Integer operators (+, -, *, /)
-    'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
-
-    # Floating-point operators (+., -., *., /., **)
-    'FPLUS', 'FMINUS', 'FTIMES', 'FDIVIDE', 'FPOW',
-
-    # Boolean operators (&&, ||)
-    'BAND', 'BOR',
-
-    # Comparison operators (<, <=, >, >=, =, <>, ==, !=)
-    'LT', 'LE', 'GT', 'GE', 'EQ', 'NEQ', 'NATEQ', 'NATNEQ',
-
-    # Pattern operators (->, |)
-    'ARROW', 'PIPE',
-
-    # Assignment and dereference (:=, !)
-    'ASSIGN', 'BANG',
-
-    # Semicolon (;)
-    'SEMICOLON',
-
-    # Delimeters ( ) [ ] , :
-    'LPAREN', 'RPAREN',
-    'LBRACKET', 'RBRACKET',
-    'COMMA', 'COLON'
-)
-
 escape_sequences = {
     r"\n": "\n",
     r"\t": "\t",
@@ -100,8 +66,73 @@ escape_sequences = {
     r'\"': '\"'
 }
 
+operators = {
+    # Integer operators
+    '+': 'PLUS',
+    '-': 'MINUS',
+    '*': 'TIMES',
+    '/': 'DIVIDE',
+
+    # Floating-point operators
+    '+.': 'FPLUS',
+    '-.': 'FMINUS',
+    '*.': 'FTIMES',
+    '/.': 'FDIVIDE',
+    '**': 'FPOW',
+
+    # Comparison operators
+    '<': 'LT',
+    '>': 'GT',
+    '=': 'EQ',
+    '<=': 'LE',
+    '>=': 'GE',
+    '!=': 'NEQ',
+    '==': 'NATEQ',
+    '<>': 'NATNEQ',
+
+    # Boolean operators
+    '&&': 'BAND',
+    '||': 'BOR',
+
+    # Pattern operators
+    '|': 'PIPE',
+    '->': 'ARROW',
+
+    # Assignment and dereference
+    '!': 'BANG',
+    ':=': 'ASSIGN',
+
+    # Semicolon
+    ';': 'SEMICOLON'
+}
+
+delimiters = {
+    '(': 'LPAREN',
+    ')': 'RPAREN',
+    '[': 'LBRACKET',
+    ']': 'RBRACKET',
+    ',': 'COMMA',
+    ':': 'COLON'
+}
+
+other_tokens = (
+    # Identifiers (generic variable identifiers, constructor identifiers)
+    'GENID', 'CONID',
+
+    # Literals (int constant, float constant, char constant, string const)
+    'ICONST', 'FCONST', 'CCONST', 'SCONST'
+)
+
 # All valid_tokens [exported]
-tokens = tuple(reserved_tokens.values()) + other_tokens
+tokens = sum(
+    (
+        tuple(reserved_tokens.values()),
+        tuple(operators.values()),
+        tuple(delimiters.values()),
+        other_tokens
+    ),
+    tuple()
+)
 
 
 class _LexerBuilder:
@@ -438,7 +469,7 @@ class Lexer:
     input = None
     skip = None
 
-    def __init__(self, logger = None, verbose=False, **kwargs):
+    def __init__(self, logger=None, verbose=False, **kwargs):
         """Create a new lexer."""
 
         if logger is None:
