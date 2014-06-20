@@ -361,10 +361,7 @@ class _LexerBuilder:
     # Generic identifiers and reserved words
     def t_GENID(self, tok):
         r'[a-z][A-Za-z0-9_]*'
-        try:
-            tok.type = reserved_tokens[tok.value]
-        except KeyError:
-            pass
+        tok.type = reserved_tokens.get(tok.value, tok.type)
         return tok
 
     # Floating-point constants
@@ -388,7 +385,6 @@ class _LexerBuilder:
         # TODO Check if constant is too big in another module.
         return tok
 
-    # FIXME: Inappropriate (?)
     t_char_string_ignore = "\r\t"
 
     # Char constants
@@ -396,13 +392,12 @@ class _LexerBuilder:
         r'\''
         self.lexer.begin('char')
 
-    hex_char = r'\\x[a-fA-F0-9]{2}'
-    escape_char = r'\\[ntr0"\'\\]'
-    normal_char = r'[^\"\'\\]'
-    char = r'((' + normal_char + r')|(' + escape_char + r')|(' + hex_char + r'))'
-    rquoted_char = char + r'(\'?)'
+    hex_char = r'(\\x[a-fA-F0-9]{2})'
+    escape_char = r'(\\[ntr0"\'\\])'
+    normal_char = r'([^\"\'\\])'
+    char = r'(' + normal_char + r'|' + escape_char + r'|' + hex_char + r')'
 
-    @lex.TOKEN(rquoted_char)
+    @lex.TOKEN(char + r'(\'?)')
     def t_char_CCONST(self, tok):
         if tok.value[-1] != "'":
             self.error_out(
@@ -433,8 +428,8 @@ class _LexerBuilder:
         r'"'
         self.lexer.begin('string')
 
+    @lex.TOKEN(char + r'+("?)')
     def t_string_SCONST(self, tok):
-        r'(([^\\\'\"])|(\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2}))+("?)'
         if tok.value[-1] != '"':
             self.error_out(
                 "Unclosed string literal.",
