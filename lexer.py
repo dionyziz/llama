@@ -66,6 +66,8 @@ escape_sequences = {
     r'\"': '\"'
 }
 
+_unescape_char = lambda c: bytes(c, 'ascii').decode('unicode_escape')
+
 operators = {
     # Integer operators
     '+': 'PLUS',
@@ -408,10 +410,11 @@ class _LexerBuilder:
                 tok.lineno,
                 tok.lexpos - self.bol
             )
-        if tok.value[-1] == "'":
+        else:
             tok.value = tok.value[:-1]
+
         if tok.value[0] == '\\':
-            tok.value = _translate_escaped_character(tok.value)
+            tok.value = _unescape_char(tok.value)
         self.lexer.begin('INITIAL')
         return tok
 
