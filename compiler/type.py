@@ -154,10 +154,14 @@ class Table(Type):
         # First, insert all newly-defined types.
         for tdef in typeDefList:
             newtype = User(tdef.name)
+            newtype.set_pos(tdef)
             if newtype in self.knownTypes:
                 self._logger.error(
-                    # FIXME Add meaningful line
-                    "error: Type reuse: %s" % (newtype.name)
+                    "%d:%d: error: Redefining type '%s'" % (
+                        newtype.lineno,
+                        newtype.lexpos,
+                        newtype.name
+                    )
                     # TODO Show previous definition
                 )
             elif newtype.name in builtin_map:
@@ -174,18 +178,25 @@ class Table(Type):
             for constructor in tdef:
                 if constructor.name in self.knownConstructors:
                     self._logger.error(
-                        # FIXME add meaningful line
-                        "error: Constructor reuse: %s" % (constructor.name)
-                        # TODO Show previous use
+                        "%d:%d: error: Reusing constructor '%s'" % (
+                            constructor.lineno,
+                            constructor.lexpos,
+                            constructor.name
+                        )
+                        # TODO Show previous use and type
                     )
                 else:
                     for argType in constructor.list:
                         if argType not in self.knownTypes:
                             self._logger.error(
-                                # FIXME Add meaningful line
-                                "error: Type not defined: %s" % (argType.name)
+                                    "%d:%d: error: Undefined type '%s'" % (
+                                    argType.lexpos,
+                                    argType.lineno,
+                                    argType.name
+                                )
                             )
                     userType = User(tdef.name)
+                    userType.set_pos(tdef)
                     self.knownConstructors[constructor.name] = {
                         "type": userType,
                         "params": constructor.list
