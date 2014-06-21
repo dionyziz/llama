@@ -14,6 +14,8 @@
 
 class Type():
     name = None
+    lineno = None
+    lexpos = None
 
     def __init__(self):
         raise NotImplementedError
@@ -27,7 +29,6 @@ class Type():
     def __hash__(self):
         """Simple hash. Override as needed."""
         return hash(self.name)
-
 
 class Builtin(Type):
     def __init__(self):

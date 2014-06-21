@@ -11,8 +11,20 @@
 from compiler import type
 
 class Node:
+    lineno = None
+    lexpos = None
+
     def __init__(self):
         raise NotImplementedError
+
+    def set_pos(self, lineno, lexpos=None):
+        if lexpos is None:  # initialization with other object
+            obj = lineno
+            self.lineno = obj.lineno
+            self.lexpos = obj.lexpos
+        else:  # normal initialization
+            self.lineno = lineno
+            self.lexpos = lexpos
 
 class ListNode(Node):
     list = None
