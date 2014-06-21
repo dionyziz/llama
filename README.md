@@ -1,6 +1,6 @@
 # llama 
 
-[![Build Status](https://travis-ci.org/Renelvon/llama.svg?branch=travis)](https://travis-ci.org/Renelvon/llama)
+[![Build Status](https://travis-ci.org/dionyziz/llama.svg?branch=master)](https://travis-ci.org/dionyziz/llama)
 
 A llama implementation in Python.
 
