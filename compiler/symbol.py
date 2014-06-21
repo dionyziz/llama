@@ -156,27 +156,26 @@ class SymbolTable:
 
         return entry
 
-    def insert_symbol(self, identifier, guard=False):
+    def insert_symbol(self, node, guard=False):
         """
         Insert a new symbol in the current scope.
         If 'guard' is True, alert if an alias is already present.
         """
         assert self.cur_scope, 'No scope to insert into.'
 
+        new_entry = self._Entry(node, self.cur_scope)
+        new_id = new_entry.identifier
+
         if guard:
-            entry = self._find_identifier_in_current_scope(identifier)
+            entry = self._find_identifier_in_current_scope(new_entry.identifier)
 
             if entry is not None:
                 self._logger.error(
                     # FIXME: Meaningful line?
-                    "Duplicate identifier: %s" % identifier
+                    "Duplicate identifier: %s" % new_entry.identifier
                     # TODO: Show line of previous declaration
                 )
+                # TODO: Raise some kind of exception here.
 
-                return entry
-
-        new_entry = Entry(identifier=identifier, scope=self.cur_scope)
-        self.hash_table[identifier].append(new_entry)
+        self.hash_table[new_entry.identifier].append(new_entry)
         self.cur_scope.entries.append(new_entry)
-
-        return new_entry
