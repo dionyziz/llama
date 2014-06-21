@@ -1,3 +1,4 @@
+"""
 # ----------------------------------------------------------------------
 # type.py
 #
@@ -8,6 +9,8 @@
 #          Dimitris Koutsoukos <dimkou@gmail.com>
 #          Nick Korasidis <Renelvon@gmail.com>
 # ----------------------------------------------------------------------
+"""
+
 
 class Type():
     name = None
@@ -25,24 +28,31 @@ class Type():
         """Simple hash. Override as needed."""
         return hash(self.name)
 
+
 class Builtin(Type):
     def __init__(self):
         self.name = self.__class__.__name__.lower()
 
+
 class Unit(Builtin):
     pass
+
 
 class Int(Builtin):
     pass
 
+
 class Char(Builtin):
     pass
+
 
 class String(Builtin):
     pass
 
+
 class Bool(Builtin):
     pass
+
 
 class Float(Builtin):
     pass
@@ -56,6 +66,7 @@ builtin_map = {
     "string": String  # DEPRECATED. replace with array of char
 }
 
+
 class User(Type):
     name = None
 
@@ -64,6 +75,7 @@ class User(Type):
 
     def __hash__(self):
         return hash('user' + self.name)
+
 
 class Ref(Type):
     def __init__(self, type):
@@ -76,17 +88,23 @@ class Ref(Type):
         # Merkle-Damgard!
         return hash('ref' + hash(self.type))
 
+
 class Array(Type):
     def __init__(self, type, dimensions=1):
         self.type = type
         self.dimensions = dimensions
 
     def __eq__(self, other):
-        return isinstance(other, Array) and self.type == other.type and self.dimensions == other.dimensions
+        return all((
+            isinstance(other, Array),
+            self.dimensions == other.dimensions,
+            self.type == other.type
+        ))
 
     def __hash__(self):
         # Merkle-Damgard!
         return hash('array' + str(self.dimensions) + hash(self.type))
+
 
 class Function(Type):
     def __init__(self, fromType, toType):
@@ -94,11 +112,16 @@ class Function(Type):
         self.toType = toType
 
     def __eq__(self, other):
-        return isinstance(other, Function) and self.fromType == other.fromType and self.toType == other.toType
+        return all((
+            isinstance(other, Function),
+            self.fromType == other.fromType,
+            self.toType == other.toType
+        ))
 
     def __hash__(self):
         # Merkle-Damgard!
         return hash('function' + hash(self.fromType) + hash(self.toType))
+
 
 class Table(Type):
     """
