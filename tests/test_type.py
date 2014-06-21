@@ -199,3 +199,46 @@ class TestType(unittest.TestCase):
             ])
         ])
         self._assert_typesem_failure([t1, t2])
+
+        """
+        -- No redefinition of builtin types
+        type bool = BoolCon
+        type char = CharCon
+        type float = FloatCon
+        type int = IntCon
+        type unit = UnitCon
+        """
+        t = ast.TypeDefList([
+            ast.TDef("bool", [
+                ast.Constructor("BoolCon", [])
+            ])
+        ])
+        self._assert_typesem_failure([t])
+
+        t = ast.TypeDefList([
+            ast.TDef("char", [
+                ast.Constructor("CharCon", [])
+            ])
+        ])
+        self._assert_typesem_failure([t])
+
+        t = ast.TypeDefList([
+            ast.TDef("float", [
+                ast.Constructor("FloatCon", [])
+            ])
+        ])
+        self._assert_typesem_failure([t])
+
+        t = ast.TypeDefList([
+            ast.TDef("int", [
+                ast.Constructor("IntCon", [])
+            ])
+        ])
+        self._assert_typesem_failure([t])
+
+        t = ast.TypeDefList([
+            ast.TDef("unit", [
+                ast.Constructor("UnitCon", [])
+            ])
+        ])
+        self._assert_typesem_failure([t])

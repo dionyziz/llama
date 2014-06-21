@@ -129,8 +129,8 @@ class Table(Type):
     of user defined types and more.
     """
 
-    # Set of types encountered so far. Built-in types always available.
-    knownTypes = {Bool(), Int(), Float(), Char(), Unit(), String()}
+    # Sets of types encountered so far. Built-in types always available.
+    knownTypes = set(t() for t in builtin_map.values())
 
     # Dictionary of constructors encountered so far.
     # Each key contains a dict:
@@ -158,6 +158,12 @@ class Table(Type):
                 self._logger.error(
                     # FIXME Add meaningful line
                     "error: Type reuse: %s" % (newtype.name)
+                    # TODO Show previous definition
+                )
+            elif newtype.name in builtin_map:
+                self._logger.error(
+                    # FIXME Add meaningful line
+                    "error: Cannot redefine builtin type: %s" % (newtype.name)
                     # TODO Show previous definition
                 )
             else:
