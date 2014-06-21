@@ -4,23 +4,11 @@ import unittest
 import sure
 
 import lexer
-
-
-class LoggerMock():
-    lexing_success = True
-
-    def error(self, *args):
-        self.lexing_success = False
-    def warning(self, *args):
-        pass
-    def debug(self, *args):
-        pass
-    def info(self, *args):
-        pass
+import logger_mock as lm
 
 class TestLexer(unittest.TestCase):
     def _lex_data(self, input):
-        mock = LoggerMock()
+        mock = lm.LoggerMock()
         lex = lexer.Lexer(logger=mock)
         lex.input(input)
         token_list = list(lex)
@@ -33,20 +21,19 @@ class TestLexer(unittest.TestCase):
         tok = l[0]
         tok.type.should.be.equal(expected_token_type)
         tok.value.should.be.equal(expected_token_value)
-        mock.lexing_success.should.be.ok
+        mock.success.should.be.ok
 
     def _assert_lex_failed(self, input):
-        mock = LoggerMock()
+        mock = lm.LoggerMock()
         lex = lexer.Lexer(logger=mock)
         lex.input(input)
-        # force evaluation
-        list(lex)
-        mock.lexing_success.shouldnt.be.ok
+        list(lex)  # Force lexing
+        mock.success.shouldnt.be.ok
 
     def test_empty(self):
         l, mock = self._lex_data("")
         l.should.be.empty
-        mock.lexing_success.should.be.ok
+        mock.success.should.be.ok
 
     def test_keywords(self):
         for input_program, token in lexer.reserved_tokens.items():
