@@ -136,6 +136,8 @@ class Table(Type):
     # Each key contains a dict:
     #   type:    type which the constructor belongs to
     #   params:  type arguments of the constructor
+    #   lineno:  line where constructor is defined
+    #   lexpos:  column where constructor is defined
     knownConstructors = {}
 
     # Logger used for logging events. Possibly shared with other modules.
@@ -177,13 +179,16 @@ class Table(Type):
         for tdef in typeDefList:
             for constructor in tdef:
                 if constructor.name in self.knownConstructors:
+                    alias = self.knownConstructors[constructor.name]
                     self._logger.error(
-                        "%d:%d: error: Reusing constructor '%s'" % (
+                        "%d:%d: error: Redefining constructor '%s'"
+                        "\tPrevious definition: %d:%d" % (
                             constructor.lineno,
                             constructor.lexpos,
-                            constructor.name
+                            constructor.name,
+                            alias['lineno'],
+                            alias['lexpos']
                         )
-                        # TODO Show previous use and type
                     )
                 else:
                     for argType in constructor.list:
@@ -199,7 +204,9 @@ class Table(Type):
                     userType.set_pos(tdef)
                     self.knownConstructors[constructor.name] = {
                         "type": userType,
-                        "params": constructor.list
+                        "params": constructor.list,
+                        "lineno": constructor.lineno,
+                        "lexpos": constructor.lexpos
                     }
 
         # TODO: Emmit warnings when typenames clash with definition names.
