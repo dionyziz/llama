@@ -143,9 +143,9 @@ def main():
     # (i.e. caches LALR tables accross invocations). If 'debug' is set,
     # a 'parser.out' is created every time the tables are regenerated.
     parser = prs.Parser(
-        optimize=1,
         logger=logger,
-        debug=1
+        optimize=1,
+        start='program'
     )
 
     # Stop here if this a dry run.
