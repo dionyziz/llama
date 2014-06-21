@@ -47,6 +47,15 @@ class Bool(Builtin):
 class Float(Builtin):
     pass
 
+builtin_map = {
+    "bool": Bool,
+    "char": Char,
+    "float": Float,
+    "int": Int,
+    "unit": Unit,
+    "string": String  # DEPRECATED. replace with array of char
+}
+
 class User(Type):
     name = None
 
@@ -152,3 +161,5 @@ class Table(Type):
                         "type": userType,
                         "params": constructor.list
                     }
+
+        # TODO: Emmit warnings when typenames clash with definition names.
