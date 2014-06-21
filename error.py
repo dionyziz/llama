@@ -24,6 +24,9 @@ class Logger:
     # The logger instance, as constructed by the logging module
     _logger = None
 
+    errors = 0
+    warnings = 0
+
     def __init__(self, inputfile, level=logging.WARNING):
         """Create a new logger for the llama compiler."""
         self._logger = logging.getLogger('llama%d' % Logger._instances)
@@ -41,6 +44,7 @@ class Logger:
     def error(self, *args):
         """Add an error to the logger."""
         self._logger.error(*args)
+        self.errors += 1
 
     def debug(self, *args):
         """Add some debug info to the logger."""
@@ -53,3 +57,4 @@ class Logger:
     def warning(self, *args):
         """Add a warning to the logger."""
         self._logger.warning(*args)
+        self.warnings += 1
