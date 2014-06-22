@@ -12,8 +12,9 @@
 # ----------------------------------------------------------------------
 """
 
-from error import DummyLogger
 import ply.lex as lex
+
+import error
 
 # Represent reserved words as a frozenset for fast lookup
 reserved_words = frozenset('''
@@ -481,7 +482,7 @@ class Lexer:
         """Create a new lexer."""
 
         if logger is None:
-            self._logger = DummyLogger()
+            self._logger = error.LoggerMock()
         else:
             self._logger = logger
 

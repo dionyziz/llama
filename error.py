@@ -11,19 +11,35 @@
 import logging
 
 
-class DummyLogger:
-    """
-    DummyLogger class implements the Logger interface in a dummy way
-    to enable better testability.
-    """
-    def info(self, *args):
+class LoggerMock:
+    """Mock of a proper logger for testing purposes"""
+
+    def __init__(self):
         pass
-    def error(self, *args):
-        pass
-    def warning(self, *args):
-        pass
+
+    errors = 0
+    warnings = 0
+
     def debug(self, *args):
         pass
+
+    def info(self, *args):
+        pass
+
+    def warning(self, *args):
+        self.warnings += 1
+
+    def error(self, *args):
+        self.errors += 1
+
+    @property
+    def success(self):
+        return self.errors == 0
+
+    @property
+    def perfect_success(self):
+        return self.errors == 0 and self.warnings == 0
+
 
 class Logger:
     """

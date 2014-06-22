@@ -3,14 +3,13 @@ import unittest
 
 import sure
 
+import error
 import lexer
-import logger_mock as lm
-
 
 
 class TestLexer(unittest.TestCase):
     def _lex_data(self, input):
-        mock = lm.LoggerMock()
+        mock = error.LoggerMock()
         lex = lexer.Lexer(logger=mock)
         lex.input(input)
         token_list = list(lex)
@@ -26,7 +25,7 @@ class TestLexer(unittest.TestCase):
         mock.success.should.be.ok
 
     def _assert_lex_failed(self, input):
-        mock = lm.LoggerMock()
+        mock = error.LoggerMock()
         lex = lexer.Lexer(logger=mock)
         lex.input(input)
         list(lex)  # Force lexing
