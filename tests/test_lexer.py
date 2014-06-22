@@ -45,6 +45,7 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token(2048 * "koko", "GENID", 2048 * "koko")
         self._assert_individual_token("koko_lala", "GENID", "koko_lala")
         self._assert_individual_token("koko_42", "GENID", "koko_42")
+        self._assert_individual_token("notakeyword", "GENID", "notakeyword")
 
         self._assert_lex_failed("_koko")
         # self._assert_lex_failed("42koko")
@@ -84,7 +85,7 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failed(r"'ab'")
         self._assert_lex_failed(r"'\xbad'")
         self._assert_lex_failed(r"'\xg0'")
-        self._assert_lex_failed("'a\n'")
+        self._assert_lex_failed("'\n'")
         self._assert_lex_failed(r"'a")
 
     def test_sconst(self):
@@ -93,6 +94,7 @@ class TestLexer(unittest.TestCase):
 
         explode = lambda s: list(lexer.unescape(s)) + ['\0']
         testcases = (
+                r"",
                 r"abc",
                 r"Route66",
                 r"Helloworld!\n",
@@ -102,6 +104,10 @@ class TestLexer(unittest.TestCase):
 
         for input in testcases:
             self._assert_individual_token('"%s"' % (input), "SCONST", explode(input))
+
+        self._assert_lex_failed('"')
+        self._assert_lex_failed('"\n"')
+        self._assert_lex_failed('"\na')
 
     def test_operators(self):
         for input, token in lexer.operators.items():
