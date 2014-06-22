@@ -424,25 +424,28 @@ class _LexerBuilder:
         )
         self.lexer.begin('INITIAL')
 
-    # String constants
-    # FIXME: Ask if empty string is valid
+    # Begin of a proper string constant.
     def t_INITIAL_LSTRING(self, _):
         r'"'
         self.lexer.begin('string')
 
-    @lex.TOKEN(char + '+("?)')
-    def t_string_SCONST(self, tok):
-        if tok.value[-1] != '"':
-            self.error_out(
-                "Unclosed string literal.",
-                tok.lineno,
-                tok.lexpos - self.bol
-            )
-        else:
-            tok.value = tok.value[:-1]
+    # Malformed strings.
+    @lex.TOKEN('"[^\n]+("?)')
+    def t_INITIAL_SCONST(self, tok):
+        self.error_out(
+            "Malformed string literal.",
+            tok.lineno,
+            tok.lexpos - self.bol
+        )
+        tok.value = ['\0']
+        return tok
 
-        tok.value = list(unescape(tok.value))
+    # Proper strings (left dquote already encountered)
+    @lex.TOKEN(char + '*"')
+    def t_string_SCONST(self, tok):
+        tok.value = list(unescape(tok.value[:-1]))
         tok.value.append('\0')
+        # NOTE: Empty string is valid and is just the null byte.
         self.lexer.begin('INITIAL')
         return tok
 
