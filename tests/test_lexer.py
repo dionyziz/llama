@@ -6,6 +6,8 @@ import sure
 import lexer
 import logger_mock as lm
 
+
+
 class TestLexer(unittest.TestCase):
     def _lex_data(self, input):
         mock = lm.LoggerMock()
@@ -15,12 +17,12 @@ class TestLexer(unittest.TestCase):
 
         return (token_list, mock)
 
-    def _assert_individual_token(self, input, expected_token_type, expected_token_value):
+    def _assert_individual_token(self, input, expected_type, expected_value):
         l, mock = self._lex_data(input)
         len(l).should.be.equal(1)
         tok = l[0]
-        tok.type.should.be.equal(expected_token_type)
-        tok.value.should.be.equal(expected_token_value)
+        tok.type.should.be.equal(expected_type)
+        tok.value.should.be.equal(expected_value)
         mock.success.should.be.ok
 
     def _assert_lex_failed(self, input):
@@ -66,7 +68,7 @@ class TestLexer(unittest.TestCase):
 
     def test_fconst(self):
         self._assert_individual_token("42.5", "FCONST", 42.5)
-        inputs = ["42.0", "4.2e1", "4.2E1", "0.420e+2", "42000.0e-3", "42000.0E-3"]
+        inputs = ["42.0", "4.2e1", "4.2E1", "0.420e+2", "420.0e-1", "420.0E-1"]
         for input in inputs:
             self._assert_individual_token(input, "FCONST", 42.0)
 
@@ -78,7 +80,11 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token(r"'a'", "CCONST", "a")
         self._assert_individual_token(r"'0'", "CCONST", "0")
         for escaped, literal in lexer.escape_sequences.items():
-            self._assert_individual_token("'%s'" % (escaped), "CCONST", literal)
+            self._assert_individual_token(
+                "'%s'" % (escaped),
+                "CCONST",
+                literal
+            )
         self._assert_individual_token(r"'\x61'", "CCONST", "a")
         self._assert_individual_token(r"'\x1d'", "CCONST", "\x1d")
 
@@ -90,20 +96,28 @@ class TestLexer(unittest.TestCase):
 
     def test_sconst(self):
         for escaped, literal in lexer.escape_sequences.items():
-            self._assert_individual_token('"%s"' % (escaped), "SCONST", [literal, '\0'])
+            self._assert_individual_token(
+                '"%s"' % (escaped),
+                "SCONST",
+                [literal, '\0']
+            )
 
         explode = lambda s: list(lexer.unescape(s)) + ['\0']
         testcases = (
-                r"",
-                r"abc",
-                r"Route66",
-                r"Helloworld!\n",
-                r"\"",
-                r"Name:\t\"DouglasAdams\"\nValue\t42\n"
+            r"",
+            r"abc",
+            r"Route66",
+            r"Helloworld!\n",
+            r"\"",
+            r"Name:\t\"DouglasAdams\"\nValue\t42\n"
         )
 
         for input in testcases:
-            self._assert_individual_token('"%s"' % (input), "SCONST", explode(input))
+            self._assert_individual_token(
+                '"%s"' % (input),
+                "SCONST",
+                explode(input)
+            )
 
         self._assert_lex_failed('"')
         self._assert_lex_failed('"\n"')
