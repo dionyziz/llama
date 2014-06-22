@@ -446,10 +446,12 @@ class _LexerBuilder:
         self.lexer.begin('INITIAL')
         return tok
 
-    # Catch-all error reporting
+    # Catch-all error reporting and panic recovery.
     def t_ANY_error(self, tok):
+        state = self.lexer.current_state()
+        state_msg = (" while inside %s" % state) if state != 'INITIAL' else ""
         self.error_out(
-            "Illegal character '%s'" % tok.value[0],
+            "Illegal character '%s'%s." % (tok.value[0], state_msg),
             tok.lineno,
             tok.lexpos - self.bol
         )
