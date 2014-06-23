@@ -265,19 +265,6 @@ class _LexerBuilder:
     def t_ANY_newline(self, tok):
         r'\n+'
         self.lexer.lineno += len(tok.value)
-        state = self.lexer.current_state()
-        if state == "string":
-            self.error_out(
-                "String spanning multiple lines (unclosed string).",
-                tok.lineno
-            )
-            self.lexer.begin('INITIAL')
-        elif state == "char":
-            self.error_out(
-                "Character spanning multiple lines (unclosed character).",
-                tok.lineno
-            )
-            self.lexer.begin('INITIAL')
         self.bol = self.lexer.lexpos - 1
 
     # Single-line comments. Do not consume the newline.
@@ -389,66 +376,80 @@ class _LexerBuilder:
         # TODO Check if constant is too big in another module.
         return tok
 
+    # Regexes for well-formed char and string literals
+    empty_char = r"''"
+    escape_char_content = r'(((\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2})))'
+    normal_char_content = '([ 0-9A-Za-z!#$%&()*+,-./:;<=>?@^_`{|}~[\]])'
+    char_content = r"(%s|%s)" %(normal_char_content, escape_char_content)
+    proper_char = r"'%s'" % char_content
+    proper_string = r'"%s*"' % char_content
+
     t_char_string_ignore = "\r\t"
 
-    # Char constants
-    def t_INITIAL_LCHAR(self, _):
-        r'\''
-        self.lexer.begin('char')
-
-    hex_char = r'(\\x[a-fA-F0-9]{2})'
-    escape_char = r'(\\[ntr0"\'\\])'
-    normal_char = r'([^\"\'\\])'
-    char = r'(' + normal_char + r'|' + escape_char + r'|' + hex_char + r')'
-
-    @lex.TOKEN(char + r'(\'?)')
-    def t_char_CCONST(self, tok):
-        if tok.value[-1] != "'":
+    # Proper or empty char literal.
+    @lex.TOKEN('(' + proper_char + ')|(' + empty_char + ')')
+    def t_INITIAL_CCONST(self, tok):
+        tok.value = tok.value[1:-1]
+        if tok.value:
+            tok.value = unescape(tok.value)[0]
+        else:  # Illegal empty char
             self.error_out(
-                "Unclosed character literal.",
+                "Empty character literal not allowed.",
                 tok.lineno,
                 tok.lexpos - self.bol
             )
-        else:
-            tok.value = tok.value[:-1]
-
-        tok.value = unescape(tok.value)
-        self.lexer.begin('INITIAL')
+            tok.value = '\0'
         return tok
 
-    def t_char_RCHAR(self, tok):
-        r'\''
+    # Malformed char literal ahead; enter 'char' state for recovery.
+    def t_INITIAL_LCHAR(self, tok):
+        r"'"
         self.error_out(
-            "Empty character literal not allowed.",
+            "Bad character literal.",
             tok.lineno,
             tok.lexpos - self.bol
         )
+        self.lexer.begin('char')
+
+    # Malformed char literal payload
+    def t_char_CCONST(self, tok):
+        "[^'\n]+"
+        tok.value = '\0'
+        return tok
+
+    # Exit recovery mode.
+    def t_char_RCHAR(self, _):
+        r"'"
         self.lexer.begin('INITIAL')
 
-    # Begin of a proper string constant.
-    def t_INITIAL_LSTRING(self, _):
-        r'"'
-        self.lexer.begin('string')
-
-    # Malformed strings.
-    @lex.TOKEN('"[^\n]+("?)')
+    # Proper string literal
+    @lex.TOKEN(proper_string)
     def t_INITIAL_SCONST(self, tok):
+        tok.value = list(unescape(tok.value[1:-1]))
+        tok.value.append('\0')
+        # NOTE: Empty string is valid and is just the null byte.
+        return tok
+
+    # Malformed string literal ahead; enter 'string' state for recovery.
+    def t_INITIAL_LSTRING(self, tok):
+        r'"'
         self.error_out(
-            "Malformed string literal.",
+            "Bad string literal.",
             tok.lineno,
             tok.lexpos - self.bol
         )
+        self.lexer.begin('string')
+
+    # Malformed string literal payload
+    def t_string_SCONST(self, tok):
+        '[^\"\n]+'
         tok.value = ['\0']
         return tok
 
-    # Proper strings (left dquote already encountered)
-    @lex.TOKEN(char + '*"')
-    def t_string_SCONST(self, tok):
-        tok.value = list(unescape(tok.value[:-1]))
-        tok.value.append('\0')
-        # NOTE: Empty string is valid and is just the null byte.
+    # Exit recovery mode
+    def t_string_RSTRING(self, tok):
+        r'"'
         self.lexer.begin('INITIAL')
-        return tok
 
     # Catch-all error reporting and panic recovery.
     def t_ANY_error(self, tok):
