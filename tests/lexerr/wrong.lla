@@ -1,12 +1,7 @@
 ---v RIGHT v---
--- (* (* "" '\\' -- --
++5.41e-901721
 
-((((* (*
-*)
-
-(**) X *)x := +5.41e-901721
-
-'\"' != dimtodimtodo 
+dimtodimtodo
 
 "an e\\xtra laaaaaaa\\zy string?"
 
@@ -28,7 +23,4 @@ print_str "\n\r' Hey, haxxor, l3ave the string5 alone!  :(
 
 "if_it\"walks_like_an_array\n_and_quacks^like_a_char\r\n_then_it\' is a" TYPE \''error"
 
-where did "42" come from -> ?
-where did the '' character go "?"
-
-(* where did the "end-of-file\'" go?....
+?

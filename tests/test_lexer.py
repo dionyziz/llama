@@ -24,7 +24,14 @@ class TestLexer(unittest.TestCase):
         tok.value.should.be.equal(expected_value)
         mock.success.should.be.ok
 
-    def _assert_lex_failed(self, input):
+    def _assert_lex_success(self, input):
+        mock = error.LoggerMock()
+        lex = lexer.Lexer(logger=mock)
+        lex.input(input)
+        list(lex)  # Force lexing
+        mock.success.should.be.ok
+
+    def _assert_lex_failure(self, input):
         mock = error.LoggerMock()
         lex = lexer.Lexer(logger=mock)
         lex.input(input)
@@ -48,11 +55,11 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token("koko_42", "GENID", "koko_42")
         self._assert_individual_token("notakeyword", "GENID", "notakeyword")
 
-        self._assert_lex_failed("_koko")
-        # self._assert_lex_failed("42koko")
-        self._assert_lex_failed("@koko")
-        self._assert_lex_failed("\\koko")
-        self._assert_lex_failed("\\x42")
+        self._assert_lex_failure("_koko")
+        # self._assert_lex_failure("42koko")
+        self._assert_lex_failure("@koko")
+        self._assert_lex_failure("\\koko")
+        self._assert_lex_failure("\\x42")
 
     def test_conid(self):
         self._assert_individual_token("Koko", "CONID", "Koko")
@@ -71,13 +78,15 @@ class TestLexer(unittest.TestCase):
         for input in inputs:
             self._assert_individual_token(input, "FCONST", 42.0)
 
-        self._assert_lex_failed("42.5.2")
-        self._assert_lex_failed(".2")
-        self._assert_lex_failed("4.2e1.0")
+        self._assert_lex_failure("42.5.2")
+        self._assert_lex_failure(".2")
+        self._assert_lex_failure("4.2e1.0")
 
     def test_cconst(self):
-        self._assert_individual_token(r"'a'", "CCONST", "a")
-        self._assert_individual_token(r"'0'", "CCONST", "0")
+        printable_ascii = set(map(chr, range(ord(' '), ord('~') + 1)))
+        for c in printable_ascii - {'"', "'", '\\'}:
+            self._assert_individual_token(r"'%s'" % c, "CCONST", c)
+
         for escaped, literal in lexer.escape_sequences.items():
             self._assert_individual_token(
                 "'%s'" % (escaped),
@@ -87,11 +96,13 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token(r"'\x61'", "CCONST", "a")
         self._assert_individual_token(r"'\x1d'", "CCONST", "\x1d")
 
-        self._assert_lex_failed(r"'ab'")
-        self._assert_lex_failed(r"'\xbad'")
-        self._assert_lex_failed(r"'\xg0'")
-        self._assert_lex_failed("'\n'")
-        self._assert_lex_failed(r"'a")
+        self._assert_lex_failure(r"'ab'")
+        self._assert_lex_failure(r"'\xbad'")
+        self._assert_lex_failure(r"'\xb'")
+        self._assert_lex_failure(r"'\xg0'")
+        self._assert_lex_failure("'\n'")
+        self._assert_lex_failure(r"'a")
+        self._assert_lex_failure(r"'")
 
     def test_sconst(self):
         for escaped, literal in lexer.escape_sequences.items():
@@ -118,9 +129,9 @@ class TestLexer(unittest.TestCase):
                 explode(input)
             )
 
-        self._assert_lex_failed('"')
-        self._assert_lex_failed('"\n"')
-        self._assert_lex_failed('"\na')
+        self._assert_lex_failure('"')
+        self._assert_lex_failure('"\n"')
+        self._assert_lex_failure('"\na')
 
     def test_operators(self):
         for input, token in lexer.operators.items():
@@ -129,3 +140,17 @@ class TestLexer(unittest.TestCase):
     def test_delimiters(self):
         for input, token in lexer.delimiters.items():
             self._assert_individual_token(input, token, input)
+
+    def test_comments(self):
+        self._assert_lex_success('-- comment (* let "" \'\'')
+        self._assert_lex_success('--')
+        self._assert_lex_success('---')
+
+        self._assert_lex_success('(* comment *)')
+        self._assert_lex_success('(**)')
+        self._assert_lex_success('(***)')
+        self._assert_lex_success('(*(**)*)')
+        self._assert_lex_success('(*(*\n*)\n*)')
+
+        self._assert_lex_failure('(*')
+        self._assert_lex_failure('(*(**)')
