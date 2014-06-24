@@ -379,7 +379,7 @@ class _LexerBuilder:
     # Regexes for well-formed char and string literals
     empty_char = r"''"
     escape_char_content = r'(((\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2})))'
-    normal_char_content = '([ 0-9A-Za-z!#$%&()*+,-./:;<=>?@^_`{|}~[\]])'
+    normal_char_content = '([ 0-9A-Za-z!#$%&()*+,./:;<=>?@^_`{|}~[\]-])'
     char_content = r"(%s|%s)" % (normal_char_content, escape_char_content)
     proper_char = r"'%s'" % char_content
     proper_string = r'"%s*"' % char_content
