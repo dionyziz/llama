@@ -208,37 +208,10 @@ class TestType(unittest.TestCase):
         type int = IntCon
         type unit = UnitCon
         """
-        t = ast.TypeDefList([
-            ast.TDef("bool", [
-                ast.Constructor("BoolCon", [])
+        for builtin_type in type.builtin_map:
+            t = ast.TypeDefList([
+                ast.TDef(builtin_type, [
+                    ast.Constructor("BuiltInCon", [])
+                ])
             ])
-        ])
-        self._assert_typesem_failure([t])
-
-        t = ast.TypeDefList([
-            ast.TDef("char", [
-                ast.Constructor("CharCon", [])
-            ])
-        ])
-        self._assert_typesem_failure([t])
-
-        t = ast.TypeDefList([
-            ast.TDef("float", [
-                ast.Constructor("FloatCon", [])
-            ])
-        ])
-        self._assert_typesem_failure([t])
-
-        t = ast.TypeDefList([
-            ast.TDef("int", [
-                ast.Constructor("IntCon", [])
-            ])
-        ])
-        self._assert_typesem_failure([t])
-
-        t = ast.TypeDefList([
-            ast.TDef("unit", [
-                ast.Constructor("UnitCon", [])
-            ])
-        ])
-        self._assert_typesem_failure([t])
+            self._assert_typesem_failure([t])
