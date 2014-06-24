@@ -11,9 +11,9 @@
 import logging
 
 
-class LoggerMock:
+class LoggerInterface:
     """
-    Interface and mock implementation of a full logger.
+    Interface and minimal implementation of a logger.
     Mainly used for testing purposes.
     """
 
@@ -21,7 +21,7 @@ class LoggerMock:
     warnings = 0
 
     def __init__(self):
-        """Make a new mock loggger."""
+        raise NotImplementedError
 
     def debug(self, *args):
         pass
@@ -49,7 +49,15 @@ class LoggerMock:
         return self.errors == 0 and self.warnings == 0
 
 
-class Logger(LoggerMock):
+class LoggerMock(LoggerInterface):
+    """Mock of a full logger. Mainly used for testing purposes."""
+
+    def __init__(self):
+        """Make a new mock loggger."""
+        pass
+
+
+class Logger(LoggerInterface):
     """
     Simple error logger for the llama compiler. Provides methods for
     logging and reporting errors of varying severities.
