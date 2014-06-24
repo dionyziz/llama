@@ -96,6 +96,7 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token(r"'\x61'", "CCONST", "a")
         self._assert_individual_token(r"'\x1d'", "CCONST", "\x1d")
 
+        self._assert_lex_failure(r"''")
         self._assert_lex_failure(r"'ab'")
         self._assert_lex_failure(r"'\xbad'")
         self._assert_lex_failure(r"'\xb'")
