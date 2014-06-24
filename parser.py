@@ -263,7 +263,7 @@ class Parser:
 
     def p_sconst_simple_expr(self, p):
         """sconst_simple_expr : SCONST"""
-        p[0] = ast.ConstExpression(type.String(), p[1])
+        p[0] = ast.ConstExpression(type.Array(type.Char(), 1), p[1])
 
     def p_uconst_simple_expr(self, p):
         """uconst_simple_expr : LPAREN RPAREN"""

@@ -46,10 +46,6 @@ class Char(Builtin):
     pass
 
 
-class String(Builtin):
-    pass
-
-
 class Bool(Builtin):
     pass
 
@@ -63,7 +59,6 @@ builtin_map = {
     "float": Float,
     "int": Int,
     "unit": Unit,
-    "string": String  # DEPRECATED. replace with array of char
 }
 
 
