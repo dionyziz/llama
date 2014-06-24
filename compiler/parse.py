@@ -145,12 +145,12 @@ class Parser:
     def p_function_type(self, p):
         """function_type : type ARROW type"""
         p[0] = type.Function(p[1], p[3])
-        p[0].set_pos(p[1])
+        self._track_first_node(p)
 
     def p_ref_type(self, p):
         """ref_type : type REF"""
         p[0] = type.Ref(p[1])
-        p[0].set_pos(p[1])
+        self._track_first_node(p)
 
     def p_user_type(self, p):
         """user_type : GENID"""
@@ -203,7 +203,7 @@ class Parser:
                 | while_expr"""
         if len(p) == 4:
             p[0] = ast.BinaryExpression(p[1], p[2], p[3])
-            p[0].set_pos(p[1])
+            self._track_first_node(p)
         elif len(p) == 3:
             p[0] = ast.UnaryExpression(p[1], p[2])
             self._track_first_token(p)
@@ -321,7 +321,7 @@ class Parser:
     def p_in_expr(self, p):
         """in_expr : letdef IN expr"""
         p[0] = ast.LetInExpression(p[1], p[3])
-        p[0].set_pos(p[1])
+        self._track_first_node(p)
 
     def p_if_expr(self, p):
         # WARNING: Changing order of clauses produces Syntax Errors,
@@ -347,7 +347,7 @@ class Parser:
     def p_clause(self, p):
         """clause : pattern ARROW expr"""
         p[0] = ast.Clause(p[1], p[3])
-        p[0].set_pos(p[1])
+        self._track_first_node(p)
 
     def p_pattern(self, p):
         """pattern : CONID simple_pattern_list
@@ -519,9 +519,14 @@ class Parser:
             p[2].insert(0, p[1])
             p[0] = p[2]
 
+    def _track_first_node(self, rule):
+        dst_node, src_node = rule[0], rule[1]
+        dst_node.copy_pos(src_node)
+
     def _track_first_token(self, rule):
         node = rule[0]
-        node.set_pos(rule.lineno(1), rule.lexpos(1))
+        node.lineno = rule.lineno(1)
+        node.lexpos = rule.lexpos(1)
 
     parser = None
     tokens = lex.tokens

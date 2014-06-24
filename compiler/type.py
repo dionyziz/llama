@@ -30,6 +30,12 @@ class Type():
         """Simple hash. Override as needed."""
         return hash(self.name)
 
+    def copy_pos(self, node):
+        """Copy line info from another Type node."""
+        self.lineno = node.lineno
+        self.lexpos = node.lexpos
+
+
 class Builtin(Type):
     def __init__(self):
         self.name = self.__class__.__name__.lower()
@@ -156,7 +162,7 @@ class Table(Type):
         # First, insert all newly-defined types.
         for tdef in typeDefList:
             newtype = User(tdef.name)
-            newtype.set_pos(tdef)
+            newtype.copy_pos(tdef)
             if newtype in self.knownTypes:
                 self._logger.error(
                     "%d:%d: error: Redefining type '%s'" % (
@@ -201,7 +207,7 @@ class Table(Type):
                                 )
                             )
                     userType = User(tdef.name)
-                    userType.set_pos(tdef)
+                    userType.copy_pos(tdef)
                     self.knownConstructors[constructor.name] = {
                         "type": userType,
                         "params": constructor.list,

@@ -17,14 +17,10 @@ class Node:
     def __init__(self):
         raise NotImplementedError
 
-    def set_pos(self, lineno, lexpos=None):
-        if lexpos is None:  # initialization with other object
-            obj = lineno
-            self.lineno = obj.lineno
-            self.lexpos = obj.lexpos
-        else:  # normal initialization
-            self.lineno = lineno
-            self.lexpos = lexpos
+    def copy_pos(self, node):
+        """Copy line info from another AST node."""
+        self.lineno = node.lineno
+        self.lexpos = node.lexpos
 
 class ListNode(Node):
     list = None
