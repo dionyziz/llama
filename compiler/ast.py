@@ -11,6 +11,7 @@
 # ----------------------------------------------------------------------
 """
 
+# == INTERFACES OF AST NODES ==
 
 class Node:
     lineno = None
@@ -24,18 +25,61 @@ class Node:
         self.lineno = node.lineno
         self.lexpos = node.lexpos
 
+
+class DataNode(Node):
+    """A node to which a definite type can and should be assigned."""
+    type = None
+
+
+class Expression(DataNode):
+    """An expression that can be evaluated."""
+    pass
+
+
+class Def(Node):
+    """Definition of a new name."""
+    pass
+
+
+class NameNode(Node):
+    """
+    A node with a user-defined name.
+    Supports equality testing based on name equality;
+    provides basic hashing functionality.
+    """
+    name = None
+
+    def __eq__(self, other):
+        """Simple and strict type equality. Override as needed."""
+        return all((
+            self.name is not None,
+            other.name is not None,
+            self.name == other.name
+        ))
+
+    def __hash__(self):
+        """Simple hash. Override as needed."""
+        return hash(self.name)
+
+
 class ListNode(Node):
     list = None
-
-    def __init__(self):
-        raise NotImplementedError
 
     def __iter__(self):
         return iter(self.list)
 
-class DataNode(Node):
+
+class Type(NameNode):
+    """An AST node representing a type."""
+    pass
+
+
+class Builtin(Type):
+    """One of the builtin types."""
     def __init__(self):
-        raise NotImplementedError
+        self.name = self.__class__.__name__.lower()
+
+# == AST REPRESENTATION OF PROGRAM ELEMENTS ==
 
 class Program(DataNode):
     def __init__(self, list):
@@ -45,10 +89,6 @@ class LetDef(Node):
     def __init__(self, list, isRec=False):
         self.list = list
         self.isRec = isRec
-
-class Def(Node):
-    def __init__(self):
-        raise NotImplementedError
 
 class FunctionDef(Def):
     def __init__(self, name, params, body, type=None):
@@ -61,10 +101,6 @@ class Param(DataNode):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
-
-class Expression(DataNode):
-    def __init__(self):
-        raise NotImplementedError
 
 class BinaryExpression(Expression):
     def __init__(self, leftOperand, operator, rightOperand):
@@ -181,47 +217,15 @@ class TDef(ListNode):
         self.type = type
         self.list = list
 
-class NameNode(Node):
-    """An AST node with a name and basic equality testing."""
-    name = None
-
-    def __init__(self):
-        raise NotImplementedError
-
-    def __eq__(self, other):
-        """Simple and strict type equality. Override as needed."""
-        if self.name is None or other.name is None:
-            return False
-        return self.name == other.name
-
-    def __hash__(self):
-        """Simple hash. Override as needed."""
-        return hash(self.name)
-
 
 class Constructor(NameNode, ListNode):
     def __init__(self, name, list=None):
         self.name = name
         self.list = list or []
 
-# == AST REPRESENTATION OF TYPES ==
+# == REPRESENTATION OF TYPES AS AST NODES ==
 
-class Type(NameNode):
-    """An AST node representing a type."""
-    pass
-
-
-class Builtin(Type):
-    """One of llama's builtin types."""
-    def __init__(self):
-        self.name = self.__class__.__name__.lower()
-
-
-class Unit(Builtin):
-    pass
-
-
-class Int(Builtin):
+class Bool(Builtin):
     pass
 
 
@@ -229,12 +233,17 @@ class Char(Builtin):
     pass
 
 
-class Bool(Builtin):
-    pass
-
-
 class Float(Builtin):
     pass
+
+
+class Int(Builtin):
+    pass
+
+
+class Unit(Builtin):
+    pass
+
 
 builtin_map = {
     "bool": Bool,
