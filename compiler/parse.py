@@ -482,7 +482,7 @@ class Parser:
         self._expand_seq(p)
 
     def p_tdef(self, p):
-        """tdef : GENID EQ constr_pipe_seq"""
+        """tdef : user_type EQ constr_pipe_seq"""
         p[0] = ast.TDef(p[1], p[3])
         _track(p)
 

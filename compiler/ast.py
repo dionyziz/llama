@@ -177,8 +177,8 @@ class TypeDefList(ListNode):
         self.list = list
 
 class TDef(ListNode):
-    def __init__(self, name, list):
-        self.name = name
+    def __init__(self, type, list):
+        self.type = type
         self.list = list
 
 class NameNode(Node):
@@ -200,8 +200,6 @@ class NameNode(Node):
 
 
 class Constructor(NameNode, ListNode):
-    type = None  # To be filled during type analysis
-
     def __init__(self, name, list=None):
         self.name = name
         self.list = list or []

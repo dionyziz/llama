@@ -46,8 +46,7 @@ class Table:
 
         # First, insert all newly-defined types.
         for tdef in typeDefList:
-            newtype = ast.User(tdef.name)
-            newtype.copy_pos(tdef)
+            newtype = tdef.type
             if newtype in self.knownTypes:
                 self._logger.error(
                     "%d:%d: error: Redefining type '%s'" % (
@@ -69,6 +68,7 @@ class Table:
         # Process each constructor.
         for tdef in typeDefList:
             for constructor in tdef:
+                constructor.type = tdef.type
                 if constructor.name in self.knownConstructors:
                     alias = self.knownConstructors[constructor.name]
                     self._logger.error(
@@ -91,8 +91,7 @@ class Table:
                                     argType.name
                                 )
                             )
-                    userType = ast.User(tdef.name)
-                    userType.copy_pos(tdef)
+                    userType = tdef.type
                     self.knownConstructors[constructor.name] = {
                         "type": userType,
                         "params": constructor.list,
