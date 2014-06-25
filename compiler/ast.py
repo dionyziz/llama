@@ -181,16 +181,12 @@ class TDef(ListNode):
         self.name = name
         self.list = list
 
-class Constructor(ListNode):
-    def __init__(self, name, list=None):
-        self.name = name
-        self.list = list or []
-
-# == AST REPRESENTATION OF TYPES ==
-
-class Type(Node):
-    """An AST node representing a type."""
+class NameNode(Node):
+    """An AST node with a name and basic equality testing."""
     name = None
+
+    def __init__(self):
+        raise NotImplementedError
 
     def __eq__(self, other):
         """Simple and strict type equality. Override as needed."""
@@ -202,10 +198,19 @@ class Type(Node):
         """Simple hash. Override as needed."""
         return hash(self.name)
 
-    def copy_pos(self, node):
-        """Copy line info from another Type node."""
-        self.lineno = node.lineno
-        self.lexpos = node.lexpos
+
+class Constructor(NameNode, ListNode):
+    type = None  # To be filled during type analysis
+
+    def __init__(self, name, list=None):
+        self.name = name
+        self.list = list or []
+
+# == AST REPRESENTATION OF TYPES ==
+
+class Type(NameNode):
+    """An AST node representing a type."""
+    pass
 
 
 class Builtin(Type):
