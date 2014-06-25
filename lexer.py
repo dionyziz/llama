@@ -412,15 +412,17 @@ class _LexerBuilder:
         self.lexer.begin('char')
 
     # Malformed char literal payload
-    def t_char_CCONST(self, tok):
+    def t_char_CCONST(self, _):
         "[^'\n]+"
-        tok.value = '\0'
-        return tok
+        pass
 
     # Exit recovery mode.
-    def t_char_RCHAR(self, _):
+    def t_char_RCHAR(self, tok):
         r"'"
+        tok.type = 'CCONST'
+        tok.value = '\0'
         self.lexer.begin('INITIAL')
+        return tok
 
     # Proper string literal
     @lex.TOKEN(proper_string)
@@ -441,15 +443,17 @@ class _LexerBuilder:
         self.lexer.begin('string')
 
     # Malformed string literal payload
-    def t_string_SCONST(self, tok):
+    def t_string_SCONST(self, _):
         '[^\"\n]+'
-        tok.value = ['\0']
-        return tok
+        pass
 
     # Exit recovery mode
     def t_string_RSTRING(self, tok):
         r'"'
+        tok.type = 'SCONST'
+        tok.value = ['\0']
         self.lexer.begin('INITIAL')
+        return tok
 
     # Catch-all error reporting and panic recovery.
     def t_ANY_error(self, tok):
