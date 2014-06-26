@@ -104,6 +104,7 @@ class Parser:
         """param : LPAREN GENID COLON type RPAREN
                  | GENID"""
         if len(p) == 6:
+            self.typeTable.validate(p[4])
             p[0] = ast.Param(p[2], p[4])
         else:
             p[0] = ast.Param(p[1])
@@ -118,6 +119,9 @@ class Parser:
         else:
             p[0] = p[1]
         _track(p)
+        # NOTE: Validate types only at points of use.
+        # Validating here (during construction) will incur
+        # complexity penalty.
 
     def p_builtin_type(self, p):
         """builtin_type : BOOL
@@ -435,6 +439,7 @@ class Parser:
     def p_new_expr(self, p):
         """new_expr : NEW type"""
         p[0] = ast.NewExpression(p[2])
+        self.typeTable.validate(p[2])
         _track(p)
 
     def p_while_expr(self, p):
@@ -454,6 +459,7 @@ class Parser:
         if len(p) == 8:
             arrtype = ast.Array(p[7], len(p[4]))
             arrtype.copy_pos(p[7])
+            self.typeTable.validate(arrtype)
             p[0] = ast.ArrayVariableDef(p[2], p[4], arrtype)
         else:
             p[0] = ast.ArrayVariableDef(p[2], p[4])
@@ -470,6 +476,7 @@ class Parser:
         if len(p) == 5:
             vartype = ast.Ref(p[4])
             vartype.copy_pos(p[4])
+            self.typeTable.validate(vartype)
             p[0] = ast.VariableDef(p[2], vartype)
         else:
             p[0] = ast.VariableDef(p[2])
@@ -510,6 +517,7 @@ class Parser:
     def p_type_seq(self, p):
         """type_seq : type type_seq
                     | type"""
+        self.typeTable.validate(p[1])
         self._expand_seq(p, list_idx=2)
 
     def p_error(self, p):

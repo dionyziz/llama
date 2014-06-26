@@ -29,7 +29,7 @@ class Table:
         """Initialize a new Table."""
         self.logger = logger
 
-        # Dictionary of types encountered so far. Builtin types always available.
+        # Dictionary of types seen so far. Builtin types always available.
         #     Key:   Type node
         #     Value: A named 2-tuple (self, list), where
         #               key:  the Key
@@ -48,6 +48,47 @@ class Table:
 
     # Logger used for logging events. Possibly shared with other modules.
     logger = None
+
+    def is_array(self, t):
+        """Check if a type is an array type."""
+        return isinstance(t, ast.Array)
+
+    def validate(self, t):
+        """Verify that a type is a valid type."""
+
+        if isinstance(t, ast.Builtin):
+            return True
+        elif isinstance(t, ast.Ref):
+            tt = t.type
+            if self.is_array(tt):
+                self._logger.error(
+                    "%d:%d: error: Invalid type: Reference of array",
+                    t.lineno,
+                    t.lexpos
+                )
+                return False
+            return self.validate(tt)
+        elif isinstance(t, ast.Array):
+            tt = t.type
+            if self.is_array(tt):
+                self._logger.error(
+                    "%d:%d: error: Invalid type: Array of array",
+                    t.lineno,
+                    t.lexpos
+                )
+                return False
+            return self.validate(tt)
+        elif isinstance(t, ast.Function):
+            t1, t2 = t.fromType, t.toType
+            if self.is_array(t2):
+                self._logger.error(
+                    "%d:%d: error: Invalid type: Function returning array",
+                    t.lineno,
+                    t.lexpos
+                )
+                return False
+            return self.validate(t1) and self.validate(t2)
+        return True  # FIXME: What to do on user-defined type?
 
     def process(self, typeDefList):
         """
