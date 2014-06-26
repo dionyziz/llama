@@ -229,10 +229,10 @@ class VariableDef(Def):
 
 
 class ArrayVariableDef(VariableDef):
-    def __init__(self, name, dimensions, itemType=None):
+    def __init__(self, name, dimensions, type=None):
         self.name = name
         self.dimensions = dimensions
-        self.type = Array(itemType, dimensions)
+        self.type = type
 
 
 class TypeDefList(ListNode):

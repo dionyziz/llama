@@ -451,7 +451,9 @@ class Parser:
         """array_variable_def : MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type
                               | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET"""
         if len(p) == 8:
-            p[0] = ast.ArrayVariableDef(p[2], p[4], p[7])
+            arrtype = ast.Array(p[7], len(p[4]))
+            arrtype.copy_pos(p[7])
+            p[0] = ast.ArrayVariableDef(p[2], p[4], arrtype)
         else:
             p[0] = ast.ArrayVariableDef(p[2], p[4])
         _track(p)
@@ -465,7 +467,9 @@ class Parser:
         """simple_variable_def : MUTABLE GENID
                                | MUTABLE GENID COLON type"""
         if len(p) == 5:
-            p[0] = ast.VariableDef(p[2], p[4])
+            vartype = ast.Ref(p[4])
+            vartype.copy_pos(p[4])
+            p[0] = ast.VariableDef(p[2], vartype)
         else:
             p[0] = ast.VariableDef(p[2])
         _track(p)
