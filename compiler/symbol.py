@@ -1,3 +1,4 @@
+"""
 # ----------------------------------------------------------------------
 # symbol.py
 #
@@ -7,6 +8,7 @@
 # Authors: Nick Korasidis <Renelvon@gmail.com>
 #          Dimitris Koutsoukos <dim.kou.shmmy@gmail.com>
 # ----------------------------------------------------------------------
+"""
 
 from collections import defaultdict
 
@@ -147,7 +149,8 @@ class SymbolTable:
         return None
 
     def _find_identifier_in_current_scope(self, identifier):
-        assert self.cur_scope, 'No scope to check for identifier.'
+        """Find an identifier in the current scope."""
+        assert self.cur_scope, 'No scope to search.'
 
         entry = self.hash_table[identifier][-1]
 
@@ -168,7 +171,6 @@ class SymbolTable:
 
         if guard:
             entry = self._find_identifier_in_current_scope(new_entry.identifier)
-
             if entry is not None:
                 self._logger.error(
                     # FIXME: Meaningful line?
