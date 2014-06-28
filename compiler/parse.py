@@ -5,8 +5,7 @@
 # parser for the Llama language
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
-# Authors: Dimitris Koutsoukos <dim.kou.shmmy@gmail.com>
-#          Nick Korasidis <Renelvon@gmail.com>
+# Authors: Dimitris Koutsoukos <dim.kou.shmmy@gmail.com> #          Nick Korasidis <Renelvon@gmail.com>
 #          Dionysis Zindros <dionyziz@gmail.com>
 # ----------------------------------------------------------------------
 """
@@ -537,16 +536,16 @@ class Parser:
     typeTable = None
     verbose = False
 
-    def __init__(self, logger, **kwargs):
+    def __init__(self, logger, verbose=False, **kwargs):
         """Create a parser for the entire Llama grammar."""
         self.logger = logger
-        self.typeTable = type.Table(logger=self.logger)
+        self.verbose = verbose
         self.parser = yacc.yacc(module=self, **kwargs)
+        self.typeTable = type.Table(logger=self.logger)
 
-    def parse(self, data, lexer, verbose=False):
+    def parse(self, data, lexer):
         """
         Parse the input and return the AST. If 'debug' is set,
         output matched productions, state and other info to stdout.
         """
-        self.verbose = verbose
         return self.parser.parse(data, lexer, debug=self.verbose)
