@@ -208,18 +208,18 @@ class _LexerBuilder:
             # Check for abnormal EOF
             state = self.lexer.current_state()
             if state == "comment":
-                self.error_out(
-                    "Unclosed comment reaching end of file.",
+                self.logger.error(
+                    "%d: error: Unclosed comment reaching end of file.",
                     self.lexer.lineno
                 )
             elif state == "string":
-                self.error_out(
-                    "Unclosed string reaching end of file.",
+                self.logger.error(
+                    "%d: error: Unclosed string reaching end of file.",
                     self.lexer.lineno
                 )
             elif state == "char":
-                self.error_out(
-                    "Unclosed character literal at end of file.",
+                self.logger.error(
+                    "%d: error: Unclosed character literal at end of file.",
                     self.lexer.lineno
                 )
             return None
@@ -243,18 +243,6 @@ class _LexerBuilder:
     def skip(self, value=1):
         """Skip 'value' characters in the input string."""
         self.lexer.skip(value)
-
-    # == ERROR REPORTING ==
-
-    def error_out(self, message, lineno=None, lexpos=None):
-        """Signal lexing error."""
-        if lineno is not None:
-            if lexpos is not None:
-                self.logger.error("%d:%d: error: %s", lineno, lexpos, message)
-            else:
-                self.logger.error("%d: error: %s", lineno, message)
-        else:
-            self.logger.error("error: %s", message)
 
     # == LEXING OF NON-TOKENS ==
 
@@ -359,8 +347,8 @@ class _LexerBuilder:
         try:
             tok.value = float(tok.value)
         except OverflowError:
-            self.error_out(
-                "Floating-point constant is irrepresentable.",
+            self.logger.error(
+                "%d:%d: error: Floating-point constant is irrepresentable.",
                 tok.lineno,
                 tok.lexpos - self.bol
             )
@@ -389,8 +377,8 @@ class _LexerBuilder:
         if tok.value:
             tok.value = unescape(tok.value)[0]
         else:  # Illegal empty char
-            self.error_out(
-                "Empty character literal not allowed.",
+            self.logger.error(
+                "%d:%d: error: Empty character literal not allowed.",
                 tok.lineno,
                 tok.lexpos - self.bol
             )
@@ -400,8 +388,8 @@ class _LexerBuilder:
     # Malformed char literal ahead; enter 'char' state for recovery.
     def t_INITIAL_LCHAR(self, tok):
         r"'"
-        self.error_out(
-            "Bad character literal.",
+        self.logger.error(
+            "%d:%d: error: Bad character literal.",
             tok.lineno,
             tok.lexpos - self.bol
         )
@@ -431,8 +419,8 @@ class _LexerBuilder:
     # Malformed string literal ahead; enter 'string' state for recovery.
     def t_INITIAL_LSTRING(self, tok):
         r'"'
-        self.error_out(
-            "Bad string literal.",
+        self.logger.error(
+            "%d:%d: error: Bad string literal.",
             tok.lineno,
             tok.lexpos - self.bol
         )
@@ -455,8 +443,10 @@ class _LexerBuilder:
     def t_ANY_error(self, tok):
         state = self.lexer.current_state()
         state_msg = (" while inside %s" % state) if state != 'INITIAL' else ""
-        self.error_out(
-            "Illegal character '%s'%s." % (tok.value[0], state_msg),
+        self.logger.error(
+            "%d:%d: error: Illegal character '%s'%s.",
+            tok.value[0],
+            state_msg,
             tok.lineno,
             tok.lexpos - self.bol
         )
