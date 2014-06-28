@@ -5,7 +5,8 @@
 # parser for the Llama language
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
-# Authors: Dimitris Koutsoukos <dim.kou.shmmy@gmail.com> #          Nick Korasidis <Renelvon@gmail.com>
+# Authors: Dimitris Koutsoukos <dim.kou.shmmy@gmail.com>
+#          Nick Korasidis <renelvon@gmail.com>
 #          Dionysis Zindros <dionyziz@gmail.com>
 # ----------------------------------------------------------------------
 """
@@ -514,7 +515,7 @@ class Parser:
     def p_error(self, p):
         """Signal syntax error"""
         self.logger.error(
-            "%d:%d: error: Syntax error on token %s\t%s",
+            "%d:%d: error: Syntax error on token %s (value: %s)",
             p.lineno,
             p.lexpos,
             p.type,
@@ -547,6 +548,13 @@ class Parser:
         self.logger = logger
         self.verbose = verbose
         self.parser = yacc.yacc(module=self, **kwargs)
+        if verbose:
+            self.logger.info(
+                "%s: %s: %s",
+                __name__,
+                self.__class__.__name__,
+                'parser ready'
+            )
         self.typeTable = type.Table(logger=self.logger)
 
     def parse(self, data, lexer):

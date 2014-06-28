@@ -32,11 +32,11 @@ class Table:
     knownConstructors = {}
 
     # Logger used for logging events. Possibly shared with other modules.
-    _logger = None
+    logger = None
 
     def __init__(self, logger):
         """Return a new TypeTable."""
-        self._logger = logger
+        self.logger = logger
 
     def process(self, typeDefList):
         """
@@ -48,7 +48,7 @@ class Table:
         for tdef in typeDefList:
             newtype = tdef.type
             if newtype in self.knownTypes:
-                self._logger.error(
+                self.logger.error(
                     "%d:%d: error: Redefining type '%s'" % (
                         newtype.lineno,
                         newtype.lexpos,
@@ -57,7 +57,7 @@ class Table:
                     # TODO Show previous definition
                 )
             elif newtype.name in ast.builtin_map:
-                self._logger.error(
+                self.logger.error(
                     # FIXME Add meaningful line
                     "error: Cannot redefine builtin type: %s" % (newtype.name)
                     # TODO Show previous definition
@@ -71,7 +71,7 @@ class Table:
                 constructor.type = tdef.type
                 if constructor.name in self.knownConstructors:
                     alias = self.knownConstructors[constructor.name]
-                    self._logger.error(
+                    self.logger.error(
                         "%d:%d: error: Redefining constructor '%s'"
                         "\tPrevious definition: %d:%d" % (
                             constructor.lineno,
@@ -84,7 +84,7 @@ class Table:
                 else:
                     for argType in constructor.list:
                         if argType not in self.knownTypes:
-                            self._logger.error(
+                            self.logger.error(
                                     "%d:%d: error: Undefined type '%s'" % (
                                     argType.lexpos,
                                     argType.lineno,
