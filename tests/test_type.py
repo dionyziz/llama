@@ -2,7 +2,7 @@ import itertools
 import unittest
 
 import sure
-from compiler import ast, error, lex, parse
+from compiler import ast, error, lex, parse, type
 
 
 class TestType(unittest.TestCase):
@@ -117,3 +117,83 @@ class TestType(unittest.TestCase):
 
         for t in wrong_testcases:
             self._process_typedef(t).shouldnt.be.ok
+
+    def test_isarray(self):
+        (type.Table.is_array(ast.Array(ast.Int()))).should.be.true
+        (type.Table.is_array(ast.Array(ast.Int(), 2))).should.be.true
+        (type.Table.is_array(ast.Array(ast.User('foo')))).should.be.true
+
+        (type.Table.is_array(ast.User('foo'))).shouldnt.be.true
+        for builtin_type in ast.builtin_map.values():
+            (type.Table.is_array(builtin_type)).shouldnt.be.true
+
+    def _assert_validate_success(self, t):
+        mock = error.LoggerMock()
+        typeTable = type.Table(logger=mock)
+        typeTable.validate(t)
+        mock.success.should.be.ok
+
+    def _assert_validate_failure(self, t):
+        mock = error.LoggerMock()
+        typeTable = type.Table(logger=mock)
+        typeTable.validate(t)
+        mock.success.shouldnt.be.ok
+
+    def test_validate(self):
+        for builtin_type in ast.builtin_map.values():
+            self._assert_validate_success(builtin_type)
+
+        t = ast.User('foo')
+        self._assert_validate_success(t)
+
+        t = ast.Ref(ast.Int())
+        self._assert_validate_success(t)
+
+        t = ast.Ref(ast.User('foo'))
+        self._assert_validate_success(t)
+
+        t = ast.Array(ast.Int())
+        self._assert_validate_success(t)
+
+        t = ast.Array(ast.Int(), 2)
+        self._assert_validate_success(t)
+
+        t = ast.Array(ast.User('foo'))
+        self._assert_validate_success(t)
+
+        t = ast.Array(ast.Ref(ast.User('foo')))
+        self._assert_validate_success(t)
+
+        t = ast.Function(ast.Int(), ast.Int())
+        self._assert_validate_success(t)
+
+        t = ast.Function(ast.Ref(ast.Int()), ast.Int())
+        self._assert_validate_success(t)
+
+        t = ast.Function(ast.Int(), ast.Ref(ast.Int()))
+        self._assert_validate_success(t)
+
+        t = ast.Function(ast.Array(ast.Int()), ast.Int())
+        self._assert_validate_success(t)
+
+
+        t = ast.Ref(ast.Array(ast.Int()))
+        self._assert_validate_failure(t)
+
+        t = ast.Ref(ast.Ref(ast.Array(ast.Int())))
+        self._assert_validate_failure(t)
+
+        t = ast.Array(ast.Array(ast.Int()))
+        self._assert_validate_failure(t)
+
+        t = ast.Array(ast.Ref(ast.Array(ast.Array(ast.Int()))))
+        self._assert_validate_failure(t)
+
+        t = ast.Function(ast.Int(), ast.Array(ast.Int()))
+        self._assert_validate_failure(t)
+
+        t = ast.Function(ast.Array(ast.Array(ast.Int())), ast.Int())
+        self._assert_validate_failure(t)
+
+        t = ast.Function(ast.Int(), ast.Ref(ast.Array(ast.Int())))
+        self._assert_validate_failure(t)
