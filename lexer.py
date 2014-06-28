@@ -259,7 +259,7 @@ class _LexerBuilder:
     # == LEXING OF NON-TOKENS ==
 
     # Ignored characters
-    t_INITIAL_ignore = " \r\t"
+    t_ANY_ignore = " \r\t"
 
     # Newlines
     def t_ANY_newline(self, tok):
@@ -271,8 +271,6 @@ class _LexerBuilder:
     def t_SCOMMENT(self, _):
         r'--[^\n]*'
         pass
-
-    t_comment_ignore = " \r\t"
 
     # Start of block comment
     def t_INITIAL_comment_LCOMMENT(self, _):
@@ -383,8 +381,6 @@ class _LexerBuilder:
     char_content = r"(%s|%s)" % (normal_char_content, escape_char_content)
     proper_char = r"'%s'" % char_content
     proper_string = r'"%s*"' % char_content
-
-    t_char_string_ignore = "\r\t"
 
     # Proper or empty char literal.
     @lex.TOKEN('(' + proper_char + ')|(' + empty_char + ')')
