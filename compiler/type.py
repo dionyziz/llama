@@ -49,7 +49,8 @@ class Table:
     # Logger used for logging events. Possibly shared with other modules.
     logger = None
 
-    def is_array(self, t):
+    @staticmethod
+    def is_array(t):
         """Check if a type is an array type."""
         return isinstance(t, ast.Array)
 
@@ -61,7 +62,7 @@ class Table:
         elif isinstance(t, ast.Ref):
             tt = t.type
             if self.is_array(tt):
-                self._logger.error(
+                self.logger.error(
                     "%d:%d: error: Invalid type: Reference of array",
                     t.lineno,
                     t.lexpos
@@ -71,7 +72,7 @@ class Table:
         elif isinstance(t, ast.Array):
             tt = t.type
             if self.is_array(tt):
-                self._logger.error(
+                self.logger.error(
                     "%d:%d: error: Invalid type: Array of array",
                     t.lineno,
                     t.lexpos
@@ -81,7 +82,7 @@ class Table:
         elif isinstance(t, ast.Function):
             t1, t2 = t.fromType, t.toType
             if self.is_array(t2):
-                self._logger.error(
+                self.logger.error(
                     "%d:%d: error: Invalid type: Function returning array",
                     t.lineno,
                     t.lexpos
