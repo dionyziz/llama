@@ -103,23 +103,21 @@ class Table:
                 alias = self.knownTypes[newType].key
                 if isinstance(alias, ast.Builtin):
                     self.logger.error(
-                        "%d:%d: error: Redefining builtin type '%s'" % (
-                            newType.lineno,
-                            newType.lexpos,
-                            newType.name
-                        )
+                        "%d:%d: error: Redefining builtin type '%s'",
+                        newType.lineno,
+                        newType.lexpos,
+                        newType.name
                     )
                     return
                 else:
                     self.logger.error(
                         "%d:%d: error: Redefining user-defined type '%s'"
-                        "\tPrevious definition: %d:%d" % (
-                            newType.lineno,
-                            newType.lexpos,
-                            newType.name,
-                            alias.lineno,
-                            alias.lexpos
-                        )
+                        "\tPrevious definition: %d:%d",
+                        newType.lineno,
+                        newType.lexpos,
+                        newType.name,
+                        alias.lineno,
+                        alias.lexpos
                     )
                     return
             except KeyError:
@@ -136,24 +134,22 @@ class Table:
                     alias = self.knownConstructors[constructor].key
                     self.logger.error(
                         "%d:%d: error: Redefining constructor '%s'"
-                        "\tPrevious definition: %d:%d" % (
-                            constructor.lineno,
-                            constructor.lexpos,
-                            constructor.name,
-                            alias.lineno,
-                            alias.lexpos
-                        )
+                        "\tPrevious definition: %d:%d",
+                        constructor.lineno,
+                        constructor.lexpos,
+                        constructor.name,
+                        alias.lineno,
+                        alias.lexpos
                     )
                     return
                 except KeyError:
                     for argType in constructor:
                         if argType not in self.knownTypes:
                             self.logger.error(
-                                "%d:%d: error: Undefined type '%s'" % (
-                                    argType.lexpos,
-                                    argType.lineno,
-                                    argType.name
-                                )
+                                "%d:%d: error: Undefined type '%s'",
+                                argType.lexpos,
+                                argType.lineno,
+                                argType.name
                             )
                             return
 
