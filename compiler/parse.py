@@ -482,7 +482,9 @@ class Parser:
         self._expand_seq(p)
 
     def p_tdef(self, p):
-        """tdef : user_type EQ constr_pipe_seq"""
+        """tdef : user_type EQ constr_pipe_seq
+                | builtin_type EQ constr_pipe_seq"""
+        # Flagging redefinition of builtin_types delegated to typesem module.
         p[0] = ast.TDef(p[1], p[3])
         _track(p)
 
