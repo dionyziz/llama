@@ -163,5 +163,9 @@ def main():
         verbose=OPTS['parser_verbose']
     )
 
+    # On bad program, terminate with error.
+    if logger.errors > 0:
+        sys.exit(1) 
+
 if __name__ == '__main__':
     main()
