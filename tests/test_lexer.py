@@ -54,6 +54,7 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token("koko_lala", "GENID", "koko_lala")
         self._assert_individual_token("koko_42", "GENID", "koko_42")
         self._assert_individual_token("notakeyword", "GENID", "notakeyword")
+        self._assert_individual_token("dimdim", "GENID", "dimdim")
 
         self._assert_lex_failure("_koko")
         # self._assert_lex_failure("42koko")
@@ -71,12 +72,19 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token("17", "ICONST", 17)
         self._assert_individual_token("0", "ICONST", 0)
         self._assert_individual_token("00042", "ICONST", 42)
+        self._assert_individual_token(
+            "128374651837416253847123645812347",
+            "ICONST",
+            128374651837416253847123645812347
+        )
 
     def test_fconst(self):
         self._assert_individual_token("42.5", "FCONST", 42.5)
         inputs = ["42.0", "4.2e1", "4.2E1", "0.420e+2", "420.0e-1", "420.0E-1"]
         for input in inputs:
             self._assert_individual_token(input, "FCONST", 42.0)
+
+        self._assert_lex_success("5.41e-901721")
 
         self._assert_lex_failure("42.5.2")
         self._assert_lex_failure(".2")
@@ -120,7 +128,9 @@ class TestLexer(unittest.TestCase):
             r"Route66",
             r"Helloworld!\n",
             r"\"",
-            r"Name:\t\"DouglasAdams\"\nValue\t42\n"
+            r"Name:\t\"DouglasAdams\"\nValue\t42\n",
+            r"play L\0L",
+            r"an e\\xtra la\\zy string"
         )
 
         for input in testcases:
@@ -131,6 +141,7 @@ class TestLexer(unittest.TestCase):
             )
 
         self._assert_lex_failure('"')
+        self._assert_lex_failure('"\'"')
         self._assert_lex_failure('"\n"')
         self._assert_lex_failure('"\na')
 
@@ -155,3 +166,8 @@ class TestLexer(unittest.TestCase):
 
         self._assert_lex_failure('(*')
         self._assert_lex_failure('(*(**)')
+
+    def test_misc(self):
+        not_operators = r'\#$%&.?@^_`~'
+        for symbol in not_operators:
+            self._assert_lex_failure(symbol)
