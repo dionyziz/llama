@@ -1,4 +1,4 @@
-let main = 
+let main =
    print_string "Give n: ";
    let n = read_int () in
    print_string "Give k: ";
