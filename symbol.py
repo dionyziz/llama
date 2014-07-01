@@ -5,7 +5,7 @@
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
 # Authors: Nick Korasidis <Renelvon@gmail.com>
-#          Dimitris Koutsoukos <dimkou.shmmy@gmail.com>
+#          Dimitris Koutsoukos <dim.kou.shmmy@gmail.com>
 # ----------------------------------------------------------------------
 
 from collections import defaultdict
