@@ -91,6 +91,9 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failure(".2")
         self._assert_lex_failure("4.2e1.0")
 
+    def test_unescape(self):
+        lexer.unescape('\\n').should.be.equal('\n')
+
     def test_cconst(self):
         printable_ascii = set(map(chr, range(ord(' '), ord('~') + 1)))
         for c in printable_ascii - {'"', "'", '\\'}:
@@ -122,7 +125,6 @@ class TestLexer(unittest.TestCase):
                 [literal, '\0']
             )
 
-        explode = lambda s: list(lexer.unescape(s)) + ['\0']
         testcases = (
             r"",
             r"abc",
@@ -138,7 +140,7 @@ class TestLexer(unittest.TestCase):
             self._assert_individual_token(
                 '"%s"' % (input),
                 "SCONST",
-                explode(input)
+                lexer.explode(input)
             )
 
         self._assert_lex_failure('"')

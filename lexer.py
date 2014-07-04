@@ -72,6 +72,12 @@ def unescape(string):
     """Return unescaped string."""
     return bytes(string, 'ascii').decode('unicode_escape')
 
+def explode(string):
+    """Unescape, null-terminate and listify string."""
+    string = list(unescape(string))
+    string.append('\0')
+    return string
+
 operators = {
     # Integer operators
     '+': 'PLUS',
@@ -364,7 +370,7 @@ class _LexerBuilder:
 
     # Regexes for well-formed char and string literals
     empty_char = r"''"
-    escape_char_content = r'(((\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2})))'
+    escape_char_content = r'(((\\[ntr0\'"\\])|(\\x[a-fA-F0-9]{2})))'
     normal_char_content = '([ 0-9A-Za-z!#$%&()*+,./:;<=>?@^_`{|}~[\]-])'
     char_content = r"(%s|%s)" % (normal_char_content, escape_char_content)
     proper_char = r"'%s'" % char_content
@@ -435,7 +441,7 @@ class _LexerBuilder:
     def t_string_RSTRING(self, tok):
         r'"'
         tok.type = 'SCONST'
-        tok.value = ['\0']
+        tok.value = explode('')
         self.lexer.begin('INITIAL')
         return tok
 
@@ -469,14 +475,9 @@ class Lexer:
     input = None
     skip = None
 
-    def __init__(self, logger=None, verbose=False, **kwargs):
+    def __init__(self, logger, verbose=False, **kwargs):
         """Create a new lexer."""
-
-        if logger is None:
-            self._logger = error.LoggerMock()
-        else:
-            self._logger = logger
-
+        self._logger = logger
         self._lexer = _LexerBuilder(logger=logger, verbose=verbose)
         self._lexer.build(**kwargs)
 

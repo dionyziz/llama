@@ -5,7 +5,7 @@
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
 # Authors: Dionysis Zindros <dionyziz@gmail.com>
-#          Dimitris Koutsoukos <dimkou@gmail.com>
+#          Dimitris Koutsoukos <dim.kou.shmmy@gmail.com>
 #          Nick Korasidis <Renelvon@gmail.com>
 # ----------------------------------------------------------------------
 
