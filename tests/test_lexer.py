@@ -86,6 +86,9 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failed(".2")
         self._assert_lex_failed("4.2e1.0")
 
+    def test_unescape(self):
+        lexer.unescape('\\n').should.be.equal('\n')
+
     def test_cconst(self):
         self._assert_individual_token(r"'a'", "CCONST", "a")
         self._assert_individual_token(r"'0'", "CCONST", "0")
