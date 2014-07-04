@@ -5,7 +5,8 @@
 # Lexer for the Llama language
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
-# Author: Nick Korasidis <Renelvon@gmail.com>
+# Authors: Nick Korasidis <renelvon@gmail.com>
+#          Dionysis Zindros <dionyziz@gmail.com>
 #
 # Lexer design is heavily inspired from the PHPLY lexer
 # https://github.com/ramen/phply/blob/master/phply/phplex.py
