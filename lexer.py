@@ -5,7 +5,8 @@
 # Lexer for the Llama language
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
-# Author: Nick Korasidis <Renelvon@gmail.com>
+# Authors: Nick Korasidis <renelvon@gmail.com>
+#          Dionysis Zindros <dionyziz@gmail.com>
 #
 # Lexer design is heavily inspired from the PHPLY lexer
 # https://github.com/ramen/phply/blob/master/phply/phplex.py
@@ -13,8 +14,6 @@
 """
 
 import ply.lex as lex
-
-import error
 
 # Represent reserved words as a frozenset for fast lookup
 reserved_words = frozenset('''
@@ -71,6 +70,12 @@ escape_sequences = {
 def unescape(string):
     """Return unescaped string."""
     return bytes(string, 'ascii').decode('unicode_escape')
+
+def explode(string):
+    """Unescape, null-terminate and listify string."""
+    string = list(unescape(string))
+    string.append('\0')
+    return string
 
 operators = {
     # Integer operators
@@ -247,7 +252,9 @@ class _LexerBuilder:
     # == LEXING OF NON-TOKENS ==
 
     # Ignored characters
-    t_ANY_ignore = " \r\t"
+    t_INITIAL_comment_ignore = " \r\t"
+    t_char_ignore = ""
+    t_string_ignore = ""
 
     # Newlines
     def t_ANY_newline(self, tok):
@@ -364,8 +371,11 @@ class _LexerBuilder:
 
     # Regexes for well-formed char and string literals
     empty_char = r"''"
-    escape_char_content = r'(((\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2})))'
-    normal_char_content = '([ 0-9A-Za-z!#$%&()*+,./:;<=>?@^_`{|}~[\]-])'
+    escape_char_content = r'((\\[ntr0\'"\\])|(\\x[a-fA-F0-9]{2}))'
+
+    # All printable ASCII except quotes and backslash.
+    normal_char_content = r'((?!["\'\\])[\x20-\x7e])'
+
     char_content = r"(%s|%s)" % (normal_char_content, escape_char_content)
     proper_char = r"'%s'" % char_content
     proper_string = r'"%s*"' % char_content
@@ -411,8 +421,7 @@ class _LexerBuilder:
     # Proper string literal
     @lex.TOKEN(proper_string)
     def t_INITIAL_SCONST(self, tok):
-        tok.value = list(unescape(tok.value[1:-1]))
-        tok.value.append('\0')
+        tok.value = explode(tok.value[1:-1])
         # NOTE: Empty string is valid and is just the null byte.
         return tok
 
@@ -435,7 +444,7 @@ class _LexerBuilder:
     def t_string_RSTRING(self, tok):
         r'"'
         tok.type = 'SCONST'
-        tok.value = ['\0']
+        tok.value = explode('')
         self.lexer.begin('INITIAL')
         return tok
 
@@ -445,10 +454,10 @@ class _LexerBuilder:
         state_msg = (" while inside %s" % state) if state != 'INITIAL' else ""
         self.logger.error(
             "%d:%d: error: Illegal character '%s'%s.",
-            tok.value[0],
-            state_msg,
             tok.lineno,
-            tok.lexpos - self.bol
+            tok.lexpos - self.bol,
+            tok.value[0],
+            state_msg
         )
         self.lexer.skip(1)
         self.lexer.begin('INITIAL')
@@ -469,14 +478,9 @@ class Lexer:
     input = None
     skip = None
 
-    def __init__(self, logger=None, verbose=False, **kwargs):
+    def __init__(self, logger, verbose=False, **kwargs):
         """Create a new lexer."""
-
-        if logger is None:
-            self._logger = error.LoggerMock()
-        else:
-            self._logger = logger
-
+        self._logger = logger
         self._lexer = _LexerBuilder(logger=logger, verbose=verbose)
         self._lexer.build(**kwargs)
 

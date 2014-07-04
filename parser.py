@@ -5,7 +5,7 @@
 # parser for the Llama language
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
-# Authors: Dimitris Koutsoukos <dimkou@gmail.com>
+# Authors: Dimitris Koutsoukos <dim.kou.shmmy@gmail.com>
 #          Nick Korasidis <Renelvon@gmail.com>
 #          Dionysis Zindros <dionyziz@gmail.com>
 # ----------------------------------------------------------------------

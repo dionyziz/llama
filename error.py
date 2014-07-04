@@ -10,6 +10,11 @@
 
 import logging
 
+def _format(f):
+    def new_f(self, fmt, *args):
+        msg = fmt % args  # Let it throw, let it throw, let it throw
+        f(self, msg)
+    return new_f
 
 class LoggerInterface:
     """
@@ -23,16 +28,20 @@ class LoggerInterface:
     def __init__(self):
         raise NotImplementedError
 
-    def debug(self, *args):
+    @_format
+    def debug(self, msg):
         pass
 
-    def info(self, *args):
+    @_format
+    def info(self, msg):
         pass
 
-    def warning(self, *args):
+    @_format
+    def warning(self, msg):
         self.warnings += 1
 
-    def error(self, *args):
+    @_format
+    def error(self, msg):
         self.errors += 1
 
     @property
@@ -80,20 +89,24 @@ class Logger(LoggerInterface):
         handler.setFormatter(formatter)
         self._logger.addHandler(handler)
 
-    def error(self, *args):
+    @_format
+    def error(self, msg):
         """Add an error to the logger."""
-        self._logger.error(*args)
+        self._logger.error(msg)
         self.errors += 1
 
-    def warning(self, *args):
+    @_format
+    def warning(self, msg):
         """Add a warning to the logger."""
-        self._logger.warning(*args)
+        self._logger.warning(msg)
         self.warnings += 1
 
-    def debug(self, *args):
+    @_format
+    def debug(self, msg):
         """Add some debug info to the logger."""
-        self._logger.debug(*args)
+        self._logger.debug(msg)
 
-    def info(self, *args):
+    @_format
+    def info(self, msg):
         """Add some general info to the logger."""
-        self._logger.info(*args)
+        self._logger.info(msg)

@@ -1,3 +1,5 @@
+import re
+import string
 import unittest
 
 import sure
@@ -55,7 +57,7 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token("notakeyword", "GENID", "notakeyword")
         self._assert_individual_token("dimdim", "GENID", "dimdim")
 
-        self._assert_lex_success("42koko")
+#        self._assert_lex_failure("42koko")
 
         self._assert_lex_failure("_koko")
         self._assert_lex_failure("@koko")
@@ -90,9 +92,12 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failure(".2")
         self._assert_lex_failure("4.2e1.0")
 
+    def test_unescape(self):
+        lexer.unescape('\\n').should.be.equal('\n')
+
     def test_cconst(self):
-        printable_ascii = set(map(chr, range(ord(' '), ord('~') + 1)))
-        for c in printable_ascii - {'"', "'", '\\'}:
+        single_chars = set(string.printable) - set(string.whitespace) | {' '}
+        for c in single_chars - {'"', "'", '\\'}:
             self._assert_individual_token(r"'%s'" % c, "CCONST", c)
 
         for escaped, literal in lexer.escape_sequences.items():
@@ -121,7 +126,6 @@ class TestLexer(unittest.TestCase):
                 [literal, '\0']
             )
 
-        explode = lambda s: list(lexer.unescape(s)) + ['\0']
         testcases = (
             r"",
             r"abc",
@@ -137,7 +141,7 @@ class TestLexer(unittest.TestCase):
             self._assert_individual_token(
                 '"%s"' % (input),
                 "SCONST",
-                explode(input)
+                lexer.explode(input)
             )
 
         self._assert_lex_failure('"')
@@ -154,6 +158,7 @@ class TestLexer(unittest.TestCase):
             self._assert_individual_token(input, token, input)
 
     def test_comments(self):
+        self._assert_lex_success('-- just a comment')
         self._assert_lex_success('-- comment (* let "" \'\'')
         self._assert_lex_success('--')
         self._assert_lex_success('---')
