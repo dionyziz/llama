@@ -57,7 +57,7 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token("notakeyword", "GENID", "notakeyword")
         self._assert_individual_token("dimdim", "GENID", "dimdim")
 
-        self._assert_lex_success("42koko")
+#        self._assert_lex_failure("42koko")
 
         self._assert_lex_failure("_koko")
         self._assert_lex_failure("@koko")
