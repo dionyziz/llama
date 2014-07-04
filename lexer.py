@@ -15,7 +15,7 @@
 import ply.lex as lex
 
 # Represent reserved words as a frozenset for fast lookup
-_reserved_words = frozenset('''
+reserved_words = frozenset('''
     and
     array
     begin
@@ -53,44 +53,96 @@ _reserved_words = frozenset('''
     '''.split()
 )
 
-_reserved_tokens = tuple(s.upper() for s in _reserved_words)
+reserved_tokens = {s: s.upper() for s in reserved_words}
 
-_other_tokens = (
+escape_sequences = {
+    r"\n": "\n",
+    r"\t": "\t",
+    r"\r": "\r",
+    r"\0": "\0",
+    r"\\": "\\",
+    r"\'": "\'",
+    r'\"': '\"'
+}
+
+
+def unescape(string):
+    """Return unescaped string."""
+    return bytes(string, 'ascii').decode('unicode_escape')
+
+def explode(string):
+    """Unescape, null-terminate and listify string."""
+    string = list(unescape(string))
+    string.append('\0')
+    return string
+
+operators = {
+    # Integer operators
+    '+': 'PLUS',
+    '-': 'MINUS',
+    '*': 'TIMES',
+    '/': 'DIVIDE',
+
+    # Floating-point operators
+    '+.': 'FPLUS',
+    '-.': 'FMINUS',
+    '*.': 'FTIMES',
+    '/.': 'FDIVIDE',
+    '**': 'FPOW',
+
+    # Comparison operators
+    '<': 'LT',
+    '>': 'GT',
+    '=': 'EQ',
+    '<=': 'LE',
+    '>=': 'GE',
+    '<>': 'NEQ',
+    '==': 'NATEQ',
+    '!=': 'NATNEQ',
+
+    # Boolean operators
+    '&&': 'BAND',
+    '||': 'BOR',
+
+    # Pattern operators
+    '|': 'PIPE',
+    '->': 'ARROW',
+
+    # Assignment and dereference
+    '!': 'BANG',
+    ':=': 'ASSIGN',
+
+    # Semicolon
+    ';': 'SEMICOLON'
+}
+
+delimiters = {
+    '(': 'LPAREN',
+    ')': 'RPAREN',
+    '[': 'LBRACKET',
+    ']': 'RBRACKET',
+    ',': 'COMMA',
+    ':': 'COLON'
+}
+
+other_tokens = (
     # Identifiers (generic variable identifiers, constructor identifiers)
     'GENID', 'CONID',
 
     # Literals (int constant, float constant, char constant, string const)
-    'ICONST', 'FCONST', 'CCONST', 'SCONST',
-
-    # Integer operators (+, -, *, /)
-    'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
-
-    # Floating-point operators (+., -., *., /., **)
-    'FPLUS', 'FMINUS', 'FTIMES', 'FDIVIDE', 'FPOW',
-
-    # Boolean operators (&&, ||)
-    'BAND', 'BOR',
-
-    # Comparison operators (<, <=, >, >=, =, <>, ==, !=)
-    'LT', 'LE', 'GT', 'GE', 'EQ', 'NEQ', 'NATEQ', 'NATNEQ',
-
-    # Pattern operators (->, |)
-    'ARROW', 'PIPE',
-
-    # Assignment and dereference (:=, !)
-    'ASSIGN', 'BANG',
-
-    # Semicolon (;)
-    'SEMICOLON',
-
-    # Delimeters ( ) [ ] , :
-    'LPAREN', 'RPAREN',
-    'LBRACKET', 'RBRACKET',
-    'COMMA', 'COLON'
+    'ICONST', 'FCONST', 'CCONST', 'SCONST'
 )
 
 # All valid_tokens [exported]
-tokens = _reserved_tokens + _other_tokens
+tokens = sum(
+    (
+        tuple(reserved_tokens.values()),
+        tuple(operators.values()),
+        tuple(delimiters.values()),
+        other_tokens
+    ),
+    tuple()
+)
 
 
 class _LexerBuilder:
@@ -317,8 +369,7 @@ class _LexerBuilder:
     # Generic identifiers and reserved words
     def t_GENID(self, tok):
         r'[a-z][A-Za-z0-9_]*'
-        if tok.value in _reserved_words:
-            tok.type = tok.value.upper()
+        tok.type = reserved_tokens.get(tok.value, tok.type)
         return tok
 
     # Floating-point constants
@@ -342,7 +393,6 @@ class _LexerBuilder:
         # TODO Check if constant is too big in another module.
         return tok
 
-    # FIXME: Inappropriate (?)
     t_char_string_ignore = "\r\t"
 
     # Char constants
@@ -350,16 +400,23 @@ class _LexerBuilder:
         r'\''
         self.lexer.begin('char')
 
+    hex_char = r'(\\x[a-fA-F0-9]{2})'
+    escape_char = r'(\\[ntr0"\'\\])'
+    normal_char = r'([^"\'\\])'
+    char = r'(' + normal_char + r'|' + escape_char + r'|' + hex_char + r')'
+
+    @lex.TOKEN(char + r'(\'?)')
     def t_char_CCONST(self, tok):
-        r'(([^\\\'\"])|(\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2}))(\'?)'
-        # TODO: Unescape it
         if tok.value[-1] != "'":
             self.error_out(
                 "Unclosed character literal.",
                 tok.lineno,
                 tok.lexpos - self.bol
             )
-        tok.value = tok.value.rstrip("'")
+        else:
+            tok.value = tok.value[:-1]
+
+        tok.value = unescape(tok.value)
         self.lexer.begin('INITIAL')
         return tok
 
@@ -378,15 +435,18 @@ class _LexerBuilder:
         r'"'
         self.lexer.begin('string')
 
+    @lex.TOKEN(char + '+("?)')
     def t_string_SCONST(self, tok):
-        r'(([^\\\'\"])|(\\[ntr0\'\"\\])|(\\x[a-fA-F0-9]{2}))+("?)'
         if tok.value[-1] != '"':
             self.error_out(
                 "Unclosed string literal.",
                 tok.lineno,
                 tok.lexpos - self.bol
             )
-        tok.value = tok.value.rstrip('"')
+        else:
+            tok.value = tok.value[:-1]
+
+        tok.value = explode(tok.value)
         self.lexer.begin('INITIAL')
         return tok
 
