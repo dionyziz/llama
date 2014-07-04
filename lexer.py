@@ -451,10 +451,10 @@ class _LexerBuilder:
         state_msg = (" while inside %s" % state) if state != 'INITIAL' else ""
         self.logger.error(
             "%d:%d: error: Illegal character '%s'%s.",
-            tok.value[0],
-            state_msg,
             tok.lineno,
-            tok.lexpos - self.bol
+            tok.lexpos - self.bol,
+            tok.value[0],
+            state_msg
         )
         self.lexer.skip(1)
         self.lexer.begin('INITIAL')
