@@ -253,7 +253,9 @@ class _LexerBuilder:
     # == LEXING OF NON-TOKENS ==
 
     # Ignored characters
-    t_ANY_ignore = " \r\t"
+    t_INITIAL_comment_ignore = " \r\t"
+    t_char_ignore = ""
+    t_string_ignore = ""
 
     # Newlines
     def t_ANY_newline(self, tok):
