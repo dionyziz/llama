@@ -107,7 +107,6 @@ class TestLexer(unittest.TestCase):
         for escaped, literal in lexer.escape_sequences.items():
             self._assert_individual_token('"%s"' % (escaped), "SCONST", [literal, '\0'])
 
-        explode = lambda s: list(lexer.unescape(s)) + ['\0']
         testcases = (
                 r"abc",
                 r"Route66",
@@ -117,7 +116,7 @@ class TestLexer(unittest.TestCase):
         )
 
         for input in testcases:
-            self._assert_individual_token('"%s"' % (input), "SCONST", explode(input))
+            self._assert_individual_token('"%s"' % (input), "SCONST", lexer.explode(input))
 
     def test_operators(self):
         for input, token in lexer.operators.items():

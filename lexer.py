@@ -70,6 +70,12 @@ def unescape(string):
     """Return unescaped string."""
     return bytes(string, 'ascii').decode('unicode_escape')
 
+def explode(string):
+    """Unescape, null-terminate and listify string."""
+    string = list(unescape(string))
+    string.append('\0')
+    return string
+
 operators = {
     # Integer operators
     '+': 'PLUS',
@@ -440,8 +446,7 @@ class _LexerBuilder:
         else:
             tok.value = tok.value[:-1]
 
-        tok.value = list(unescape(tok.value))
-        tok.value.append('\0')
+        tok.value = explode(tok.value)
         self.lexer.begin('INITIAL')
         return tok
 
