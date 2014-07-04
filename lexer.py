@@ -14,8 +14,6 @@
 
 import ply.lex as lex
 
-import error
-
 # Represent reserved words as a frozenset for fast lookup
 reserved_words = frozenset('''
     and
