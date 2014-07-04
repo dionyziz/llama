@@ -158,6 +158,7 @@ class TestLexer(unittest.TestCase):
             self._assert_individual_token(input, token, input)
 
     def test_comments(self):
+        self._assert_lex_success('-- just a comment')
         self._assert_lex_success('-- comment (* let "" \'\'')
         self._assert_lex_success('--')
         self._assert_lex_success('---')
