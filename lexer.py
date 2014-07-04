@@ -397,7 +397,7 @@ class _LexerBuilder:
 
     hex_char = r'(\\x[a-fA-F0-9]{2})'
     escape_char = r'(\\[ntr0"\'\\])'
-    normal_char = r'([^\"\'\\])'
+    normal_char = r'([^"\'\\])'
     char = r'(' + normal_char + r'|' + escape_char + r'|' + hex_char + r')'
 
     @lex.TOKEN(char + r'(\'?)')
