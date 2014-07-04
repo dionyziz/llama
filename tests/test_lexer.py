@@ -1,4 +1,5 @@
 import re
+import string
 import unittest
 
 import sure
@@ -95,8 +96,8 @@ class TestLexer(unittest.TestCase):
         lexer.unescape('\\n').should.be.equal('\n')
 
     def test_cconst(self):
-        printable_ascii = set(map(chr, range(ord(' '), ord('~') + 1)))
-        for c in printable_ascii - {'"', "'", '\\'}:
+        single_chars = set(string.printable) - set(string.whitespace) | {' '}
+        for c in single_chars - {'"', "'", '\\'}:
             self._assert_individual_token(r"'%s'" % c, "CCONST", c)
 
         for escaped, literal in lexer.escape_sequences.items():
