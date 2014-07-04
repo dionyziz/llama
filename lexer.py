@@ -421,8 +421,7 @@ class _LexerBuilder:
     # Proper string literal
     @lex.TOKEN(proper_string)
     def t_INITIAL_SCONST(self, tok):
-        tok.value = list(unescape(tok.value[1:-1]))
-        tok.value.append('\0')
+        tok.value = explode(tok.value[1:-1])
         # NOTE: Empty string is valid and is just the null byte.
         return tok
 
