@@ -493,7 +493,7 @@ class Parser:
         """Create a parser for the entire Llama grammar."""
         self.logger = logger
         self.typeTable = type.Table(logger=self.logger)
-        self.parser = yacc.yacc(module=self, start='program', **kwargs)
+        self.parser = yacc.yacc(module=self, **kwargs)
 
     def parse(self, data, lexer, verbose=False):
         """

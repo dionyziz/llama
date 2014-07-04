@@ -143,9 +143,9 @@ def main():
     # (i.e. caches LALR tables accross invocations). If 'debug' is set,
     # a 'parser.out' is created every time the tables are regenerated.
     parser = prs.Parser(
-        optimize=1,
         logger=logger,
-        debug=1
+        optimize=1,
+        start='program'
     )
 
     # Stop here if this a dry run.
@@ -164,8 +164,8 @@ def main():
     )
 
     # On bad program, terminate with error.
-    if logger.errors > 0:
-        sys.exit(1) 
+    if not logger.success:
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()

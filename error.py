@@ -10,22 +10,63 @@
 
 import logging
 
+def _format(f):
+    def new_f(self, fmt, *args):
+        msg = fmt % args  # Let it throw, let it throw, let it throw
+        f(self, msg)
+    return new_f
 
-class DummyLogger:
+class LoggerInterface:
     """
-    DummyLogger class implements the Logger interface in a dummy way
-    to enable better testability.
+    Interface and minimal implementation of a logger.
+    Mainly used for testing purposes.
     """
-    def info(self, *args):
-        pass
-    def error(self, *args):
-        pass
-    def warning(self, *args):
-        pass
-    def debug(self, *args):
+
+    errors = 0
+    warnings = 0
+
+    def __init__(self):
+        raise NotImplementedError
+
+    @_format
+    def debug(self, msg):
         pass
 
-class Logger:
+    @_format
+    def info(self, msg):
+        pass
+
+    @_format
+    def warning(self, msg):
+        self.warnings += 1
+
+    @_format
+    def error(self, msg):
+        self.errors += 1
+
+    @property
+    def success(self):
+        """Operation is successful iff zero errors are logged."""
+        return self.errors == 0
+
+    @property
+    def perfect_success(self):
+        """
+        Operation is perfectly successful iff zero errors/warnings
+        are logged.
+        """
+        return self.errors == 0 and self.warnings == 0
+
+
+class LoggerMock(LoggerInterface):
+    """Mock of a full logger. Mainly used for testing purposes."""
+
+    def __init__(self):
+        """Make a new mock loggger."""
+        pass
+
+
+class Logger(LoggerInterface):
     """
     Simple error logger for the llama compiler. Provides methods for
     logging and reporting errors of varying severities.
@@ -38,9 +79,6 @@ class Logger:
     # The logger instance, as constructed by the logging module
     _logger = None
 
-    errors = 0
-    warnings = 0
-
     def __init__(self, inputfile, level=logging.WARNING):
         """Create a new logger for the llama compiler."""
         self._logger = logging.getLogger('llama%d' % Logger._instances)
@@ -51,24 +89,24 @@ class Logger:
         handler.setFormatter(formatter)
         self._logger.addHandler(handler)
 
-    def critical(self, *args):
-        """Add a critical error to the logger."""
-        self._logger.critical(*args)
-
-    def error(self, *args):
+    @_format
+    def error(self, msg):
         """Add an error to the logger."""
-        self._logger.error(*args)
+        self._logger.error(msg)
         self.errors += 1
 
-    def debug(self, *args):
-        """Add some debug info to the logger."""
-        self._logger.debug(*args)
-
-    def info(self, *args):
-        """Add some general info to the logger."""
-        self._logger.info(*args)
-
-    def warning(self, *args):
+    @_format
+    def warning(self, msg):
         """Add a warning to the logger."""
-        self._logger.warning(*args)
+        self._logger.warning(msg)
         self.warnings += 1
+
+    @_format
+    def debug(self, msg):
+        """Add some debug info to the logger."""
+        self._logger.debug(msg)
+
+    @_format
+    def info(self, msg):
+        """Add some general info to the logger."""
+        self._logger.info(msg)

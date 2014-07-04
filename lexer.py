@@ -5,7 +5,8 @@
 # Lexer for the Llama language
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
-# Author: Nick Korasidis <Renelvon@gmail.com>
+# Authors: Nick Korasidis <renelvon@gmail.com>
+#          Dionysis Zindros <dionyziz@gmail.com>
 #
 # Lexer design is heavily inspired from the PHPLY lexer
 # https://github.com/ramen/phply/blob/master/phply/phplex.py
@@ -212,18 +213,18 @@ class _LexerBuilder:
             # Check for abnormal EOF
             state = self.lexer.current_state()
             if state == "comment":
-                self.error_out(
-                    "Unclosed comment reaching end of file.",
+                self.logger.error(
+                    "%d: error: Unclosed comment reaching end of file.",
                     self.lexer.lineno
                 )
             elif state == "string":
-                self.error_out(
-                    "Unclosed string reaching end of file.",
+                self.logger.error(
+                    "%d: error: Unclosed string reaching end of file.",
                     self.lexer.lineno
                 )
             elif state == "char":
-                self.error_out(
-                    "Unclosed character literal at end of file.",
+                self.logger.error(
+                    "%d: error: Unclosed character literal at end of file.",
                     self.lexer.lineno
                 )
             return None
@@ -248,48 +249,23 @@ class _LexerBuilder:
         """Skip 'value' characters in the input string."""
         self.lexer.skip(value)
 
-    # == ERROR REPORTING ==
-
-    def error_out(self, message, lineno=None, lexpos=None):
-        """Signal lexing error."""
-        if lineno is not None:
-            if lexpos is not None:
-                self.logger.error("%d:%d: error: %s", lineno, lexpos, message)
-            else:
-                self.logger.error("%d: error: %s", lineno, message)
-        else:
-            self.logger.error("error: %s", message)
-
     # == LEXING OF NON-TOKENS ==
 
     # Ignored characters
-    t_INITIAL_ignore = " \r\t"
+    t_INITIAL_comment_ignore = " \r\t"
+    t_char_ignore = ""
+    t_string_ignore = ""
 
     # Newlines
     def t_ANY_newline(self, tok):
         r'\n+'
         self.lexer.lineno += len(tok.value)
-        state = self.lexer.current_state()
-        if state == "string":
-            self.error_out(
-                "String spanning multiple lines (unclosed string).",
-                tok.lineno
-            )
-            self.lexer.begin('INITIAL')
-        elif state == "char":
-            self.error_out(
-                "Character spanning multiple lines (unclosed character).",
-                tok.lineno
-            )
-            self.lexer.begin('INITIAL')
         self.bol = self.lexer.lexpos - 1
 
     # Single-line comments. Do not consume the newline.
     def t_SCOMMENT(self, _):
         r'--[^\n]*'
         pass
-
-    t_comment_ignore = " \r\t"
 
     # Start of block comment
     def t_INITIAL_comment_LCOMMENT(self, _):
@@ -378,8 +354,8 @@ class _LexerBuilder:
         try:
             tok.value = float(tok.value)
         except OverflowError:
-            self.error_out(
-                "Floating-point constant is irrepresentable.",
+            self.logger.error(
+                "%d:%d: error: Floating-point constant is irrepresentable.",
                 tok.lineno,
                 tok.lexpos - self.bol
             )
@@ -393,69 +369,95 @@ class _LexerBuilder:
         # TODO Check if constant is too big in another module.
         return tok
 
-    t_char_string_ignore = "\r\t"
+    # Regexes for well-formed char and string literals
+    empty_char = r"''"
+    escape_char_content = r'((\\[ntr0\'"\\])|(\\x[a-fA-F0-9]{2}))'
 
-    # Char constants
-    def t_INITIAL_LCHAR(self, _):
-        r'\''
-        self.lexer.begin('char')
+    # All printable ASCII except quotes and backslash.
+    normal_char_content = r'((?!["\'\\])[\x20-\x7e])'
 
-    hex_char = r'(\\x[a-fA-F0-9]{2})'
-    escape_char = r'(\\[ntr0"\'\\])'
-    normal_char = r'([^"\'\\])'
-    char = r'(' + normal_char + r'|' + escape_char + r'|' + hex_char + r')'
+    char_content = r"(%s|%s)" % (normal_char_content, escape_char_content)
+    proper_char = r"'%s'" % char_content
+    proper_string = r'"%s*"' % char_content
 
-    @lex.TOKEN(char + r'(\'?)')
-    def t_char_CCONST(self, tok):
-        if tok.value[-1] != "'":
-            self.error_out(
-                "Unclosed character literal.",
+    # Proper or empty char literal.
+    @lex.TOKEN('(' + proper_char + ')|(' + empty_char + ')')
+    def t_INITIAL_CCONST(self, tok):
+        tok.value = tok.value[1:-1]
+        if tok.value:
+            tok.value = unescape(tok.value)[0]
+        else:  # Illegal empty char
+            self.logger.error(
+                "%d:%d: error: Empty character literal not allowed.",
                 tok.lineno,
                 tok.lexpos - self.bol
             )
-        else:
-            tok.value = tok.value[:-1]
-
-        tok.value = unescape(tok.value)
-        self.lexer.begin('INITIAL')
+            tok.value = '\0'
         return tok
 
-    def t_char_RCHAR(self, tok):
-        r'\''
-        self.error_out(
-            "Empty character literal not allowed.",
+    # Malformed char literal ahead; enter 'char' state for recovery.
+    def t_INITIAL_LCHAR(self, tok):
+        r"'"
+        self.logger.error(
+            "%d:%d: error: Bad character literal.",
             tok.lineno,
             tok.lexpos - self.bol
         )
-        self.lexer.begin('INITIAL')
+        self.lexer.begin('char')
 
-    # String constants
-    # FIXME: Ask if empty string is valid
-    def t_INITIAL_LSTRING(self, _):
-        r'"'
-        self.lexer.begin('string')
+    # Malformed char literal payload
+    def t_char_CCONST(self, _):
+        "[^'\n]+"
+        pass
 
-    @lex.TOKEN(char + '+("?)')
-    def t_string_SCONST(self, tok):
-        if tok.value[-1] != '"':
-            self.error_out(
-                "Unclosed string literal.",
-                tok.lineno,
-                tok.lexpos - self.bol
-            )
-        else:
-            tok.value = tok.value[:-1]
-
-        tok.value = explode(tok.value)
+    # Exit recovery mode.
+    def t_char_RCHAR(self, tok):
+        r"'"
+        tok.type = 'CCONST'
+        tok.value = '\0'
         self.lexer.begin('INITIAL')
         return tok
 
-    # Catch-all error reporting
-    def t_ANY_error(self, tok):
-        self.error_out(
-            "Illegal character '%s'" % tok.value[0],
+    # Proper string literal
+    @lex.TOKEN(proper_string)
+    def t_INITIAL_SCONST(self, tok):
+        tok.value = explode(tok.value[1:-1])
+        # NOTE: Empty string is valid and is just the null byte.
+        return tok
+
+    # Malformed string literal ahead; enter 'string' state for recovery.
+    def t_INITIAL_LSTRING(self, tok):
+        r'"'
+        self.logger.error(
+            "%d:%d: error: Bad string literal.",
             tok.lineno,
             tok.lexpos - self.bol
+        )
+        self.lexer.begin('string')
+
+    # Malformed string literal payload
+    def t_string_SCONST(self, _):
+        '[^\"\n]+'
+        pass
+
+    # Exit recovery mode
+    def t_string_RSTRING(self, tok):
+        r'"'
+        tok.type = 'SCONST'
+        tok.value = explode('')
+        self.lexer.begin('INITIAL')
+        return tok
+
+    # Catch-all error reporting and panic recovery.
+    def t_ANY_error(self, tok):
+        state = self.lexer.current_state()
+        state_msg = (" while inside %s" % state) if state != 'INITIAL' else ""
+        self.logger.error(
+            "%d:%d: error: Illegal character '%s'%s.",
+            tok.lineno,
+            tok.lexpos - self.bol,
+            tok.value[0],
+            state_msg
         )
         self.lexer.skip(1)
         self.lexer.begin('INITIAL')
