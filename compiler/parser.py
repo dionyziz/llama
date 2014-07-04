@@ -13,9 +13,9 @@
 
 import ply.yacc as yacc
 
-import ast
-import lexer as lex
-import type
+import compiler.ast as ast
+import compiler.lexer as lex
+import compiler.type as type
 
 
 class Parser:

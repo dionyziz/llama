@@ -4,8 +4,8 @@ import unittest
 
 import sure
 
-import error
-import lexer
+import compiler.error as error
+import compiler.lexer as lexer
 
 
 class TestLexer(unittest.TestCase):

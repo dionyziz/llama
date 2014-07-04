@@ -8,7 +8,7 @@
 #         Nick Korasidis <renelvon@gmail.com>
 #
 # ----------------------------------------------------------------------
-import type
+import compiler.type as type
 
 class Node:
     def __init__(self):

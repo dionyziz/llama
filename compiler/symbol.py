@@ -10,7 +10,7 @@
 
 from collections import defaultdict
 
-import error as err
+import compiler.error as err
 
 
 class Entry:

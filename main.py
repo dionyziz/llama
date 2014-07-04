@@ -15,9 +15,9 @@ import logging
 import re
 import sys
 
-import error as err
-import lexer as lex
-import parser as prs
+import compiler.error as err
+import compiler.lexer as lex
+import compiler.parser as prs
 
 # Compiler invocation options and switches.
 # Available to all modules.
