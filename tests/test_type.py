@@ -2,9 +2,7 @@ import itertools
 import unittest
 
 import sure
-import ast
-import type
-import error as lm
+from compiler import ast, error, type
 
 
 class TestType(unittest.TestCase):
@@ -65,14 +63,14 @@ class TestType(unittest.TestCase):
         (i2float).shouldnt.be.equal(type.Array(type.Int()))
 
     def _assert_typesem_success(self, typeDefListList):
-        mock = lm.LoggerMock()
+        mock = error.LoggerMock()
         typeTable = type.Table(logger=mock)
         for typeDefList in typeDefListList:
             typeTable.process(typeDefList)
         mock.success.should.be.ok
 
     def _assert_typesem_failure(self, typeDefListList):
-        mock = lm.LoggerMock()
+        mock = error.LoggerMock()
         typeTable = type.Table(logger=mock)
         for typeDefList in typeDefListList:
             typeTable.process(typeDefList)
