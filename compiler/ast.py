@@ -1,14 +1,16 @@
+"""
 # ----------------------------------------------------------------------
 # ast.py
 #
 # AST constructors for the Llama language
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
-# Author: Dionysis Zindros <dionyziz@gmail.com>
-#         Nick Korasidis <renelvon@gmail.com>
+# Authors: Dionysis Zindros <dionyziz@gmail.com>
+#          Nick Korasidis <renelvon@gmail.com>
 #
 # ----------------------------------------------------------------------
-from compiler import type
+"""
+
 
 class Node:
     lineno = None
@@ -168,7 +170,7 @@ class ArrayVariableDef(VariableDef):
     def __init__(self, name, dimensions, itemType=None):
         self.name = name
         self.dimensions = dimensions
-        self.type = type.Array(itemType, dimensions)
+        self.type = Array(itemType, dimensions)
 
 class TypeDefList(ListNode):
     def __init__(self, list):
@@ -183,3 +185,118 @@ class Constructor(ListNode):
     def __init__(self, name, list=None):
         self.name = name
         self.list = list or []
+
+# == AST REPRESENTATION OF TYPES ==
+
+class Type(Node):
+    """An AST node representing a type."""
+    name = None
+
+    def __eq__(self, other):
+        """Simple and strict type equality. Override as needed."""
+        if self.name is None or other.name is None:
+            return False
+        return self.name == other.name
+
+    def __hash__(self):
+        """Simple hash. Override as needed."""
+        return hash(self.name)
+
+    def copy_pos(self, node):
+        """Copy line info from another Type node."""
+        self.lineno = node.lineno
+        self.lexpos = node.lexpos
+
+
+class Builtin(Type):
+    """One of llama's builtin types."""
+    def __init__(self):
+        self.name = self.__class__.__name__.lower()
+
+
+class Unit(Builtin):
+    pass
+
+
+class Int(Builtin):
+    pass
+
+
+class Char(Builtin):
+    pass
+
+
+class Bool(Builtin):
+    pass
+
+
+class Float(Builtin):
+    pass
+
+builtin_map = {
+    "bool": Bool,
+    "char": Char,
+    "float": Float,
+    "int": Int,
+    "unit": Unit,
+}
+
+class User(Type):
+    """A user-defined type."""
+
+    def __init__(self, name):
+        self.name = name
+
+    def __hash__(self):
+        return hash('user' + self.name)
+
+
+class Ref(Type):
+    def __init__(self, type):
+        self.type = type
+
+    def __eq__(self, other):
+        return isinstance(other, Ref) and self.type == other.type
+
+    def __hash__(self):
+        # Merkle-Damgard!
+        return hash('ref' + hash(self.type))
+
+
+class Array(Type):
+    def __init__(self, type, dimensions=1):
+        self.type = type
+        self.dimensions = dimensions
+
+    def __eq__(self, other):
+        return all((
+            isinstance(other, Array),
+            self.dimensions == other.dimensions,
+            self.type == other.type
+        ))
+
+    def __hash__(self):
+        # Merkle-Damgard!
+        return hash('array' + str(self.dimensions) + hash(self.type))
+
+
+def String():
+    """Factory method to alias (internally) String type to Array of char."""
+    return Array(Char(), 1)
+
+
+class Function(Type):
+    def __init__(self, fromType, toType):
+        self.fromType = fromType
+        self.toType = toType
+
+    def __eq__(self, other):
+        return all((
+            isinstance(other, Function),
+            self.fromType == other.fromType,
+            self.toType == other.toType
+        ))
+
+    def __hash__(self):
+        # Merkle-Damgard!
+        return hash('function' + hash(self.fromType) + hash(self.toType))
