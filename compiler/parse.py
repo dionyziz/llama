@@ -104,21 +104,13 @@ class Parser:
         else:
             p[0] = p[1]
 
-    _builtin_type_map = {
-        'bool': type.Bool,
-        'char': type.Char,
-        'float': type.Float,
-        'int': type.Int,
-        'unit': type.Unit
-    }
-
     def p_builtin_type(self, p):
         """builtin_type : BOOL
                         | CHAR
                         | FLOAT
                         | INT
                         | UNIT"""
-        p[0] = self._builtin_type_map[p[1]]()
+        p[0] = type.builtin_map[p[1]]()
 
     def p_derived_type(self, p):
         """derived_type : array_type
