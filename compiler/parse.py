@@ -14,7 +14,7 @@
 import ply.yacc as yacc
 
 import compiler.ast as ast
-import compiler.lexer as lex
+import compiler.lex as lex
 import compiler.type as type
 
 

@@ -5,7 +5,7 @@ import unittest
 import sure
 
 import compiler.error as error
-import compiler.lexer as lexer
+import compiler.lex as lexer
 
 
 class TestLexer(unittest.TestCase):
