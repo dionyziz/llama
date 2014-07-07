@@ -10,9 +10,6 @@
 
 from collections import defaultdict
 
-import error as err
-
-
 class Entry:
     """An entry of the symbol table. It knows which scope it's in."""
     identifier = None

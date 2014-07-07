@@ -4,16 +4,15 @@ import unittest
 
 import sure
 
-import error
-import lexer
+from compiler import lex, error
 
 
 class TestLexer(unittest.TestCase):
     def _lex_data(self, input):
         mock = error.LoggerMock()
-        lex = lexer.Lexer(logger=mock)
-        lex.input(input)
-        token_list = list(lex)
+        lexer = lex.Lexer(logger=mock)
+        lexer.input(input)
+        token_list = list(lexer)
 
         return (token_list, mock)
 
@@ -27,16 +26,16 @@ class TestLexer(unittest.TestCase):
 
     def _assert_lex_success(self, input):
         mock = error.LoggerMock()
-        lex = lexer.Lexer(logger=mock)
-        lex.input(input)
-        list(lex)  # Force lexing
+        lexer = lex.Lexer(logger=mock)
+        lexer.input(input)
+        list(lexer)  # Force lexing
         mock.success.should.be.ok
 
     def _assert_lex_failure(self, input):
         mock = error.LoggerMock()
-        lex = lexer.Lexer(logger=mock)
-        lex.input(input)
-        list(lex)  # Force lexing
+        lexer = lex.Lexer(logger=mock)
+        lexer.input(input)
+        list(lexer)  # Force lexing
         mock.success.shouldnt.be.ok
 
     def test_empty(self):
@@ -45,7 +44,7 @@ class TestLexer(unittest.TestCase):
         mock.success.should.be.ok
 
     def test_keywords(self):
-        for input_program, token in lexer.reserved_tokens.items():
+        for input_program, token in lex.reserved_tokens.items():
             self._assert_individual_token(input_program, token, input_program)
 
     def test_genid(self):
@@ -93,14 +92,14 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failure("4.2e1.0")
 
     def test_unescape(self):
-        lexer.unescape('\\n').should.be.equal('\n')
+        lex.unescape('\\n').should.be.equal('\n')
 
     def test_cconst(self):
         single_chars = set(string.printable) - set(string.whitespace) | {' '}
         for c in single_chars - {'"', "'", '\\'}:
             self._assert_individual_token(r"'%s'" % c, "CCONST", c)
 
-        for escaped, literal in lexer.escape_sequences.items():
+        for escaped, literal in lex.escape_sequences.items():
             self._assert_individual_token(
                 "'%s'" % (escaped),
                 "CCONST",
@@ -119,7 +118,7 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failure(r"'")
 
     def test_sconst(self):
-        for escaped, literal in lexer.escape_sequences.items():
+        for escaped, literal in lex.escape_sequences.items():
             self._assert_individual_token(
                 '"%s"' % (escaped),
                 "SCONST",
@@ -141,7 +140,7 @@ class TestLexer(unittest.TestCase):
             self._assert_individual_token(
                 '"%s"' % (input),
                 "SCONST",
-                lexer.explode(input)
+                lex.explode(input)
             )
 
         self._assert_lex_failure('"')
@@ -150,11 +149,11 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failure('"\na')
 
     def test_operators(self):
-        for input, token in lexer.operators.items():
+        for input, token in lex.operators.items():
             self._assert_individual_token(input, token, input)
 
     def test_delimiters(self):
-        for input, token in lexer.delimiters.items():
+        for input, token in lex.delimiters.items():
             self._assert_individual_token(input, token, input)
 
     def test_comments(self):
