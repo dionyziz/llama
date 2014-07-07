@@ -2,7 +2,7 @@ import itertools
 import unittest
 
 import sure
-from compiler import ast, error, type
+from compiler import ast, error, lex, parse, type
 
 
 class TestType(unittest.TestCase):
@@ -62,153 +62,58 @@ class TestType(unittest.TestCase):
         (i2float).shouldnt.be.equal(type.Ref(type.Int()))
         (i2float).shouldnt.be.equal(type.Array(type.Int()))
 
-    def _process_type(self, typeDefListList):
+    def _process_typedef(self, typeDefListList):
         mock = error.LoggerMock()
-        typeTable = type.Table(logger=mock)
-        for typeDefList in typeDefListList:
-            typeTable.process(typeDefList)
-        return mock.success
-
-    def _assert_typesem_success(self, typeDefListList):
-        self._process_type(typeDefListList).should.be.ok
-
-    def _assert_typesem_failure(self, typeDefListList):
-        self._process_type(typeDefListList).shouldnt.be.ok
+        lexer = lex.Lexer(logger=mock, optimize=1)
+        parser = parse.Parser(logger=mock, optimize=1)
+        parser.parse(data=typeDefListList, lexer=lexer)
+        return parser.logger.success
 
     def test_type_process(self):
-        t = ast.TypeDefList([
-            ast.TDef("color", [
-                ast.Constructor("Red", []),
-                ast.Constructor("Green", []),
-                ast.Constructor("Blue", [])
-            ])
-        ])
-        self._assert_typesem_success([t])
+        right_testcases = (
+            "type color = Red | Green | Blue",
+            "type list = Nil | Cons of int list",
+            """
+            type number = Integer of int | Real of float
+                        | Complex of float float
+            """,
+            """
+            type tree = Leaf | Node of int forest
+            and  forest = Empty | NonEmpty of tree forest
+            """
+        )
 
-        """type list = Nil | Cons of int list"""
-        t = ast.TypeDefList([
-            ast.TDef("list", [
-                ast.Constructor("Nil", []),
-                ast.Constructor("Cons", [
-                    type.Int(),
-                    type.User("list")
-                ])
-            ])
-        ])
-        self._assert_typesem_success([t])
+        for t in right_testcases:
+            self._process_typedef(t).should.be.ok
 
-        """
-        type number = Integer of int | Real of float
-                    | Complex of float float
-        """
-        t = ast.TypeDefList([
-            ast.TDef("number", [
-                ast.Constructor("Integer", [
-                    type.Int(),
-                ]),
-                ast.Constructor("Real", [
-                    type.Float()
-                ]),
-                ast.Constructor("Complex", [
-                    type.Float()
-                ])
-            ])
-        ])
-        self._assert_typesem_success([t])
+        wrong_testcases = (
+            """
+            -- No constructor reuse
+            type dup = ConDup | ConDup
+            """,
+            """
+            -- No reference to undefined type
+            type what = What of undeftype
+            """,
+            """
+            -- No type redefinition
+            type same = Foo1
+            type same = Foo2
+            """,
+            """
+            -- No constructor sharing
+            type one = Con
+            type two = Con
+            """,
+            """
+            -- No redefinition of builtin types
+            type bool = BoolCon
+            type char = CharCon
+            type float = FloatCon
+            type int = IntCon
+            type unit = UnitCon
+            """
+        )
 
-        """
-        type tree = Leaf | Node of int forest
-        and  forest = Empty | NonEmpty of tree forest
-        """
-        t = ast.TypeDefList([
-            ast.TDef("tree", [
-                ast.Constructor("Leaf", []),
-                ast.Constructor("Node", [
-                    type.Int(),
-                    type.User("forest")
-                ])
-            ]),
-            ast.TDef("forest", [
-                ast.Constructor("Empty", []),
-                ast.Constructor("NonEmpty", [
-                    type.User("tree"),
-                    type.User("forest")
-                ])
-            ])
-        ])
-        self._assert_typesem_success([t])
-
-        """
-        -- No constructor reuse
-        type dup = ConDup | ConDup
-        """
-        t = ast.TypeDefList([
-            ast.TDef("dup", [
-                ast.Constructor("ConDup", []),
-                ast.Constructor("ConDup", [])
-            ]),
-        ])
-        self._assert_typesem_failure([t])
-
-        """
-        -- No reference to undefined type
-        type what = What of undeftype
-        """
-        t = ast.TypeDefList([
-            ast.TDef("what", [
-                ast.Constructor("What", [
-                    type.User("undeftype")
-                ])
-            ])
-        ])
-        self._assert_typesem_failure([t])
-
-        """
-        -- No type redefinition
-        type same = Foo1
-        type same = Foo2
-        """
-        t1 = ast.TypeDefList([
-            ast.TDef("same", [
-                ast.Constructor("Foo1", [])
-            ])
-        ])
-        t2 = ast.TypeDefList([
-            ast.TDef("same", [
-                ast.Constructor("Foo2", [])
-            ])
-        ])
-        self._assert_typesem_failure([t1, t2])
-
-        """
-        -- No constructor sharing
-        type one = Con
-        type two = Con
-        """
-        t1 = ast.TypeDefList([
-            ast.TDef("one", [
-                ast.Constructor("Con", [])
-            ])
-        ])
-        t2 = ast.TypeDefList([
-            ast.TDef("two", [
-                ast.Constructor("Con", [])
-            ])
-        ])
-        self._assert_typesem_failure([t1, t2])
-
-        """
-        -- No redefinition of builtin types
-        type bool = BoolCon
-        type char = CharCon
-        type float = FloatCon
-        type int = IntCon
-        type unit = UnitCon
-        """
-        for builtin_type in type.builtin_map:
-            t = ast.TypeDefList([
-                ast.TDef(builtin_type, [
-                    ast.Constructor("BuiltInCon", [])
-                ])
-            ])
-            self._assert_typesem_failure([t])
+        for t in wrong_testcases:
+            self._process_typedef(t).shouldnt.be.ok
