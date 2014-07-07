@@ -61,7 +61,6 @@ builtin_map = {
     "unit": Unit,
 }
 
-
 class User(Type):
     name = None
 
@@ -99,6 +98,11 @@ class Array(Type):
     def __hash__(self):
         # Merkle-Damgard!
         return hash('array' + str(self.dimensions) + hash(self.type))
+
+
+def String():
+    """Factory method to alias (internally) String type to Array of char."""
+    return Array(Char(), 1)
 
 
 class Function(Type):
