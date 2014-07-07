@@ -15,9 +15,7 @@ import logging
 import re
 import sys
 
-import error as err
-import lexer as lex
-import parser as prs
+from compiler import lex, parse, error
 
 # Compiler invocation options and switches.
 # Available to all modules.
@@ -124,7 +122,7 @@ def main():
     OPTS['parser_verbose'] = args.parser_verbose
 
     # Create an error logger
-    logger = err.Logger(
+    logger = error.Logger(
         inputfile=OPTS['input'],
         level=logging.DEBUG
     )
@@ -142,7 +140,7 @@ def main():
     # Make a parser. By default, the parser is optimized
     # (i.e. caches LALR tables accross invocations). If 'debug' is set,
     # a 'parser.out' is created every time the tables are regenerated.
-    parser = prs.Parser(
+    parser = parse.Parser(
         logger=logger,
         optimize=1,
         start='program'

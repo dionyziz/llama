@@ -1,7 +1,8 @@
 PYTHON=python3
 PREPARE_FLAG=--prepare
 OPT=-OO
-SOURCEFILES=lexer.py parser.py error.py main.py symbol.py type.py
+SOURCEFILES=main.py ./compiler/*.py
+BINPATH=./bin
 TESTPATH=./tests/
 
 .PHONY: beauty clean prepare static test
@@ -11,8 +12,8 @@ all: clean prepare test
 beauty:
 	pep8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
 
-test: clean prepare ptest.sh
-	./ptest.sh
+test: clean prepare $(BINPATH)/ptest.sh
+	$(BINPATH)/ptest.sh
 	nosetests
 
 static:
