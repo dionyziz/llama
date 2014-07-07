@@ -62,19 +62,18 @@ class TestType(unittest.TestCase):
         (i2float).shouldnt.be.equal(type.Ref(type.Int()))
         (i2float).shouldnt.be.equal(type.Array(type.Int()))
 
-    def _assert_typesem_success(self, typeDefListList):
+    def _process_type(self, typeDefListList):
         mock = error.LoggerMock()
         typeTable = type.Table(logger=mock)
         for typeDefList in typeDefListList:
             typeTable.process(typeDefList)
-        mock.success.should.be.ok
+        return mock.success
+
+    def _assert_typesem_success(self, typeDefListList):
+        self._process_type(typeDefListList).should.be.ok
 
     def _assert_typesem_failure(self, typeDefListList):
-        mock = error.LoggerMock()
-        typeTable = type.Table(logger=mock)
-        for typeDefList in typeDefListList:
-            typeTable.process(typeDefList)
-        mock.success.shouldnt.be.ok
+        self._process_type(typeDefListList).shouldnt.be.ok
 
     def test_type_process(self):
         t = ast.TypeDefList([
