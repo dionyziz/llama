@@ -14,6 +14,8 @@
 
 class Type():
     name = None
+    lineno = None
+    lexpos = None
 
     def __init__(self):
         raise NotImplementedError
@@ -27,6 +29,11 @@ class Type():
     def __hash__(self):
         """Simple hash. Override as needed."""
         return hash(self.name)
+
+    def copy_pos(self, node):
+        """Copy line info from another Type node."""
+        self.lineno = node.lineno
+        self.lexpos = node.lexpos
 
 
 class Builtin(Type):
@@ -135,6 +142,8 @@ class Table(Type):
     # Each key contains a dict:
     #   type:    type which the constructor belongs to
     #   params:  type arguments of the constructor
+    #   lineno:  line where constructor is defined
+    #   lexpos:  column where constructor is defined
     knownConstructors = {}
 
     # Logger used for logging events. Possibly shared with other modules.
@@ -153,10 +162,14 @@ class Table(Type):
         # First, insert all newly-defined types.
         for tdef in typeDefList:
             newtype = User(tdef.name)
+            newtype.copy_pos(tdef)
             if newtype in self.knownTypes:
                 self._logger.error(
-                    # FIXME Add meaningful line
-                    "error: Type reuse: %s" % (newtype.name)
+                    "%d:%d: error: Redefining type '%s'" % (
+                        newtype.lineno,
+                        newtype.lexpos,
+                        newtype.name
+                    )
                     # TODO Show previous definition
                 )
             elif newtype.name in builtin_map:
@@ -172,22 +185,34 @@ class Table(Type):
         for tdef in typeDefList:
             for constructor in tdef:
                 if constructor.name in self.knownConstructors:
+                    alias = self.knownConstructors[constructor.name]
                     self._logger.error(
-                        # FIXME add meaningful line
-                        "error: Constructor reuse: %s" % (constructor.name)
-                        # TODO Show previous use
+                        "%d:%d: error: Redefining constructor '%s'"
+                        "\tPrevious definition: %d:%d" % (
+                            constructor.lineno,
+                            constructor.lexpos,
+                            constructor.name,
+                            alias['lineno'],
+                            alias['lexpos']
+                        )
                     )
                 else:
                     for argType in constructor.list:
                         if argType not in self.knownTypes:
                             self._logger.error(
-                                # FIXME Add meaningful line
-                                "error: Type not defined: %s" % (argType.name)
+                                    "%d:%d: error: Undefined type '%s'" % (
+                                    argType.lexpos,
+                                    argType.lineno,
+                                    argType.name
+                                )
                             )
                     userType = User(tdef.name)
+                    userType.copy_pos(tdef)
                     self.knownConstructors[constructor.name] = {
                         "type": userType,
-                        "params": constructor.list
+                        "params": constructor.list,
+                        "lineno": constructor.lineno,
+                        "lexpos": constructor.lexpos
                     }
 
         # TODO: Emmit warnings when typenames clash with definition names.

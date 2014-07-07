@@ -11,8 +11,16 @@
 from compiler import type
 
 class Node:
+    lineno = None
+    lexpos = None
+
     def __init__(self):
         raise NotImplementedError
+
+    def copy_pos(self, node):
+        """Copy line info from another AST node."""
+        self.lineno = node.lineno
+        self.lexpos = node.lexpos
 
 class ListNode(Node):
     list = None

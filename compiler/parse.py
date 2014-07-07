@@ -16,6 +16,15 @@ from ply import yacc
 from compiler import ast, lex, type
 
 
+def _track(p):
+    if isinstance(p[1], (ast.Node, type.Type)):
+        if p[0] is not p[1]:
+            p[0].copy_pos(p[1])
+    else:
+        node = p[0]
+        node.lineno = p.lineno(1)
+        node.lexpos = p.lexpos(1)
+
 class Parser:
     """A parser for the Llama language"""
     precedence = (
@@ -63,6 +72,7 @@ class Parser:
             p[0] = ast.LetDef(p[3], isRec=True)
         else:
             p[0] = ast.LetDef(p[2])
+        _track(p)
 
     def p_def_seq(self, p):
         """def_seq : def AND def_seq
@@ -73,6 +83,7 @@ class Parser:
         """def : function_def
                | variable_def"""
         p[0] = p[1]
+        _track(p)
 
     def p_function_def(self, p):
         """function_def : GENID param_list COLON type EQ expr
@@ -81,6 +92,7 @@ class Parser:
             p[0] = ast.FunctionDef(p[1], p[2], p[6], p[4])
         else:
             p[0] = ast.FunctionDef(p[1], p[2], p[4])
+        _track(p)
 
     def p_param_list(self, p):
         """param_list : param param_list
@@ -94,6 +106,7 @@ class Parser:
             p[0] = ast.Param(p[2], p[4])
         else:
             p[0] = ast.Param(p[1])
+        _track(p)
 
     def p_type(self, p):
         """type : LPAREN type RPAREN
@@ -103,6 +116,7 @@ class Parser:
             p[0] = p[2]
         else:
             p[0] = p[1]
+        _track(p)
 
     def p_builtin_type(self, p):
         """builtin_type : BOOL
@@ -111,6 +125,7 @@ class Parser:
                         | INT
                         | UNIT"""
         p[0] = type.builtin_map[p[1]]()
+        _track(p)
 
     def p_derived_type(self, p):
         """derived_type : array_type
@@ -118,6 +133,7 @@ class Parser:
                         | ref_type
                         | user_type"""
         p[0] = p[1]
+        _track(p)
 
     def p_array_type(self, p):
         """array_type : ARRAY LBRACKET star_comma_seq RBRACKET OF type
@@ -126,6 +142,7 @@ class Parser:
             p[0] = type.Array(p[6], p[3])
         else:
             p[0] = type.Array(p[3])
+        _track(p)
 
     def p_star_comma_seq(self, p):
         """star_comma_seq : TIMES COMMA star_comma_seq
@@ -139,14 +156,17 @@ class Parser:
     def p_function_type(self, p):
         """function_type : type ARROW type"""
         p[0] = type.Function(p[1], p[3])
+        _track(p)
 
     def p_ref_type(self, p):
         """ref_type : type REF"""
         p[0] = type.Ref(p[1])
+        _track(p)
 
     def p_user_type(self, p):
         """user_type : GENID"""
         p[0] = type.User(p[1])
+        _track(p)
 
     def p_empty(self, p):
         """empty :"""
@@ -198,14 +218,17 @@ class Parser:
             p[0] = ast.UnaryExpression(p[1], p[2])
         else:
             p[0] = p[1]
+        _track(p)
 
     def p_begin_end_expr(self, p):
         """begin_end_expr : BEGIN expr END"""
         p[0] = p[2]
+        _track(p)
 
     def p_ccall_expr(self, p):
         """ccall_expr : CONID simple_expr_seq"""
         p[0] = ast.ConstructorCallExpression(p[1], p[2])
+        _track(p)
 
     def p_simple_expr_seq(self, p):
         """simple_expr_seq : simple_expr simple_expr_seq
@@ -233,43 +256,53 @@ class Parser:
             p[0] = ast.UnaryExpression(p[1], p[2])
         else:
             p[0] = p[1]
+        _track(p)
 
     def p_bconst_simple_expr(self, p):
         """bconst_simple_expr : TRUE
                               | FALSE"""
         p[0] = ast.ConstExpression(type.Bool(), p[1])
+        _track(p)
 
     def p_cconst_simple_expr(self, p):
         """cconst_simple_expr : CCONST"""
         p[0] = ast.ConstExpression(type.Char(), p[1])
+        _track(p)
 
     def p_conid_simple_expr(self, p):
         """conid_simple_expr : CONID"""
         p[0] = ast.ConidExpression(p[1])
+        _track(p)
 
     def p_iconst_simple_expr(self, p):
         """iconst_simple_expr : ICONST"""
         p[0] = ast.ConstExpression(type.Int(), p[1])
+        _track(p)
 
     def p_fconst_simple_expr(self, p):
         """fconst_simple_expr : FCONST"""
         p[0] = ast.ConstExpression(type.Float(), p[1])
+        _track(p)
 
     def p_genid_simple_expr(self, p):
         """genid_simple_expr : GENID"""
         p[0] = ast.GenidExpression(p[1])
+        _track(p)
 
     def p_sconst_simple_expr(self, p):
         """sconst_simple_expr : SCONST"""
         p[0] = ast.ConstExpression(type.String(), p[1])
+        _track(p)
 
     def p_uconst_simple_expr(self, p):
         """uconst_simple_expr : LPAREN RPAREN"""
         p[0] = ast.ConstExpression(type.Unit())
+        _track(p)
 
     def p_delete_expr(self, p):
         """delete_expr : DELETE expr"""
         p[0] = ast.DeleteExpression(p[2])
+        _track(p)
 
     def p_dim_expr(self, p):
         """dim_expr : DIM ICONST GENID
@@ -278,6 +311,7 @@ class Parser:
             p[0] = ast.DimExpression(p[3], p[2])
         else:
             p[0] = ast.DimExpression(p[2])
+        _track(p)
 
     def p_for_expr(self, p):
         """for_expr : FOR GENID EQ expr DOWNTO expr DO expr DONE
@@ -286,14 +320,17 @@ class Parser:
             p[0] = ast.ForExpression(p[2], p[4], p[6], p[8])
         else:
             p[0] = ast.ForExpression(p[2], p[4], p[6], p[8], isDown=True)
+        _track(p)
 
     def p_gcall_expr(self, p):
         """gcall_expr : GENID simple_expr_seq"""
         p[0] = ast.FunctionCallExpression(p[1], p[2])
+        _track(p)
 
     def p_in_expr(self, p):
         """in_expr : letdef IN expr"""
         p[0] = ast.LetInExpression(p[1], p[3])
+        _track(p)
 
     def p_if_expr(self, p):
         # WARNING: Changing order of clauses produces Syntax Errors,
@@ -304,10 +341,12 @@ class Parser:
             p[0] = ast.IfExpression(p[2], p[4], p[6])
         else:
             p[0] = ast.IfExpression(p[2], p[4])
+        _track(p)
 
     def p_match_expr(self, p):
-        """match_expr : MATCH expr WITH clause_seq END """
+        """match_expr : MATCH expr WITH clause_seq END"""
         p[0] = ast.MatchExpression(p[2], p[4])
+        _track(p)
 
     def p_clause_seq(self, p):
         """clause_seq : clause PIPE clause_seq
@@ -317,6 +356,7 @@ class Parser:
     def p_clause(self, p):
         """clause : pattern ARROW expr"""
         p[0] = ast.Clause(p[1], p[3])
+        _track(p)
 
     def p_pattern(self, p):
         """pattern : CONID simple_pattern_list
@@ -325,6 +365,7 @@ class Parser:
             p[0] = ast.Pattern(p[1], p[2])
         else:
             p[0] = p[1]
+        _track(p)
 
     def p_simple_pattern_list(self, p):
         """simple_pattern_list : simple_pattern simple_pattern_list
@@ -344,15 +385,18 @@ class Parser:
             p[0] = p[2]
         else:
             p[0] = p[1]
+        _track(p)
 
     def p_bconst_simple_pattern(self, p):
         """bconst_simple_pattern : TRUE
                                  | FALSE"""
         p[0] = ast.ConstExpression(type.Bool(), p[1])
+        _track(p)
 
     def p_cconst_simple_pattern(self, p):
         """cconst_simple_pattern : CCONST"""
         p[0] = ast.ConstExpression(type.Char(), p[1])
+        _track(p)
 
     def p_fconst_simple_pattern(self, p):
         """fconst_simple_pattern : FPLUS FCONST
@@ -361,14 +405,17 @@ class Parser:
             p[0] = ast.ConstExpression(type.Float(), p[2])
         else:
             p[0] = ast.ConstExpression(type.Float(), p[1])
+        _track(p)
 
     def p_mfconst_simple_pattern(self, p):
         """mfconst_simple_pattern : FMINUS FCONST"""
         p[0] = ast.ConstExpression(type.Float(), -p[2])
+        _track(p)
 
     def p_genid_simple_pattern(self, p):
         """genid_simple_pattern : GENID"""
         p[0] = ast.GenidPattern(p[1])
+        _track(p)
 
     def p_iconst_simple_pattern(self, p):
         """iconst_simple_pattern : PLUS ICONST
@@ -377,23 +424,28 @@ class Parser:
             p[0] = ast.ConstExpression(type.Int(), p[2])
         else:
             p[0] = ast.ConstExpression(type.Int(), p[1])
+        _track(p)
 
     def p_miconst_simple_pattern(self, p):
         """miconst_simple_pattern : MINUS ICONST"""
         p[0] = ast.ConstExpression(type.Int(), -p[2])
+        _track(p)
 
     def p_new_expr(self, p):
         """new_expr : NEW type"""
         p[0] = ast.NewExpression(p[2])
+        _track(p)
 
     def p_while_expr(self, p):
         """while_expr : WHILE expr DO expr DONE"""
         p[0] = ast.WhileExpression(p[2], p[4])
+        _track(p)
 
     def p_variable_def(self, p):
         """variable_def : array_variable_def
                         | simple_variable_def"""
         p[0] = p[1]
+        _track(p)
 
     def p_array_variable_def(self, p):
         """array_variable_def : MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type
@@ -402,6 +454,7 @@ class Parser:
             p[0] = ast.ArrayVariableDef(p[2], p[4], p[7])
         else:
             p[0] = ast.ArrayVariableDef(p[2], p[4])
+        _track(p)
 
     def p_expr_comma_seq(self, p):
         """expr_comma_seq : expr COMMA expr_comma_seq
@@ -415,11 +468,13 @@ class Parser:
             p[0] = ast.VariableDef(p[2], p[4])
         else:
             p[0] = ast.VariableDef(p[2])
+        _track(p)
 
     def p_typedef(self, p):
         """typedef : TYPE tdef_and_seq"""
         p[0] = ast.TypeDefList(p[2])
         self.typeTable.process(p[0])
+        _track(p)
 
     def p_tdef_and_seq(self, p):
         """tdef_and_seq : tdef AND tdef_and_seq
@@ -429,6 +484,7 @@ class Parser:
     def p_tdef(self, p):
         """tdef : GENID EQ constr_pipe_seq"""
         p[0] = ast.TDef(p[1], p[3])
+        _track(p)
 
     def p_constr_pipe_seq(self, p):
         """constr_pipe_seq : constr PIPE constr_pipe_seq
@@ -442,6 +498,7 @@ class Parser:
             p[0] = ast.Constructor(p[1], p[3])
         else:
             p[0] = ast.Constructor(p[1])
+        _track(p)
 
     def p_type_seq(self, p):
         """type_seq : type type_seq
