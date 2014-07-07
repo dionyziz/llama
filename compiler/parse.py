@@ -11,11 +11,9 @@
 # ----------------------------------------------------------------------
 """
 
-import ply.yacc as yacc
+from ply import yacc
 
-import compiler.ast as ast
-import compiler.lex as lex
-import compiler.type as type
+from compiler import ast, lex, type
 
 
 class Parser:

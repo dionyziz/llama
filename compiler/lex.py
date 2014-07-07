@@ -13,7 +13,7 @@
 # ----------------------------------------------------------------------
 """
 
-import ply.lex as lex
+from ply import lex
 
 # Represent reserved words as a frozenset for fast lookup
 reserved_words = frozenset('''
