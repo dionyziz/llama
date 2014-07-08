@@ -60,7 +60,7 @@ class SymbolTable:
 
     def __init__(self, logger):
         """Make a new symbol table and insert the library namespace."""
-        self._logger = logger
+        self.logger = logger
         self._insert_library_symbols()
 
     def _insert_library_symbols(self):
@@ -142,9 +142,10 @@ class SymbolTable:
                 return entry
 
         if guard:
-            self._logger.error(
+            self.logger.error(
                 # FIXME: Meaningful line?
-                "Unknown identifier: %s" % identifier
+                "error: Unknown identifier: %s",
+                identifier
             )
         return None
 
@@ -170,11 +171,12 @@ class SymbolTable:
         new_id = new_entry.identifier
 
         if guard:
-            entry = self._find_identifier_in_current_scope(new_entry.identifier)
+            entry = self._find_identifier_in_current_scope(new_id)
             if entry is not None:
-                self._logger.error(
+                self.logger.error(
                     # FIXME: Meaningful line?
-                    "Duplicate identifier: %s" % new_entry.identifier
+                    "error: Duplicate identifier: %s",
+                    new_id
                     # TODO: Show line of previous declaration
                 )
                 # TODO: Raise some kind of exception here.
