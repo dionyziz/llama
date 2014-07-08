@@ -112,7 +112,7 @@ class Parser:
         """type : LPAREN type RPAREN
                 | builtin_type
                 | derived_type"""
-        if len(p) == 3:
+        if len(p) == 4:
             p[0] = p[2]
         else:
             p[0] = p[1]
