@@ -261,7 +261,11 @@ class Parser:
     def p_bconst_simple_expr(self, p):
         """bconst_simple_expr : TRUE
                               | FALSE"""
-        p[0] = ast.ConstExpression(type.Bool(), p[1])
+        value = {
+            'true': True,
+            'false': False
+        }[p[1]]
+        p[0] = ast.ConstExpression(type.Bool(), value)
         _track(p)
 
     def p_cconst_simple_expr(self, p):
@@ -390,7 +394,11 @@ class Parser:
     def p_bconst_simple_pattern(self, p):
         """bconst_simple_pattern : TRUE
                                  | FALSE"""
-        p[0] = ast.ConstExpression(type.Bool(), p[1])
+        value = {
+            "true": True,
+            "false": False
+        }[p[1]]
+        p[0] = ast.ConstExpression(type.Bool(), value)
         _track(p)
 
     def p_cconst_simple_pattern(self, p):
