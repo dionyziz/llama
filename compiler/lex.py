@@ -71,6 +71,7 @@ def unescape(string):
     """Return unescaped string."""
     return bytes(string, 'ascii').decode('unicode_escape')
 
+
 def explode(string):
     """Unescape, null-terminate and listify string."""
     string = list(unescape(string))

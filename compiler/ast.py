@@ -13,6 +13,7 @@
 
 # == INTERFACES OF AST NODES ==
 
+
 class Node:
     lineno = None
     lexpos = None
@@ -81,14 +82,17 @@ class Builtin(Type):
 
 # == AST REPRESENTATION OF PROGRAM ELEMENTS ==
 
+
 class Program(DataNode):
     def __init__(self, list):
         self.list = list
+
 
 class LetDef(Node):
     def __init__(self, list, isRec=False):
         self.list = list
         self.isRec = isRec
+
 
 class FunctionDef(Def):
     def __init__(self, name, params, body, type=None):
@@ -97,10 +101,12 @@ class FunctionDef(Def):
         self.body = body
         self.type = type
 
+
 class Param(DataNode):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
+
 
 class BinaryExpression(Expression):
     def __init__(self, leftOperand, operator, rightOperand):
@@ -108,42 +114,51 @@ class BinaryExpression(Expression):
         self.operator = operator
         self.rightOperand = rightOperand
 
+
 class UnaryExpression(Expression):
     def __init__(self, operator, operand):
         self.operator = operator
         self.operand = operand
+
 
 class ConstructorCallExpression(Expression):
     def __init__(self, name, list):
         self.name = name
         self.list = list
 
+
 class ArrayExpression(Expression):
     def __init__(self, name, list):
         self.name = name
         self.list = list
+
 
 class ConstExpression(Expression):
     def __init__(self, type, value=None):
         self.type = type
         self.value = value
 
+
 class ConidExpression(Expression):
     def __init__(self, name):
         self.name = name
+
 
 class GenidExpression(Expression):
     def __init__(self, name):
         self.name = name
 
+
 class DeleteExpression(Expression):
     def __init__(self, expr):
         self.expr = expr
+
 
 class DimExpression(Expression):
     def __init__(self, name, dimension=1):
         self.name = name
         self.dimension = dimension
+
 
 class ForExpression(Expression):
     def __init__(self, counter, startExpr, stopExpr, body, isDown=False):
@@ -153,15 +168,18 @@ class ForExpression(Expression):
         self.body = body
         self.isDown = isDown
 
+
 class FunctionCallExpression(Expression):
     def __init__(self, name, list):
         self.name = name
         self.list = list
 
+
 class LetInExpression(Expression):
     def __init__(self, letdef, expr):
         self.letdef = letdef
         self.expr = expr
+
 
 class IfExpression(Expression):
     def __init__(self, condition, thenExpr, elseExpr=None):
@@ -169,38 +187,46 @@ class IfExpression(Expression):
         self.thenExpr = thenExpr
         self.elseExpr = elseExpr
 
+
 class MatchExpression(Expression):
     def __init__(self, expr, list):
         self.expr = expr
         self.list = list
+
 
 class Clause(Node):
     def __init__(self, pattern, expr):
         self.pattern = pattern
         self.expr = expr
 
+
 class Pattern(Node):
     def __init__(self, name, list):
         self.name = name
         self.list = list
 
+
 class GenidPattern(Node):
     def __init__(self, name):
         self.name = name
 
+
 class NewExpression(Expression):
     def __init__(self, type):
         self.type = type
+
 
 class WhileExpression(Expression):
     def __init__(self, condition, body):
         self.condition = condition
         self.body = body
 
+
 class VariableDef(Def):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
+
 
 class ArrayVariableDef(VariableDef):
     def __init__(self, name, dimensions, itemType=None):
@@ -208,9 +234,11 @@ class ArrayVariableDef(VariableDef):
         self.dimensions = dimensions
         self.type = Array(itemType, dimensions)
 
+
 class TypeDefList(ListNode):
     def __init__(self, list):
         self.list = list
+
 
 class TDef(ListNode):
     def __init__(self, type, list):
@@ -224,6 +252,7 @@ class Constructor(NameNode, ListNode):
         self.list = list or []
 
 # == REPRESENTATION OF TYPES AS AST NODES ==
+
 
 class Bool(Builtin):
     pass
@@ -252,6 +281,7 @@ builtin_map = {
     "int": Int,
     "unit": Unit,
 }
+
 
 class User(Type):
     """A user-defined type."""

@@ -25,6 +25,7 @@ def _track(p):
         node.lineno = p.lineno(1)
         node.lexpos = p.lexpos(1)
 
+
 class Parser:
     """A parser for the Llama language"""
     precedence = (
