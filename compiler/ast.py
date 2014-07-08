@@ -39,10 +39,20 @@ class Program(DataNode):
     def __init__(self, list):
         self.list = list
 
+    def __eq__(self, other):
+        return isinstance(other, Program) and self.list == other.list
+
 class LetDef(Node):
     def __init__(self, list, isRec=False):
         self.list = list
         self.isRec = isRec
+
+    def __eq__(self, other):
+        return all((
+            isinstance(other, LetDef),
+            self.list == other.list,
+            self.isRec == other.isRec
+        ))
 
 class Def(Node):
     def __init__(self):
@@ -55,10 +65,29 @@ class FunctionDef(Def):
         self.body = body
         self.type = type
 
+    def __eq__(self, other):
+        return all((
+            isinstance(other, FunctionDef),
+            self.name == other.name,
+            self.params == other.params,
+            self.body == other.body,
+            self.type == other.type
+        ))
+
 class Param(DataNode):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
+
+    def __eq__(self, other):
+        return all((
+            isinstance(other, Param),
+            self.name == other.name,
+            self.type == other.type,
+        ))
+
+    def __repr__(self):
+        return 'ASTNode:Param with name "%s" and type: %s' % (self.name, self.type)
 
 class Expression(DataNode):
     def __init__(self):
