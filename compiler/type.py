@@ -5,11 +5,13 @@
 # Semantic analysis of types
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
-# Authors: Dionysis Zindros <dionyziz@gmail.com>
+# Authors: Nick Korasidis <renelvon@gmail.com>
 #          Dimitris Koutsoukos <dim.kou.shmmy@gmail.com>
-#          Nick Korasidis <Renelvon@gmail.com>
+#          Dionysis Zindros <dionyziz@gmail.com>
 # ----------------------------------------------------------------------
 """
+
+from collections import namedtuple
 
 from compiler import ast
 
@@ -20,23 +22,32 @@ class Table:
     of user defined types and more.
     """
 
-    # Set of types encountered so far. Built-in types always available.
-    knownTypes = set(t() for t in ast.builtin_map.values())
+    _TypeEntry = namedtuple('TypeEntry', ['key', 'list'])
+    _ConstructorEntry = namedtuple('ConstructorEntry', ['key', 'type'])
 
-    # Dictionary of constructors encountered so far.
-    # Each key contains a dict:
-    #   type:    type which the constructor belongs to
-    #   params:  type arguments of the constructor
-    #   lineno:  line where constructor is defined
-    #   lexpos:  column where constructor is defined
-    knownConstructors = {}
+    def __init__(self, logger):
+        """Initialize a new Table."""
+        self.logger = logger
+
+        # Dictionary of types encountered so far. Builtin types always available.
+        #     Key:   Type node
+        #     Value: A named 2-tuple (self, list), where
+        #               key:  the Key
+        #               list: list of Constructors which the type defines
+        self.knownTypes = {}
+        for t in ast.builtin_map.values():
+            tt = t()
+            self.knownTypes[tt] = self._TypeEntry(key=tt, list=None)
+
+        # Dictionary of constructors encountered so far.
+        #     Key:   Constructor node
+        #     Value: A named 2-tuple (self, type), where
+        #               key:  the Key
+        #               type: Type which the constructor produces
+        self.knownConstructors = {}
 
     # Logger used for logging events. Possibly shared with other modules.
     logger = None
-
-    def __init__(self, logger):
-        """Return a new TypeTable."""
-        self.logger = logger
 
     def process(self, typeDefList):
         """
@@ -46,57 +57,68 @@ class Table:
 
         # First, insert all newly-defined types.
         for tdef in typeDefList:
-            newtype = tdef.type
-            if newtype in self.knownTypes:
-                self.logger.error(
-                    "%d:%d: error: Redefining type '%s'" % (
-                        newtype.lineno,
-                        newtype.lexpos,
-                        newtype.name
+            newType = tdef.type
+            try:
+                alias = self.knownTypes[newType].key
+                if isinstance(alias, ast.Builtin):
+                    self.logger.error(
+                        "%d:%d: error: Redefining builtin type '%s'" % (
+                            newType.lineno,
+                            newType.lexpos,
+                            newType.name
+                        )
                     )
-                    # TODO Show previous definition
+                    return
+                else:
+                    self.logger.error(
+                        "%d:%d: error: Redefining user-defined type '%s'"
+                        "\tPrevious definition: %d:%d" % (
+                            newType.lineno,
+                            newType.lexpos,
+                            newType.name,
+                            alias.lineno,
+                            alias.lexpos
+                        )
+                    )
+                    return
+            except KeyError:
+                self.knownTypes[newType] = Table._TypeEntry(
+                    key=newType,
+                    list=[]
                 )
-            elif newtype.name in ast.builtin_map:
-                self.logger.error(
-                    # FIXME Add meaningful line
-                    "error: Cannot redefine builtin type: %s" % (newtype.name)
-                    # TODO Show previous definition
-                )
-            else:
-                self.knownTypes.add(newtype)
 
         # Process each constructor.
         for tdef in typeDefList:
+            newType = tdef.type
             for constructor in tdef:
-                constructor.type = tdef.type
-                if constructor.name in self.knownConstructors:
-                    alias = self.knownConstructors[constructor.name]
+                try:
+                    alias = self.knownConstructors[constructor].key
                     self.logger.error(
                         "%d:%d: error: Redefining constructor '%s'"
                         "\tPrevious definition: %d:%d" % (
                             constructor.lineno,
                             constructor.lexpos,
                             constructor.name,
-                            alias['lineno'],
-                            alias['lexpos']
+                            alias.lineno,
+                            alias.lexpos
                         )
                     )
-                else:
-                    for argType in constructor.list:
+                    return
+                except KeyError:
+                    for argType in constructor:
                         if argType not in self.knownTypes:
                             self.logger.error(
-                                    "%d:%d: error: Undefined type '%s'" % (
+                                "%d:%d: error: Undefined type '%s'" % (
                                     argType.lexpos,
                                     argType.lineno,
                                     argType.name
                                 )
                             )
-                    userType = tdef.type
-                    self.knownConstructors[constructor.name] = {
-                        "type": userType,
-                        "params": constructor.list,
-                        "lineno": constructor.lineno,
-                        "lexpos": constructor.lexpos
-                    }
+                            return
 
+                self.knownTypes[newType].list.append(constructor)
+                self.knownConstructors[constructor] = Table._ConstructorEntry(
+                    key=constructor,
+                    type=newType
+                )
         # TODO: Emit warnings when typenames clash with definition names.
