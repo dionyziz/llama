@@ -119,6 +119,16 @@ class ConstExpression(Expression):
         self.type = type
         self.value = value
 
+    def __eq__(self, other):
+        return all((
+            isinstance(other, ConstExpression),
+            self.type == other.type,
+            self.value == other.value
+        ))
+
+    def __repr__(self):
+        return "Constant of type %s and of value '%s'" % (self.type, self.value)
+
 class ConidExpression(Expression):
     def __init__(self, name):
         self.name = name
@@ -188,16 +198,38 @@ class WhileExpression(Expression):
         self.condition = condition
         self.body = body
 
+    def __eq__(self, other):
+        return all((
+            isinstance(other, WhileExpression),
+            self.condition == other.condition,
+            self.body == other.body
+        ))
+
 class VariableDef(Def):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
+
+    def __eq__(self, other):
+        return all((
+            isinstance(other, VariableDef),
+            self.name == other.name,
+            self.type == other.type
+        ))
 
 class ArrayVariableDef(VariableDef):
     def __init__(self, name, dimensions, itemType=None):
         self.name = name
         self.dimensions = dimensions
         self.type = type.Array(itemType, dimensions)
+
+    def __eq__(self, other):
+        return all((
+            isinstance(other, ArrayVariableDef),
+            self.name == other.name,
+            self.dimensions == other.dimensions,
+            self.type == other.type
+        ))
 
 class TypeDefList(ListNode):
     def __init__(self, list):
@@ -212,3 +244,10 @@ class Constructor(ListNode):
     def __init__(self, name, list=None):
         self.name = name
         self.list = list or []
+
+    def __eq__(self, other):
+        return all((
+            isinstance(other, Constructor),
+            self.name == other.name,
+            self.list == other.list
+        ))
