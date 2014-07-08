@@ -15,8 +15,8 @@
 
 
 class Node:
-    lineno = None
-    lexpos = None
+    lineno = 0
+    lexpos = 0
 
     def __init__(self):
         raise NotImplementedError
