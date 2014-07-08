@@ -143,7 +143,8 @@ def main():
     parser = parse.Parser(
         logger=logger,
         optimize=1,
-        start='program'
+        start='program',
+        verbose=OPTS['parser_verbose']
     )
 
     # Stop here if this a dry run.
@@ -157,8 +158,7 @@ def main():
     # Parse and construct the AST.
     ast = parser.parse(
         data=data,
-        lexer=lexer,
-        verbose=OPTS['parser_verbose']
+        lexer=lexer
     )
 
     # On bad program, terminate with error.
