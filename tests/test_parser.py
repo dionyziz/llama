@@ -6,6 +6,10 @@ from compiler import parse, lex, error, ast, type
 
 
 class TestParser(unittest.TestCase):
+    def setUp(self):
+        self.one = self._parse("1", "expr")
+        self.two = self._parse("2", "expr")
+
     def _parse(self, data, start='program'):
         mock = error.LoggerMock()
 
@@ -81,3 +85,38 @@ class TestParser(unittest.TestCase):
 
     def test_while_expr(self):
         self._parse("while true do true done", "expr").should.be.equal(ast.WhileExpression(ast.ConstExpression(type.Bool(), True), ast.ConstExpression(type.Bool(), True)))
+
+    def _check_binary_operator(self, operator):
+        expr = "1 %s 2" % operator
+        parsed = self._parse(expr, "expr")
+        self.assertTrue(isinstance(parsed, ast.BinaryExpression))
+        self.assertEqual(parsed.operator, operator)
+        self.assertEqual(parsed.leftOperand, self.one)
+        self.assertEqual(parsed.rightOperand, self.two)
+
+    def _check_unary_operator(self, operator):
+        expr = "%s 1" % operator
+        parsed = self._parse(expr, "expr")
+        self.assertTrue(isinstance(parsed, ast.UnaryExpression), "Unary operator '%s' failed to parse as a unary expression" % operator)
+        self.assertEqual(parsed.operator, operator, "Unary operator '%s' failed to parse; instead, it is parsing as '%s'" % (operator, parsed.operator))
+        self.assertEqual(parsed.operand, self.one, "Unary operator '%s' did not correctly provide the value for its argument" % operator)
+
+    def test_binary_expr(self):
+        for operator in lex.binary_operators.keys():
+            self._check_binary_operator(operator)
+
+    def test_unary_expr(self):
+        for operator in list(lex.unary_operators.keys()) + ["not"]:
+            self._check_unary_operator(operator)
+
+    def test_dim(self):
+        dim = self._parse("dim name", "expr")
+
+        self.assertTrue(isinstance(dim, ast.DimExpression))
+        self.assertEqual(dim.name, "name")
+
+        dim = self._parse("dim 2 name", "expr")
+
+        self.assertTrue(isinstance(dim, ast.DimExpression))
+        self.assertEqual(dim.name, "name")
+        self.assertEqual(dim.dimension, 2)
