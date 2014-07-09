@@ -120,11 +120,9 @@ class ConstExpression(Expression):
         self.value = value
 
     def __eq__(self, other):
-        return all((
-            isinstance(other, ConstExpression),
-            self.type == other.type,
-            self.value == other.value
-        ))
+        return isinstance(other, ConstExpression) and\
+               self.type == other.type and\
+               self.value == other.value
 
     def __repr__(self):
         return "Constant of type %s and of value '%s'" % (self.type, self.value)
