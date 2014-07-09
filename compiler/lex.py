@@ -77,7 +77,7 @@ def explode(string):
     string.append('\0')
     return string
 
-operators = {
+binary_operators = {
     # Integer operators
     '+': 'PLUS',
     '-': 'MINUS',
@@ -105,17 +105,35 @@ operators = {
     '&&': 'BAND',
     '||': 'BOR',
 
-    # Pattern operators
-    '|': 'PIPE',
-    '->': 'ARROW',
-
-    # Assignment and dereference
-    '!': 'BANG',
+    # Assignment
     ':=': 'ASSIGN',
 
     # Semicolon
     ';': 'SEMICOLON'
 }
+
+unary_operators = {
+    # Assignment and dereference
+    '!': 'BANG',
+
+    # Sign operators
+    '+': 'PLUS',
+    '-': 'MINUS',
+    '+.': 'FPLUS',
+    '-.': 'FMINUS'
+}
+
+pattern_operators = {
+    # Pattern operators
+    '|': 'PIPE',
+    '->': 'ARROW',
+}
+
+operators = dict(
+    list(binary_operators.items()) +
+    list(unary_operators.items()) +
+    list(pattern_operators.items())
+)
 
 delimiters = {
     '(': 'LPAREN',
