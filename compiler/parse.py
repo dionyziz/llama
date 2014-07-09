@@ -515,13 +515,16 @@ class Parser:
 
     def p_error(self, p):
         """Signal syntax error"""
-        self.logger.error(
-            "%d:%d: error: Syntax error on token %s\t%s",
-            p.lineno,
-            p.lexpos,
-            p.type,
-            p.value
-        )
+        if p is not None:
+            self.logger.error(
+                "%d:%d: error: Syntax error on token %s\t%s",
+                p.lineno,
+                p.lexpos,
+                p.type,
+                p.value
+            )
+        else:
+            self.logger.error("Syntax error in unknown token")
 
     def _expand_seq(self, p, last_idx=1, list_idx=3):
         if len(p) == last_idx + 1:
