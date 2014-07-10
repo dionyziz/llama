@@ -29,7 +29,6 @@ reserved_words = frozenset('''
     downto
     else
     end
-    false
     float
     for
     if
@@ -46,7 +45,6 @@ reserved_words = frozenset('''
     ref
     then
     to
-    true
     type
     unit
     while
@@ -54,7 +52,13 @@ reserved_words = frozenset('''
     '''.split()
 )
 
+booleans = {
+    'true': 'TRUE',
+    'false': 'FALSE'
+}
+
 reserved_tokens = {s: s.upper() for s in reserved_words}
+reserved_tokens.update(booleans)
 
 escape_sequences = {
     r"\n": "\n",
@@ -78,7 +82,7 @@ def explode(string):
     string.append('\0')
     return string
 
-operators = {
+binary_operators = {
     # Integer operators
     '+': 'PLUS',
     '-': 'MINUS',
@@ -106,17 +110,35 @@ operators = {
     '&&': 'BAND',
     '||': 'BOR',
 
-    # Pattern operators
-    '|': 'PIPE',
-    '->': 'ARROW',
-
-    # Assignment and dereference
-    '!': 'BANG',
+    # Assignment
     ':=': 'ASSIGN',
 
     # Semicolon
     ';': 'SEMICOLON'
 }
+
+unary_operators = {
+    # Assignment and dereference
+    '!': 'BANG',
+
+    # Sign operators
+    '+': 'PLUS',
+    '-': 'MINUS',
+    '+.': 'FPLUS',
+    '-.': 'FMINUS'
+}
+
+pattern_operators = {
+    # Pattern operators
+    '|': 'PIPE',
+    '->': 'ARROW',
+}
+
+operators = dict(
+    list(binary_operators.items()) +
+    list(unary_operators.items()) +
+    list(pattern_operators.items())
+)
 
 delimiters = {
     '(': 'LPAREN',
@@ -353,10 +375,17 @@ class _LexerBuilder:
     # Constructor identifiers
     t_CONID     = r'[A-Z][A-Za-z0-9_]*'
 
-    # Generic identifiers and reserved words
+    # Generic identifiers, reserved words, boolean constants
     def t_GENID(self, tok):
         r'[a-z][A-Za-z0-9_]*'
         tok.type = reserved_tokens.get(tok.value, tok.type)
+
+        booleans = {
+            'TRUE': True,
+            'FALSE': False
+        }
+        tok.value = booleans.get(tok.type, tok.value)
+
         return tok
 
     # Floating-point constants

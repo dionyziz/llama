@@ -113,7 +113,7 @@ class Parser:
         """type : LPAREN type RPAREN
                 | builtin_type
                 | derived_type"""
-        if len(p) == 3:
+        if len(p) == 4:
             p[0] = p[2]
         else:
             p[0] = p[1]
@@ -514,13 +514,16 @@ class Parser:
 
     def p_error(self, p):
         """Signal syntax error"""
-        self.logger.error(
-            "%d:%d: error: Syntax error on token %s (value: %s)",
-            p.lineno,
-            p.lexpos,
-            p.type,
-            p.value
-        )
+        if p is not None:
+            self.logger.error(
+                "%d:%d: error: Syntax error on token %s\t%s",
+                p.lineno,
+                p.lexpos,
+                p.type,
+                p.value
+            )
+        else:
+            self.logger.error("Syntax error in unknown token")
 
     def _expand_seq(self, p, last_idx=1, list_idx=3):
         if len(p) == last_idx + 1:
@@ -545,9 +548,12 @@ class Parser:
 
     def __init__(self, logger, verbose=False, **kwargs):
         """Create a parser for the entire Llama grammar."""
-        self.logger = logger
         self.verbose = verbose
-        self.parser = yacc.yacc(module=self, **kwargs)
+        self.logger = logger
+        if verbose:
+            self.parser = yacc.yacc(module=self, **kwargs)
+        else:
+            self.parser = yacc.yacc(module=self, errorlog=yacc.NullLogger(), **kwargs)
         if verbose:
             self.logger.info(
                 "%s: %s: %s",

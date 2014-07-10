@@ -113,6 +113,14 @@ class Param(DataNode):
         self.name = name
         self.type = type
 
+    def __repr__(self):
+        return 'ASTNode:Param with name "%s" and type: %s' % (self.name, self.type)
+
+
+class Expression(DataNode):
+    def __init__(self):
+        raise NotImplementedError
+
 
 class BinaryExpression(Expression):
     def __init__(self, leftOperand, operator, rightOperand):
@@ -144,6 +152,8 @@ class ConstExpression(Expression):
         self.type = type
         self.value = value
 
+    def __repr__(self):
+        return "ASTNode:ConstExpression of type %s and of value '%s'" % (self.type, self.value)
 
 class ConidExpression(Expression):
     def __init__(self, name):
@@ -227,12 +237,13 @@ class WhileExpression(Expression):
         self.condition = condition
         self.body = body
 
-
 class VariableDef(Def):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
 
+    def __repr__(self):
+        return "ASTNode:VariableDef of name '%s' and type '%s'" % (self.name, self.type)
 
 class ArrayVariableDef(VariableDef):
     def __init__(self, name, dimensions, type=None):
