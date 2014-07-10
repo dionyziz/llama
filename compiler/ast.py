@@ -64,6 +64,10 @@ class NameNode(Node):
 
 
 class ListNode(Node):
+    """
+    A node carrying a list of ast nodes.
+    Supports iterating through the nodes list.
+    """
     list = None
 
     def __iter__(self):
@@ -83,12 +87,12 @@ class Builtin(Type):
 # == AST REPRESENTATION OF PROGRAM ELEMENTS ==
 
 
-class Program(DataNode):
+class Program(ListNode):
     def __init__(self, list):
         self.list = list
 
 
-class LetDef(Node):
+class LetDef(ListNode):
     def __init__(self, list, isRec=False):
         self.list = list
         self.isRec = isRec
@@ -121,13 +125,13 @@ class UnaryExpression(Expression):
         self.operand = operand
 
 
-class ConstructorCallExpression(Expression):
+class ConstructorCallExpression(Expression, ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
 
 
-class ArrayExpression(Expression):
+class ArrayExpression(Expression, ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
@@ -169,7 +173,7 @@ class ForExpression(Expression):
         self.isDown = isDown
 
 
-class FunctionCallExpression(Expression):
+class FunctionCallExpression(Expression, ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
@@ -188,7 +192,7 @@ class IfExpression(Expression):
         self.elseExpr = elseExpr
 
 
-class MatchExpression(Expression):
+class MatchExpression(Expression, ListNode):
     def __init__(self, expr, list):
         self.expr = expr
         self.list = list
@@ -200,7 +204,7 @@ class Clause(Node):
         self.expr = expr
 
 
-class Pattern(Node):
+class Pattern(ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
