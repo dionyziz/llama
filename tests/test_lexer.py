@@ -38,6 +38,11 @@ class TestLexer(unittest.TestCase):
         list(lexer)  # Force lexing
         mock.success.shouldnt.be.ok
 
+    def test_init(self):
+        mock = error.LoggerMock()
+        lexer = lex.Lexer(logger=mock)
+        mock.should.be.equal(lexer.logger)
+
     def test_empty(self):
         l, mock = self._lex_data("")
         l.should.be.empty
