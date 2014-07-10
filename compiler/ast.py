@@ -29,6 +29,7 @@ class Node:
         return type(self) == type(other) and all(
             getattr(self, attr) == getattr(other, attr)
             for attr in self.__dict__.keys()
+            if attr not in ('lineno', 'lexpos')
         )
 
     def copy_pos(self, node):
@@ -55,14 +56,9 @@ class Def(Node):
 class NameNode(Node):
     """
     A node with a user-defined name.
-    Supports equality testing based on name equality;
-    provides basic hashing functionality.
+    Provides basic hashing functionality.
     """
     name = None
-
-    def __eq__(self, other):
-        """Equality testing based on name equality."""
-        return isinstance(other, NameNode) and self.name == other.name
 
     def __hash__(self):
         """Simple hash. Override as needed."""
