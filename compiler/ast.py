@@ -153,7 +153,7 @@ class ConstExpression(Expression):
         self.value = value
 
     def __repr__(self):
-        return "Constant of type %s and of value '%s'" % (self.type, self.value)
+        return "ASTNode:ConstExpression of type %s and of value '%s'" % (self.type, self.value)
 
 class ConidExpression(Expression):
     def __init__(self, name):
@@ -243,7 +243,7 @@ class VariableDef(Def):
         self.type = type
 
     def __repr__(self):
-        return "Variable def of name '%s' and type '%s'" % (self.name, self.type)
+        return "ASTNode:VariableDef of name '%s' and type '%s'" % (self.name, self.type)
 
 class ArrayVariableDef(VariableDef):
     def __init__(self, name, dimensions, type=None):
