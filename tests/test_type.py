@@ -69,7 +69,7 @@ class TestType(unittest.TestCase):
         (type.Table.is_array(ast.Array(ast.User('foo')))).should.be.true
 
         (type.Table.is_array(ast.User('foo'))).shouldnt.be.true
-        for builtin_type in ast.builtin_map.values():
+        for builtin_type in ast.builtin_types_map.values():
             (type.Table.is_array(builtin_type)).shouldnt.be.true
 
     def _assert_validate_success(self, t):
@@ -85,7 +85,7 @@ class TestType(unittest.TestCase):
         mock.success.shouldnt.be.ok
 
     def test_validate(self):
-        for builtin_type in ast.builtin_map.values():
+        for builtin_type in ast.builtin_types_map.values():
             self._assert_validate_success(builtin_type)
 
         t = ast.User('foo')

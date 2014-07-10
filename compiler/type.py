@@ -35,7 +35,7 @@ class Table:
         #               key:  the Key
         #               list: list of Constructors which the type defines
         self.knownTypes = {}
-        for t in ast.builtin_map.values():
+        for t in ast.builtin_types_map.values():
             tt = t()
             self.knownTypes[tt] = self._TypeEntry(key=tt, list=None)
 

@@ -7,7 +7,11 @@ from compiler import ast, error
 
 class TestAST(unittest.TestCase):
 
-    builtin_builders = ast.builtin_map.values()
+    builtin_builders = ast.builtin_types_map.values()
+
+    def test_eq(self):
+        ast.Constructor("foo", []).should.be.equal(ast.Constructor("foo", []))
+        ast.Constructor("foo", []).shouldnt.be.equal(ast.Constructor("bar", []))
 
     def test_builtin_type_equality(self):
         for t in self.builtin_builders:

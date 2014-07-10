@@ -38,14 +38,19 @@ class TestLexer(unittest.TestCase):
         list(lexer)  # Force lexing
         mock.success.shouldnt.be.ok
 
+    def test_init(self):
+        mock = error.LoggerMock()
+        lexer = lex.Lexer(logger=mock)
+        mock.should.be.equal(lexer.logger)
+
     def test_empty(self):
         l, mock = self._lex_data("")
         l.should.be.empty
         mock.success.should.be.ok
 
     def test_keywords(self):
-        for input_program, token in lex.reserved_tokens.items():
-            self._assert_individual_token(input_program, token, input_program)
+        for input_program in lex.reserved_words:
+            self._assert_individual_token(input_program, input_program.upper(), input_program)
 
     def test_genid(self):
         self._assert_individual_token("koko", "GENID", "koko")
@@ -62,6 +67,9 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failure("@koko")
         self._assert_lex_failure("\\koko")
         self._assert_lex_failure("\\x42")
+
+        self._assert_individual_token("true", "TRUE", True)
+        self._assert_individual_token("false", "FALSE", False)
 
     def test_conid(self):
         self._assert_individual_token("Koko", "CONID", "Koko")

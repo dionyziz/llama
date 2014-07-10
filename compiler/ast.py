@@ -21,6 +21,17 @@ class Node:
     def __init__(self):
         raise NotImplementedError
 
+    def __eq__(self, other):
+        """
+        Two nodes are equal if they are of the same type
+        and have all attributes equal. Override as needed.
+        """
+        return type(self) == type(other) and all(
+            getattr(self, attr) == getattr(other, attr)
+            for attr in self.__dict__.keys()
+            if attr not in ('lineno', 'lexpos')
+        )
+
     def copy_pos(self, node):
         """Copy line info from another AST node."""
         self.lineno = node.lineno
@@ -45,18 +56,9 @@ class Def(Node):
 class NameNode(Node):
     """
     A node with a user-defined name.
-    Supports equality testing based on name equality;
-    provides basic hashing functionality.
+    Provides basic hashing functionality.
     """
     name = None
-
-    def __eq__(self, other):
-        """Simple and strict type equality. Override as needed."""
-        return all((
-            self.name is not None,
-            other.name is not None,
-            self.name == other.name
-        ))
 
     def __hash__(self):
         """Simple hash. Override as needed."""
@@ -64,18 +66,22 @@ class NameNode(Node):
 
 
 class ListNode(Node):
+    """
+    A node carrying a list of ast nodes.
+    Supports iterating through the nodes list.
+    """
     list = None
 
     def __iter__(self):
         return iter(self.list)
 
 
-class Type(NameNode):
-    """An AST node representing a type."""
+class Type(Node):
+    """A node representing a type."""
     pass
 
 
-class Builtin(Type):
+class Builtin(Type, NameNode):
     """One of the builtin types."""
     def __init__(self):
         self.name = self.__class__.__name__.lower()
@@ -83,12 +89,12 @@ class Builtin(Type):
 # == AST REPRESENTATION OF PROGRAM ELEMENTS ==
 
 
-class Program(DataNode):
+class Program(ListNode):
     def __init__(self, list):
         self.list = list
 
 
-class LetDef(Node):
+class LetDef(ListNode):
     def __init__(self, list, isRec=False):
         self.list = list
         self.isRec = isRec
@@ -107,6 +113,14 @@ class Param(DataNode):
         self.name = name
         self.type = type
 
+    def __repr__(self):
+        return 'ASTNode:Param with name "%s" and type: %s' % (self.name, self.type)
+
+
+class Expression(DataNode):
+    def __init__(self):
+        raise NotImplementedError
+
 
 class BinaryExpression(Expression):
     def __init__(self, leftOperand, operator, rightOperand):
@@ -121,13 +135,13 @@ class UnaryExpression(Expression):
         self.operand = operand
 
 
-class ConstructorCallExpression(Expression):
+class ConstructorCallExpression(Expression, ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
 
 
-class ArrayExpression(Expression):
+class ArrayExpression(Expression, ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
@@ -138,6 +152,8 @@ class ConstExpression(Expression):
         self.type = type
         self.value = value
 
+    def __repr__(self):
+        return "ASTNode:ConstExpression of type %s and of value '%s'" % (self.type, self.value)
 
 class ConidExpression(Expression):
     def __init__(self, name):
@@ -169,7 +185,7 @@ class ForExpression(Expression):
         self.isDown = isDown
 
 
-class FunctionCallExpression(Expression):
+class FunctionCallExpression(Expression, ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
@@ -188,7 +204,7 @@ class IfExpression(Expression):
         self.elseExpr = elseExpr
 
 
-class MatchExpression(Expression):
+class MatchExpression(Expression, ListNode):
     def __init__(self, expr, list):
         self.expr = expr
         self.list = list
@@ -200,7 +216,7 @@ class Clause(Node):
         self.expr = expr
 
 
-class Pattern(Node):
+class Pattern(ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
@@ -221,12 +237,13 @@ class WhileExpression(Expression):
         self.condition = condition
         self.body = body
 
-
 class VariableDef(Def):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
 
+    def __repr__(self):
+        return "ASTNode:VariableDef of name '%s' and type '%s'" % (self.name, self.type)
 
 class ArrayVariableDef(VariableDef):
     def __init__(self, name, dimensions, type=None):
@@ -274,7 +291,7 @@ class Unit(Builtin):
     pass
 
 
-builtin_map = {
+builtin_types_map = {
     "bool": Bool,
     "char": Char,
     "float": Float,
@@ -283,43 +300,22 @@ builtin_map = {
 }
 
 
-class User(Type):
+class User(Type, NameNode):
     """A user-defined type."""
 
     def __init__(self, name):
         self.name = name
-
-    def __hash__(self):
-        return hash('user' + self.name)
 
 
 class Ref(Type):
     def __init__(self, type):
         self.type = type
 
-    def __eq__(self, other):
-        return isinstance(other, Ref) and self.type == other.type
-
-    def __hash__(self):
-        # Merkle-Damgard!
-        return hash('ref' + hash(self.type))
-
 
 class Array(Type):
     def __init__(self, type, dimensions=1):
         self.type = type
         self.dimensions = dimensions
-
-    def __eq__(self, other):
-        return all((
-            isinstance(other, Array),
-            self.dimensions == other.dimensions,
-            self.type == other.type
-        ))
-
-    def __hash__(self):
-        # Merkle-Damgard!
-        return hash('array' + str(self.dimensions) + hash(self.type))
 
 
 def String():
@@ -331,14 +327,3 @@ class Function(Type):
     def __init__(self, fromType, toType):
         self.fromType = fromType
         self.toType = toType
-
-    def __eq__(self, other):
-        return all((
-            isinstance(other, Function),
-            self.fromType == other.fromType,
-            self.toType == other.toType
-        ))
-
-    def __hash__(self):
-        # Merkle-Damgard!
-        return hash('function' + hash(self.fromType) + hash(self.toType))

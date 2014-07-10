@@ -138,7 +138,7 @@ def main():
         verbose=OPTS['lexer_verbose'])
 
     # Make a parser. By default, the parser is optimized
-    # (i.e. caches LALR tables accross invocations). A 'paser.out' file
+    # (i.e. caches LALR tables accross invocations). A 'parser.out' file
     # is created every time the tables are regenerated unless 'debug'
     # is set to 0.
     parser = parse.Parser(
