@@ -17,7 +17,7 @@
  *     newline ::= "\n"
  *
  *  where "anychar" is any character but "\n".
-  
+ *
  *  URL: http://courses.softlab.ntua.gr/compilers/
  *
  *  Nikolaos S. Papaspyrou (nickie@softlab.ntua.gr)
@@ -278,16 +278,16 @@ let find_interval mn tot lim =
    -- Successive intervals must be joined before checking that the
    -- duration is right.  These variables keep track of what we're
    -- joining.
-   
+
    let mutable joining
    and mutable d_join
    and mutable hf_join
    and mutable ht_join
    and mutable count_max_join
    and mutable count_min_join in
-   
+
    -- Check if the interval we're joining is good
-   
+
    let check_joined u =
       let result =
          if !joining then
@@ -306,13 +306,13 @@ let find_interval mn tot lim =
             begin
                print_interval (Interval !d_join !hf_join !ht_join);
                print_string ": available/not available = ";
-               print_int (tot - !count_max_join); 
+               print_int (tot - !count_max_join);
                print_string "/";
                print_int !count_max_join;
                if !count_min_join <> !count_max_join then
                begin
                   print_string " with best ";
-                  print_int (tot - !count_min_join); 
+                  print_int (tot - !count_min_join);
                   print_string "/";
                   print_int !count_min_join
                end;
@@ -348,7 +348,7 @@ let find_interval mn tot lim =
       result in
 
    -- Extend the currently joint interval
-   
+
    let extend_joining ht count =
       if debug then
       begin
@@ -372,7 +372,7 @@ let find_interval mn tot lim =
       0 in
 
    -- Walk the tree and look for solutions
-   
+
    let rec walk t =
       match t with
          Empty ->
@@ -437,10 +437,10 @@ let init_parsing =
 let parseInterval line =
 
    -- Error handling
-   
+
    let mutable errflag in
    errflag := false;
-   
+
    let error msg =
       print_string "Parse error: ";
       print_string msg;
@@ -452,12 +452,12 @@ let parseInterval line =
       errflag := true in
 
    -- Function that skips spaces
-   
+
    let skipSpaces i =
       while !line[!i] = ' ' do incr i done in
-      
+
    -- Function that parses a single day's name
-   
+
    let parseDay d i =
       let check d =
          let mutable str [10] in
@@ -477,7 +477,7 @@ let parseInterval line =
       else error "invalid day" in
 
    -- Function that parses a two digit number
-   
+
    let parseTwoDigits i n =
       let isdigit c = c >= '0' && c <= '9' in
       let digit c = int_of_char c - int_of_char '0' in
@@ -490,7 +490,7 @@ let parseInterval line =
       i := !i+2 in
 
    -- Function that parses an hour
-   
+
    let parseHour i l h =
       if l - !i < 5 then
          error "invalid hour"
@@ -510,7 +510,7 @@ let parseInterval line =
       end in
 
    -- Do the parsing
-   
+
    let mutable d
    and mutable hf
    and mutable ht
@@ -596,7 +596,7 @@ let main =
    begin
       if debug then
       begin
-         print_string "---------------------------\n";   
+         print_string "---------------------------\n";
          print_tree ()
       end;
       print_string "---------------------------\n";

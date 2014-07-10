@@ -1,4 +1,4 @@
-let bsort x = 
+let bsort x =
    let swap x y =
       let t = !x in x := !y; y := t in
    let mutable changed in
@@ -7,15 +7,15 @@ let bsort x =
       changed := false;
       for i = 0 to dim x - 2 do
          if !x[i] > !x[i+1] then
-         begin	
+         begin
             swap x[i] x[i+1];
             changed := true
          end
       done
    done
 
-let main = 
-   let print_array msg x = 
+let main =
+   let print_array msg x =
       print_string msg;
       for i = 0 to dim x - 1 do
          if i > 0 then print_string ", ";

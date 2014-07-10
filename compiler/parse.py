@@ -6,7 +6,7 @@
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
 # Authors: Dimitris Koutsoukos <dim.kou.shmmy@gmail.com>
-#          Nick Korasidis <Renelvon@gmail.com>
+#          Nick Korasidis <renelvon@gmail.com>
 #          Dionysis Zindros <dionyziz@gmail.com>
 # ----------------------------------------------------------------------
 """
@@ -17,13 +17,14 @@ from compiler import ast, lex, type
 
 
 def _track(p):
-    if isinstance(p[1], (ast.Node, type.Type)):
+    if isinstance(p[1], ast.Node):
         if p[0] is not p[1]:
             p[0].copy_pos(p[1])
     else:
         node = p[0]
         node.lineno = p.lineno(1)
         node.lexpos = p.lexpos(1)
+
 
 class Parser:
     """A parser for the Llama language"""
@@ -124,7 +125,7 @@ class Parser:
                         | FLOAT
                         | INT
                         | UNIT"""
-        p[0] = type.builtin_map[p[1]]()
+        p[0] = ast.builtin_types_map[p[1]]()
         _track(p)
 
     def p_derived_type(self, p):
@@ -139,9 +140,9 @@ class Parser:
         """array_type : ARRAY LBRACKET star_comma_seq RBRACKET OF type
                       | ARRAY OF type"""
         if len(p) == 7:
-            p[0] = type.Array(p[6], p[3])
+            p[0] = ast.Array(p[6], p[3])
         else:
-            p[0] = type.Array(p[3])
+            p[0] = ast.Array(p[3])
         _track(p)
 
     def p_star_comma_seq(self, p):
@@ -155,17 +156,17 @@ class Parser:
 
     def p_function_type(self, p):
         """function_type : type ARROW type"""
-        p[0] = type.Function(p[1], p[3])
+        p[0] = ast.Function(p[1], p[3])
         _track(p)
 
     def p_ref_type(self, p):
         """ref_type : type REF"""
-        p[0] = type.Ref(p[1])
+        p[0] = ast.Ref(p[1])
         _track(p)
 
     def p_user_type(self, p):
         """user_type : GENID"""
-        p[0] = type.User(p[1])
+        p[0] = ast.User(p[1])
         _track(p)
 
     def p_empty(self, p):
@@ -261,16 +262,12 @@ class Parser:
     def p_bconst_simple_expr(self, p):
         """bconst_simple_expr : TRUE
                               | FALSE"""
-        value = {
-            'true': True,
-            'false': False
-        }[p[1]]
-        p[0] = ast.ConstExpression(type.Bool(), value)
+        p[0] = ast.ConstExpression(ast.Bool(), p[1])
         _track(p)
 
     def p_cconst_simple_expr(self, p):
         """cconst_simple_expr : CCONST"""
-        p[0] = ast.ConstExpression(type.Char(), p[1])
+        p[0] = ast.ConstExpression(ast.Char(), p[1])
         _track(p)
 
     def p_conid_simple_expr(self, p):
@@ -280,12 +277,12 @@ class Parser:
 
     def p_iconst_simple_expr(self, p):
         """iconst_simple_expr : ICONST"""
-        p[0] = ast.ConstExpression(type.Int(), p[1])
+        p[0] = ast.ConstExpression(ast.Int(), p[1])
         _track(p)
 
     def p_fconst_simple_expr(self, p):
         """fconst_simple_expr : FCONST"""
-        p[0] = ast.ConstExpression(type.Float(), p[1])
+        p[0] = ast.ConstExpression(ast.Float(), p[1])
         _track(p)
 
     def p_genid_simple_expr(self, p):
@@ -295,12 +292,12 @@ class Parser:
 
     def p_sconst_simple_expr(self, p):
         """sconst_simple_expr : SCONST"""
-        p[0] = ast.ConstExpression(type.String(), p[1])
+        p[0] = ast.ConstExpression(ast.String(), p[1])
         _track(p)
 
     def p_uconst_simple_expr(self, p):
         """uconst_simple_expr : LPAREN RPAREN"""
-        p[0] = ast.ConstExpression(type.Unit())
+        p[0] = ast.ConstExpression(ast.Unit())
         _track(p)
 
     def p_delete_expr(self, p):
@@ -394,30 +391,26 @@ class Parser:
     def p_bconst_simple_pattern(self, p):
         """bconst_simple_pattern : TRUE
                                  | FALSE"""
-        value = {
-            "true": True,
-            "false": False
-        }[p[1]]
-        p[0] = ast.ConstExpression(type.Bool(), value)
+        p[0] = ast.ConstExpression(ast.Bool(), p[1])
         _track(p)
 
     def p_cconst_simple_pattern(self, p):
         """cconst_simple_pattern : CCONST"""
-        p[0] = ast.ConstExpression(type.Char(), p[1])
+        p[0] = ast.ConstExpression(ast.Char(), p[1])
         _track(p)
 
     def p_fconst_simple_pattern(self, p):
         """fconst_simple_pattern : FPLUS FCONST
                                  | FCONST"""
         if len(p) == 3:
-            p[0] = ast.ConstExpression(type.Float(), p[2])
+            p[0] = ast.ConstExpression(ast.Float(), p[2])
         else:
-            p[0] = ast.ConstExpression(type.Float(), p[1])
+            p[0] = ast.ConstExpression(ast.Float(), p[1])
         _track(p)
 
     def p_mfconst_simple_pattern(self, p):
         """mfconst_simple_pattern : FMINUS FCONST"""
-        p[0] = ast.ConstExpression(type.Float(), -p[2])
+        p[0] = ast.ConstExpression(ast.Float(), -p[2])
         _track(p)
 
     def p_genid_simple_pattern(self, p):
@@ -429,14 +422,14 @@ class Parser:
         """iconst_simple_pattern : PLUS ICONST
                                  | ICONST"""
         if len(p) == 3:
-            p[0] = ast.ConstExpression(type.Int(), p[2])
+            p[0] = ast.ConstExpression(ast.Int(), p[2])
         else:
-            p[0] = ast.ConstExpression(type.Int(), p[1])
+            p[0] = ast.ConstExpression(ast.Int(), p[1])
         _track(p)
 
     def p_miconst_simple_pattern(self, p):
         """miconst_simple_pattern : MINUS ICONST"""
-        p[0] = ast.ConstExpression(type.Int(), -p[2])
+        p[0] = ast.ConstExpression(ast.Int(), -p[2])
         _track(p)
 
     def p_new_expr(self, p):
@@ -459,7 +452,9 @@ class Parser:
         """array_variable_def : MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type
                               | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET"""
         if len(p) == 8:
-            p[0] = ast.ArrayVariableDef(p[2], p[4], p[7])
+            arrtype = ast.Array(p[7], len(p[4]))
+            arrtype.copy_pos(p[7])
+            p[0] = ast.ArrayVariableDef(p[2], p[4], arrtype)
         else:
             p[0] = ast.ArrayVariableDef(p[2], p[4])
         _track(p)
@@ -473,7 +468,9 @@ class Parser:
         """simple_variable_def : MUTABLE GENID
                                | MUTABLE GENID COLON type"""
         if len(p) == 5:
-            p[0] = ast.VariableDef(p[2], p[4])
+            vartype = ast.Ref(p[4])
+            vartype.copy_pos(p[4])
+            p[0] = ast.VariableDef(p[2], vartype)
         else:
             p[0] = ast.VariableDef(p[2])
         _track(p)
@@ -490,7 +487,9 @@ class Parser:
         self._expand_seq(p)
 
     def p_tdef(self, p):
-        """tdef : GENID EQ constr_pipe_seq"""
+        """tdef : user_type EQ constr_pipe_seq
+                | builtin_type EQ constr_pipe_seq"""
+        # Flagging redefinition of builtin_types delegated to type module.
         p[0] = ast.TDef(p[1], p[3])
         _track(p)
 
@@ -551,11 +550,18 @@ class Parser:
         """Create a parser for the entire Llama grammar."""
         self.verbose = verbose
         self.logger = logger
-        self.typeTable = type.Table(logger=self.logger)
         if verbose:
             self.parser = yacc.yacc(module=self, **kwargs)
         else:
             self.parser = yacc.yacc(module=self, errorlog=yacc.NullLogger(), **kwargs)
+        if verbose:
+            self.logger.info(
+                "%s: %s: %s",
+                __name__,
+                self.__class__.__name__,
+                'parser ready'
+            )
+        self.typeTable = type.Table(logger=self.logger)
 
     def parse(self, data, lexer):
         """

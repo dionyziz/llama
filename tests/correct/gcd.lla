@@ -4,9 +4,9 @@
 
 let gcd a b k =
    while !a > 0 && !b > 0 do
-      if !a > !b then 
+      if !a > !b then
          a := !a mod !b
-      else 
+      else
          b := !b mod !a
    done;
    k := !a+!b

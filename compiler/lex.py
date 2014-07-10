@@ -29,7 +29,6 @@ reserved_words = frozenset('''
     downto
     else
     end
-    false
     float
     for
     if
@@ -46,7 +45,6 @@ reserved_words = frozenset('''
     ref
     then
     to
-    true
     type
     unit
     while
@@ -54,7 +52,13 @@ reserved_words = frozenset('''
     '''.split()
 )
 
+booleans = {
+    'true': 'TRUE',
+    'false': 'FALSE'
+}
+
 reserved_tokens = {s: s.upper() for s in reserved_words}
+reserved_tokens.update(booleans)
 
 escape_sequences = {
     r"\n": "\n",
@@ -70,6 +74,7 @@ escape_sequences = {
 def unescape(string):
     """Return unescaped string."""
     return bytes(string, 'ascii').decode('unicode_escape')
+
 
 def explode(string):
     """Unescape, null-terminate and listify string."""
@@ -205,7 +210,12 @@ class _LexerBuilder:
         self.logger = logger
         self.verbose = verbose
         if self.verbose:
-            self.logger.info(__name__ + ': _LexerBuilder: wrapper initialized')
+            self.logger.info(
+                "%s: %s: %s",
+                __name__,
+                self.__class__.__name__,
+                'wrapper initialized'
+            )
 
     # == REQUIRED METHODS ==
 
@@ -218,7 +228,12 @@ class _LexerBuilder:
         """
         self.lexer = lex.lex(module=self, **kwargs)
         if self.verbose:
-            self.logger.info(__name__ + ': _LexerBuilder: lexer ready ')
+            self.logger.info(
+                "%s: %s: %s",
+                __name__,
+                self.__class__.__name__,
+                'lexer ready'
+            )
 
     # A wrapper around the function of the inner lexer
     def token(self):
@@ -360,10 +375,17 @@ class _LexerBuilder:
     # Constructor identifiers
     t_CONID     = r'[A-Z][A-Za-z0-9_]*'
 
-    # Generic identifiers and reserved words
+    # Generic identifiers, reserved words, boolean constants
     def t_GENID(self, tok):
         r'[a-z][A-Za-z0-9_]*'
         tok.type = reserved_tokens.get(tok.value, tok.type)
+
+        booleans = {
+            'TRUE': True,
+            'FALSE': False
+        }
+        tok.value = booleans.get(tok.type, tok.value)
+
         return tok
 
     # Floating-point constants
@@ -488,7 +510,7 @@ class Lexer:
     _lexer = None
 
     # Logger used for logging events. Possibly shared with other modules.
-    _logger = None
+    logger = None
 
     # == REQUIRED METHODS (see _LexerBuilder for details) ==
 
@@ -498,7 +520,7 @@ class Lexer:
 
     def __init__(self, logger, verbose=False, **kwargs):
         """Create a new lexer."""
-        self._logger = logger
+        self.logger = logger
         self._lexer = _LexerBuilder(logger=logger, verbose=verbose)
         self._lexer.build(**kwargs)
 
@@ -507,7 +529,12 @@ class Lexer:
         self.input = self._lexer.input
         self.skip  = self._lexer.skip
         if verbose:
-            self._logger.info(__name__ + ': Lexer: lexer ready')
+            self.logger.info(
+                "%s: %s: %s",
+                __name__,
+                self.__class__.__name__,
+                'lexer ready'
+            )
 
     # == EXPORT POSITION ATTRIBUTES ==
 

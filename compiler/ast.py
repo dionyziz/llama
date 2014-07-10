@@ -1,14 +1,18 @@
+"""
 # ----------------------------------------------------------------------
 # ast.py
 #
 # AST constructors for the Llama language
 # http://courses.softlab.ntua.gr/compilers/2012a/llama2012.pdf
 #
-# Author: Dionysis Zindros <dionyziz@gmail.com>
-#         Nick Korasidis <renelvon@gmail.com>
+# Authors: Dionysis Zindros <dionyziz@gmail.com>
+#          Nick Korasidis <renelvon@gmail.com>
 #
 # ----------------------------------------------------------------------
-from compiler import type
+"""
+
+# == INTERFACES OF AST NODES ==
+
 
 class Node:
     lineno = None
@@ -17,42 +21,82 @@ class Node:
     def __init__(self):
         raise NotImplementedError
 
+    def __eq__(self, other):
+        """
+        Two nodes are equal if they are of the same type
+        and have all attributes equal. Override as needed.
+        """
+        return type(self) == type(other) and all(
+            getattr(self, attr) == getattr(other, attr)
+            for attr in self.__dict__.keys()
+            if attr not in ('lineno', 'lexpos')
+        )
+
     def copy_pos(self, node):
         """Copy line info from another AST node."""
         self.lineno = node.lineno
         self.lexpos = node.lexpos
 
-class ListNode(Node):
-    list = None
 
-    def __init__(self):
-        raise NotImplementedError
+class DataNode(Node):
+    """A node to which a definite type can and should be assigned."""
+    type = None
+
+
+class Expression(DataNode):
+    """An expression that can be evaluated."""
+    pass
+
+
+class Def(Node):
+    """Definition of a new name."""
+    pass
+
+
+class NameNode(Node):
+    """
+    A node with a user-defined name.
+    Provides basic hashing functionality.
+    """
+    name = None
+
+    def __hash__(self):
+        """Simple hash. Override as needed."""
+        return hash(self.name)
+
+
+class ListNode(Node):
+    """
+    A node carrying a list of ast nodes.
+    Supports iterating through the nodes list.
+    """
+    list = None
 
     def __iter__(self):
         return iter(self.list)
 
-class DataNode(Node):
-    def __init__(self):
-        raise NotImplementedError
 
-class Program(DataNode):
+class Type(Node):
+    """A node representing a type."""
+    pass
+
+
+class Builtin(Type, NameNode):
+    """One of the builtin types."""
+    def __init__(self):
+        self.name = self.__class__.__name__.lower()
+
+# == AST REPRESENTATION OF PROGRAM ELEMENTS ==
+
+
+class Program(ListNode):
     def __init__(self, list):
         self.list = list
 
-    def __eq__(self, other):
-        return isinstance(other, Program) and self.list == other.list
-
-class LetDef(Node):
+class LetDef(ListNode):
     def __init__(self, list, isRec=False):
         self.list = list
         self.isRec = isRec
-
-    def __eq__(self, other):
-        return all((
-            isinstance(other, LetDef),
-            self.list == other.list,
-            self.isRec == other.isRec
-        ))
 
 class Def(Node):
     def __init__(self):
@@ -65,26 +109,10 @@ class FunctionDef(Def):
         self.body = body
         self.type = type
 
-    def __eq__(self, other):
-        return all((
-            isinstance(other, FunctionDef),
-            self.name == other.name,
-            self.params == other.params,
-            self.body == other.body,
-            self.type == other.type
-        ))
-
 class Param(DataNode):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
-
-    def __eq__(self, other):
-        return all((
-            isinstance(other, Param),
-            self.name == other.name,
-            self.type == other.type,
-        ))
 
     def __repr__(self):
         return 'ASTNode:Param with name "%s" and type: %s' % (self.name, self.type)
@@ -99,30 +127,29 @@ class BinaryExpression(Expression):
         self.operator = operator
         self.rightOperand = rightOperand
 
+
 class UnaryExpression(Expression):
     def __init__(self, operator, operand):
         self.operator = operator
         self.operand = operand
 
-class ConstructorCallExpression(Expression):
+
+class ConstructorCallExpression(Expression, ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
 
-class ArrayExpression(Expression):
+
+class ArrayExpression(Expression, ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
+
 
 class ConstExpression(Expression):
     def __init__(self, type, value=None):
         self.type = type
         self.value = value
-
-    def __eq__(self, other):
-        return isinstance(other, ConstExpression) and\
-               self.type == other.type and\
-               self.value == other.value
 
     def __repr__(self):
         return "Constant of type %s and of value '%s'" % (self.type, self.value)
@@ -131,18 +158,22 @@ class ConidExpression(Expression):
     def __init__(self, name):
         self.name = name
 
+
 class GenidExpression(Expression):
     def __init__(self, name):
         self.name = name
+
 
 class DeleteExpression(Expression):
     def __init__(self, expr):
         self.expr = expr
 
+
 class DimExpression(Expression):
     def __init__(self, name, dimension=1):
         self.name = name
         self.dimension = dimension
+
 
 class ForExpression(Expression):
     def __init__(self, counter, startExpr, stopExpr, body, isDown=False):
@@ -152,15 +183,18 @@ class ForExpression(Expression):
         self.body = body
         self.isDown = isDown
 
-class FunctionCallExpression(Expression):
+
+class FunctionCallExpression(Expression, ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
+
 
 class LetInExpression(Expression):
     def __init__(self, letdef, expr):
         self.letdef = letdef
         self.expr = expr
+
 
 class IfExpression(Expression):
     def __init__(self, condition, thenExpr, elseExpr=None):
@@ -168,58 +202,54 @@ class IfExpression(Expression):
         self.thenExpr = thenExpr
         self.elseExpr = elseExpr
 
-class MatchExpression(Expression):
+
+class MatchExpression(Expression, ListNode):
     def __init__(self, expr, list):
         self.expr = expr
         self.list = list
+
 
 class Clause(Node):
     def __init__(self, pattern, expr):
         self.pattern = pattern
         self.expr = expr
 
-class Pattern(Node):
+
+class Pattern(ListNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
+
 
 class GenidPattern(Node):
     def __init__(self, name):
         self.name = name
 
+
 class NewExpression(Expression):
     def __init__(self, type):
         self.type = type
+
 
 class WhileExpression(Expression):
     def __init__(self, condition, body):
         self.condition = condition
         self.body = body
 
-    def __eq__(self, other):
-        return all((
-            isinstance(other, WhileExpression),
-            self.condition == other.condition,
-            self.body == other.body
-        ))
-
 class VariableDef(Def):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
 
-    def __eq__(self, other):
-        return all((
-            isinstance(other, VariableDef),
-            self.name == other.name,
-            self.type == other.type
-        ))
+    def __repr__(self):
+        return "Variable def of name '%s' and type '%s'" % (self.name, self.type)
 
 class ArrayVariableDef(VariableDef):
-    def __init__(self, name, dimensions, itemType=None):
+    def __init__(self, name, dimensions, type=None):
         self.name = name
         self.dimensions = dimensions
-        self.type = type.Array(itemType, dimensions)
+        self.type = type
+
 
     def __eq__(self, other):
         return all((
@@ -233,19 +263,74 @@ class TypeDefList(ListNode):
     def __init__(self, list):
         self.list = list
 
+
 class TDef(ListNode):
-    def __init__(self, name, list):
-        self.name = name
+    def __init__(self, type, list):
+        self.type = type
         self.list = list
 
-class Constructor(ListNode):
+
+class Constructor(NameNode, ListNode):
     def __init__(self, name, list=None):
         self.name = name
         self.list = list or []
 
-    def __eq__(self, other):
-        return all((
-            isinstance(other, Constructor),
-            self.name == other.name,
-            self.list == other.list
-        ))
+# == REPRESENTATION OF TYPES AS AST NODES ==
+
+
+class Bool(Builtin):
+    pass
+
+
+class Char(Builtin):
+    pass
+
+
+class Float(Builtin):
+    pass
+
+
+class Int(Builtin):
+    pass
+
+
+class Unit(Builtin):
+    pass
+
+
+builtin_types_map = {
+    "bool": Bool,
+    "char": Char,
+    "float": Float,
+    "int": Int,
+    "unit": Unit,
+}
+
+
+class User(Type, NameNode):
+    """A user-defined type."""
+
+    def __init__(self, name):
+        self.name = name
+
+
+class Ref(Type):
+    def __init__(self, type):
+        self.type = type
+
+
+class Array(Type):
+    def __init__(self, type, dimensions=1):
+        self.type = type
+        self.dimensions = dimensions
+
+
+def String():
+    """Factory method to alias (internally) String type to Array of char."""
+    return Array(Char(), 1)
+
+
+class Function(Type):
+    def __init__(self, fromType, toType):
+        self.fromType = fromType
+        self.toType = toType
