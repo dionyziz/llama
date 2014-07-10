@@ -252,14 +252,6 @@ class ArrayVariableDef(VariableDef):
         self.type = type
 
 
-    def __eq__(self, other):
-        return all((
-            isinstance(other, ArrayVariableDef),
-            self.name == other.name,
-            self.dimensions == other.dimensions,
-            self.type == other.type
-        ))
-
 class TypeDefList(ListNode):
     def __init__(self, list):
         self.list = list
