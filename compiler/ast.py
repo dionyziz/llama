@@ -80,12 +80,12 @@ class ListNode(Node):
         return iter(self.list)
 
 
-class Type(NameNode):
-    """An AST node representing a type."""
+class Type(Node):
+    """A node representing a type."""
     pass
 
 
-class Builtin(Type):
+class Builtin(Type, NameNode):
     """One of the builtin types."""
     def __init__(self):
         self.name = self.__class__.__name__.lower()
@@ -293,7 +293,7 @@ builtin_map = {
 }
 
 
-class User(Type):
+class User(Type, NameNode):
     """A user-defined type."""
 
     def __init__(self, name):
