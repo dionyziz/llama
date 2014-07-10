@@ -148,8 +148,8 @@ class Table:
                         if argType not in self.knownTypes:
                             self.logger.error(
                                 "%d:%d: error: Undefined type '%s'",
-                                argType.lexpos,
                                 argType.lineno,
+                                argType.lexpos,
                                 argType.name
                             )
                             return
