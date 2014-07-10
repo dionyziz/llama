@@ -280,7 +280,7 @@ class Unit(Builtin):
     pass
 
 
-builtin_map = {
+builtin_types_map = {
     "bool": Bool,
     "char": Char,
     "float": Float,

@@ -21,7 +21,7 @@ class Table:
     """
 
     # Set of types encountered so far. Built-in types always available.
-    knownTypes = set(t() for t in ast.builtin_map.values())
+    knownTypes = set(t() for t in ast.builtin_types_map.values())
 
     # Dictionary of constructors encountered so far.
     # Each key contains a dict:
@@ -56,7 +56,7 @@ class Table:
                     )
                     # TODO Show previous definition
                 )
-            elif newtype.name in ast.builtin_map:
+            elif newtype.name in ast.builtin_types_map:
                 self.logger.error(
                     # FIXME Add meaningful line
                     "error: Cannot redefine builtin type: %s" % (newtype.name)

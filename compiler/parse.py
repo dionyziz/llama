@@ -125,7 +125,7 @@ class Parser:
                         | FLOAT
                         | INT
                         | UNIT"""
-        p[0] = ast.builtin_map[p[1]]()
+        p[0] = ast.builtin_types_map[p[1]]()
         _track(p)
 
     def p_derived_type(self, p):
