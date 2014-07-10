@@ -95,6 +95,16 @@ class TestParser(unittest.TestCase):
     def test_while_expr(self):
         self._parse("while true do true done", "expr").should.be.equal(ast.WhileExpression(self.true, self.true))
 
+    def test_if_expr(self):
+        self._parse("if true then true else true", "expr").should.be.equal(ast.IfExpression(self.true, self.true, self.true))
+        self._parse("if true then true", "expr").should.be.equal(ast.IfExpression(self.true, self.true))
+
+#    def test_pattern(self):
+#        self._parse("", "pattern")
+
+    def test_match_expr(self):
+        self._parse("match true with true -> true end", "expr").should.be.equal(ast.MatchExpression(self.true, [ast.Clause(self.true, self.true)]))
+
     def _check_binary_operator(self, operator):
         expr = "1 %s 2" % operator
         parsed = self._parse(expr, "expr")
