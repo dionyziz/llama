@@ -11,12 +11,14 @@ class TestParser(unittest.TestCase):
 
         self.one = self._parse("1", "expr")
         self.two = self._parse("2", "expr")
+        self.true = self._parse("true", "expr")
 
     def _parse(self, data, start='program'):
         mock = error.LoggerMock()
 
-        lexer = lex.Lexer(logger=mock)
+        lexer = lex.Lexer(logger=mock, optimize=1)
 
+        # memoization
         try:
             parser = self.parsers[start]
         except:
@@ -24,7 +26,7 @@ class TestParser(unittest.TestCase):
                 logger=mock,
                 optimize=0,
                 start=start,
-                debug=1
+                debug=0
             )
 
         tree = parser.parse(
