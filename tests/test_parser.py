@@ -89,11 +89,11 @@ class TestParser(unittest.TestCase):
         self._parse("mutable foo : int", "simple_variable_def").should.be.equal(ast.VariableDef("foo", ast.Ref(ast.Int())))
 
     def test_array_variable_def(self):
-        self._parse("mutable foo [2]", "array_variable_def").should.be.equal(ast.ArrayVariableDef("foo", [ast.ConstExpression(ast.Int(), 2)]))
-        self._parse("mutable foo [2] : int", "array_variable_def").should.be.equal(ast.ArrayVariableDef("foo", [ast.ConstExpression(ast.Int(), 2)], ast.Array(ast.Int())))
+        self._parse("mutable foo [2]", "array_variable_def").should.be.equal(ast.ArrayVariableDef("foo", [self.two]))
+        self._parse("mutable foo [2] : int", "array_variable_def").should.be.equal(ast.ArrayVariableDef("foo", [self.two], ast.Array(ast.Int())))
 
     def test_while_expr(self):
-        self._parse("while true do true done", "expr").should.be.equal(ast.WhileExpression(ast.ConstExpression(ast.Bool(), True), ast.ConstExpression(ast.Bool(), True)))
+        self._parse("while true do true done", "expr").should.be.equal(ast.WhileExpression(self.true, self.true))
 
     def _check_binary_operator(self, operator):
         expr = "1 %s 2" % operator
