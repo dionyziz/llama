@@ -93,14 +93,12 @@ class Program(ListNode):
     def __init__(self, list):
         self.list = list
 
+
 class LetDef(ListNode):
     def __init__(self, list, isRec=False):
         self.list = list
         self.isRec = isRec
 
-class Def(Node):
-    def __init__(self):
-        raise NotImplementedError
 
 class FunctionDef(Def):
     def __init__(self, name, params, body, type=None):
@@ -108,6 +106,7 @@ class FunctionDef(Def):
         self.params = params
         self.body = body
         self.type = type
+
 
 class Param(DataNode):
     def __init__(self, name, type=None):
@@ -117,9 +116,11 @@ class Param(DataNode):
     def __repr__(self):
         return 'ASTNode:Param with name "%s" and type: %s' % (self.name, self.type)
 
+
 class Expression(DataNode):
     def __init__(self):
         raise NotImplementedError
+
 
 class BinaryExpression(Expression):
     def __init__(self, leftOperand, operator, rightOperand):
