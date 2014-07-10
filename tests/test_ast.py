@@ -2,7 +2,7 @@ import unittest
 
 import sure
 
-from compiler import parse, lex, error, ast, type
+from compiler import ast
 
 
 class TestAST(unittest.TestCase):
