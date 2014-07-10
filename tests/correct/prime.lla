@@ -1,9 +1,9 @@
-let rec prime n = 
+let rec prime n =
         if n < 0 then prime (-n)
    else if n < 2 then false
    else if n = 2 then true
    else if n mod 2 = 0 then false
-   else let rec loop i = 
+   else let rec loop i =
 	   if i <= n / 2 then
 	      if n mod i = 0 then false
 	                     else loop (i+2)
@@ -21,7 +21,7 @@ let main =
    counter := 0;
    if limit >= 2 then (incr counter; print_string "2\n");
    if limit >= 3 then (incr counter; print_string "3\n");
-   let rec loop number = 
+   let rec loop number =
       if number <= limit then
       begin
          if prime (number - 1) then

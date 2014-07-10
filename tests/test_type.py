@@ -2,12 +2,12 @@ import itertools
 import unittest
 
 import sure
-from compiler import ast, error, lex, parse, type
+from compiler import ast, error, lex, parse
 
 
 class TestType(unittest.TestCase):
 
-    builtin_builders = type.builtin_map.values()
+    builtin_builders = ast.builtin_types_map.values()
 
     def test_builtin_type_equality(self):
         for t in self.builtin_builders:
@@ -22,45 +22,45 @@ class TestType(unittest.TestCase):
             (typeset).should.contain(t())
 
     def test_user_defined_types(self):
-        (type.User("foo")).should.be.equal(type.User("foo"))
+        (ast.User("foo")).should.be.equal(ast.User("foo"))
 
-        (type.User("foo")).shouldnt.be.equal(type.User("bar"))
-        (type.User("foo")).shouldnt.be.equal(type.Int())
+        (ast.User("foo")).shouldnt.be.equal(ast.User("bar"))
+        (ast.User("foo")).shouldnt.be.equal(ast.Int())
 
     def test_ref_types(self):
-        footype = type.User("foo")
-        bartype = type.User("bar")
-        reffootype = type.Ref(footype)
+        footype = ast.User("foo")
+        bartype = ast.User("bar")
+        reffootype = ast.Ref(footype)
 
-        (reffootype).should.be.equal(type.Ref(footype))
+        (reffootype).should.be.equal(ast.Ref(footype))
 
         (reffootype).shouldnt.be.equal(footype)
-        (reffootype).shouldnt.be.equal(type.Ref(bartype))
+        (reffootype).shouldnt.be.equal(ast.Ref(bartype))
 
     def test_array_types(self):
-        inttype = type.Int()
-        (type.Array(inttype)).should.be.equal(type.Array(inttype))
-        (type.Array(inttype, 2)).should.be.equal(type.Array(inttype, 2))
+        inttype = ast.Int()
+        (ast.Array(inttype)).should.be.equal(ast.Array(inttype))
+        (ast.Array(inttype, 2)).should.be.equal(ast.Array(inttype, 2))
 
-        (type.Array(type.Int())).shouldnt.be.equal(type.Array(type.Float()))
-        (type.Array(inttype, 1)).shouldnt.be.equal(type.Array(inttype, 2))
+        (ast.Array(ast.Int())).shouldnt.be.equal(ast.Array(ast.Float()))
+        (ast.Array(inttype, 1)).shouldnt.be.equal(ast.Array(inttype, 2))
 
-        arrintType = type.Array(inttype)
+        arrintType = ast.Array(inttype)
         (arrintType).shouldnt.be.equal(inttype)
-        (arrintType).shouldnt.be.equal(type.User("foo"))
-        (arrintType).shouldnt.be.equal(type.Ref(inttype))
+        (arrintType).shouldnt.be.equal(ast.User("foo"))
+        (arrintType).shouldnt.be.equal(ast.Ref(inttype))
 
     def test_function_types(self):
-        intt = type.Int()
-        (type.Function(intt, intt)).should.be.equal(type.Function(intt, intt))
+        intt = ast.Int()
+        (ast.Function(intt, intt)).should.be.equal(ast.Function(intt, intt))
 
-        i2float = type.Function(type.Int(), type.Float())
-        (i2float).shouldnt.be.equal(type.Function(type.Float(), type.Int()))
+        i2float = ast.Function(ast.Int(), ast.Float())
+        (i2float).shouldnt.be.equal(ast.Function(ast.Float(), ast.Int()))
 
-        (i2float).shouldnt.be.equal(int)
-        (i2float).shouldnt.be.equal(type.User("foo"))
-        (i2float).shouldnt.be.equal(type.Ref(type.Int()))
-        (i2float).shouldnt.be.equal(type.Array(type.Int()))
+        (i2float).shouldnt.be.equal(intt)
+        (i2float).shouldnt.be.equal(ast.User("foo"))
+        (i2float).shouldnt.be.equal(ast.Ref(ast.Int()))
+        (i2float).shouldnt.be.equal(ast.Array(ast.Int()))
 
     def _process_typedef(self, typeDefListList):
         mock = error.LoggerMock()

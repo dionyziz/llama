@@ -10,11 +10,13 @@
 
 import logging
 
+
 def _format(f):
     def new_f(self, fmt, *args):
         msg = fmt % args  # Let it throw, let it throw, let it throw
         f(self, msg)
     return new_f
+
 
 class LoggerInterface:
     """

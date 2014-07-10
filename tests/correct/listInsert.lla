@@ -7,21 +7,21 @@ type list = Nil | Cons of int list
 let rec listInsert (l : list) (d : int) : list =
    match l with
      Nil       -> Cons d Nil
-   | Cons m l1 -> if d <= m then 
+   | Cons m l1 -> if d <= m then
                      Cons d l
-                  else 
-                     Cons m (listInsert l1 d)  
-   end     
+                  else
+                     Cons m (listInsert l1 d)
+   end 
 
 let rec listPrint l =
    match l with
      Nil       -> print_string "NIL"
    | Cons n l1 -> print_int n;
                   print_string " -> ";
-                  listPrint l1  
-   end 
+                  listPrint l1
+   end
 
-let main = 
+let main =
    let mutable l in
    l := Nil;
    for i = 1 to 5 do

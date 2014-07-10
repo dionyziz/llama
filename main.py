@@ -138,12 +138,14 @@ def main():
         verbose=OPTS['lexer_verbose'])
 
     # Make a parser. By default, the parser is optimized
-    # (i.e. caches LALR tables accross invocations). If 'debug' is set,
-    # a 'parser.out' is created every time the tables are regenerated.
+    # (i.e. caches LALR tables accross invocations). A 'parser.out' file
+    # is created every time the tables are regenerated unless 'debug'
+    # is set to 0.
     parser = parse.Parser(
         logger=logger,
         optimize=1,
-        start='program'
+        start='program',
+        verbose=OPTS['parser_verbose']
     )
 
     # Stop here if this a dry run.
@@ -157,8 +159,7 @@ def main():
     # Parse and construct the AST.
     ast = parser.parse(
         data=data,
-        lexer=lexer,
-        verbose=OPTS['parser_verbose']
+        lexer=lexer
     )
 
     # On bad program, terminate with error.

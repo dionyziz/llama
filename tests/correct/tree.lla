@@ -1,13 +1,11 @@
 type tree = Nil | Node of int tree tree
 
-let rec treeInsert t n = 
+let rec treeInsert t n =
    match t with
      Nil          -> Node n Nil Nil
    | Node m t1 t2 ->      if n < m then Node m (treeInsert t1 n) t2
                      else if n > m then Node m t1 (treeInsert t2 n)
-                     else t
-   end
-
+                     else t end 
 let rec treeMerge t1 t2 =
    match t1 with
      Nil            -> t2
@@ -42,9 +40,9 @@ let rec treeCount t =
    | Node n t1 t2 -> 1 + treeCount t2 + treeCount t2
    end
 
-let main = 
+let main =
    let mutable seed in
-   let next u = 
+   let next u =
       seed := (!seed * 4241 + 22) mod 9949;
       !seed in
    seed := 65;
@@ -53,7 +51,7 @@ let main =
 
    let mutable t in
    t := Nil;
-  
+
    for i = 1 to 10 do
       t := treeInsert !t (random 100)
    done;
@@ -61,7 +59,7 @@ let main =
    print_string "Initial tree: ";
    treePrint !t;
    print_string "\n";
-	
+
    let rec choose t =
       match t with
         Node n t1 t2 ->

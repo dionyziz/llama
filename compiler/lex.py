@@ -71,6 +71,7 @@ def unescape(string):
     """Return unescaped string."""
     return bytes(string, 'ascii').decode('unicode_escape')
 
+
 def explode(string):
     """Unescape, null-terminate and listify string."""
     string = list(unescape(string))
@@ -187,7 +188,12 @@ class _LexerBuilder:
         self.logger = logger
         self.verbose = verbose
         if self.verbose:
-            self.logger.info(__name__ + ': _LexerBuilder: wrapper initialized')
+            self.logger.info(
+                "%s: %s: %s",
+                __name__,
+                self.__class__.__name__,
+                'wrapper initialized'
+            )
 
     # == REQUIRED METHODS ==
 
@@ -200,7 +206,12 @@ class _LexerBuilder:
         """
         self.lexer = lex.lex(module=self, **kwargs)
         if self.verbose:
-            self.logger.info(__name__ + ': _LexerBuilder: lexer ready ')
+            self.logger.info(
+                "%s: %s: %s",
+                __name__,
+                self.__class__.__name__,
+                'lexer ready'
+            )
 
     # A wrapper around the function of the inner lexer
     def token(self):
@@ -470,7 +481,7 @@ class Lexer:
     _lexer = None
 
     # Logger used for logging events. Possibly shared with other modules.
-    _logger = None
+    logger = None
 
     # == REQUIRED METHODS (see _LexerBuilder for details) ==
 
@@ -480,7 +491,7 @@ class Lexer:
 
     def __init__(self, logger, verbose=False, **kwargs):
         """Create a new lexer."""
-        self._logger = logger
+        self.logger = logger
         self._lexer = _LexerBuilder(logger=logger, verbose=verbose)
         self._lexer.build(**kwargs)
 
@@ -489,7 +500,12 @@ class Lexer:
         self.input = self._lexer.input
         self.skip  = self._lexer.skip
         if verbose:
-            self._logger.info(__name__ + ': Lexer: lexer ready')
+            self.logger.info(
+                "%s: %s: %s",
+                __name__,
+                self.__class__.__name__,
+                'lexer ready'
+            )
 
     # == EXPORT POSITION ATTRIBUTES ==
 

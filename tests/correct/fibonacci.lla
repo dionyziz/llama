@@ -3,14 +3,14 @@
  *)
 
 let rec fibo k n =
-   if k<=0 then 
+   if k<=0 then
       n:=0
-   else if k=1 then 
+   else if k=1 then
       n:=1
    else
       begin
          let mutable n1
-         and mutable n2 in 
+         and mutable n2 in
          fibo (k-1) n1;
          fibo (k-2) n2;
          n := !n1 + !n2
