@@ -561,26 +561,23 @@ class Parser:
         self.verbose = verbose
         self.logger = logger
 
+        # Explicitly silence warnings about unused rules when
+        # starting from a state other than the default.
+        errorlog = None if start == 'program' else yacc.NullLogger()
+        self.parser = yacc.yacc(
+            module=self,
+            errorlog=errorlog,
+            debug=debug,
+            optimize=optimize,
+            start=start
+        )
+
         if verbose:
-            self.parser = yacc.yacc(
-                module=self,
-                debug=debug,
-                optimize=optimize,
-                start=start
-            )
             self.logger.info(
                 "%s: %s: %s",
                 __name__,
                 self.__class__.__name__,
                 'parser ready'
-            )
-        else:
-            self.parser = yacc.yacc(
-                module=self,
-                debug=debug,
-                errorlog=yacc.NullLogger(),
-                optimize=optimize,
-                start=start
             )
         self.typeTable = type.Table(logger=self.logger)
 
