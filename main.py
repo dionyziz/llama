@@ -12,7 +12,6 @@
 import argparse
 import collections
 import logging
-import re
 import sys
 
 from compiler import lex, parse, error
@@ -80,7 +79,7 @@ def mk_cli_parser():
             Report any parsing errors to stderr.
             ''',
         action='store_true',
-        default=0
+        default=False
     )
     return cli_parser
 
@@ -121,32 +120,11 @@ def main():
     OPTS['lexer_verbose'] = args.lexer_verbose
     OPTS['parser_verbose'] = args.parser_verbose
 
-    # Create an error logger
-    logger = error.Logger(
-        inputfile=OPTS['input'],
-        level=logging.DEBUG
-    )
+    logger = error.Logger(inputfile=OPTS['input'],level=logging.DEBUG)
 
-    # Make a lexer. By default, the lexer accepts only ASCII
-    # and is optimized (i.e caches the lexing tables across
-    # invocations).
-    lexer = lex.Lexer(
-        lextab='lextab',
-        logger=logger,
-        optimize=1,
-        reflags=re.ASCII,
-        verbose=OPTS['lexer_verbose'])
+    lexer = lex.Lexer(logger=logger, verbose=OPTS['lexer_verbose'])
 
-    # Make a parser. By default, the parser is optimized
-    # (i.e. caches LALR tables accross invocations). A 'parser.out' file
-    # is created every time the tables are regenerated unless 'debug'
-    # is set to 0.
-    parser = parse.Parser(
-        logger=logger,
-        optimize=1,
-        start='program',
-        verbose=OPTS['parser_verbose']
-    )
+    parser = parse.Parser(logger=logger, verbose=OPTS['parser_verbose'])
 
     # Stop here if this a dry run.
     if OPTS['prepare']:
@@ -157,10 +135,7 @@ def main():
     data = read_program(OPTS['input'])
 
     # Parse and construct the AST.
-    ast = parser.parse(
-        data=data,
-        lexer=lexer
-    )
+    ast = parser.parse(data=data, lexer=lexer)
 
     # On bad program, terminate with error.
     if not logger.success:

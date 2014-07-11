@@ -13,6 +13,8 @@
 # ----------------------------------------------------------------------
 """
 
+import re
+
 from ply import lex
 
 # Represent reserved words as a frozenset for fast lookup
@@ -518,11 +520,18 @@ class Lexer:
     input = None
     skip = None
 
-    def __init__(self, logger, verbose=False, **kwargs):
-        """Create a new lexer."""
+    def __init__(self, logger, debug=False, optimize=True, verbose=False):
+        """
+        Create a new lexer.
+
+        By default, the lexer accepts only ASCII and is optimized (i.e
+        caches the lexing tables across invocations).
+        For detailed reporting on regexe construction, enable 'debug'.
+        For echoing matched tokens to stdout, enable 'verbose'.
+        """
         self.logger = logger
         self._lexer = _LexerBuilder(logger=logger, verbose=verbose)
-        self._lexer.build(**kwargs)
+        self._lexer.build(debug=debug, optimize=optimize, reflags=re.ASCII)
 
         # Bind methods of interface to _LexerBuilder object methods.
         self.token = self._lexer.token

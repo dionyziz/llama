@@ -16,7 +16,7 @@ class TestParser(unittest.TestCase):
     def _parse(self, data, start='program'):
         mock = error.LoggerMock()
 
-        lexer = lex.Lexer(logger=mock, optimize=1)
+        lexer = lex.Lexer(logger=mock)
 
         # memoization
         try:
@@ -24,9 +24,8 @@ class TestParser(unittest.TestCase):
         except:
             parser = self.parsers[start] = parse.Parser(
                 logger=mock,
-                optimize=0,
-                start=start,
-                debug=0
+                optimize=False,
+                start=start
             )
 
         tree = parser.parse(

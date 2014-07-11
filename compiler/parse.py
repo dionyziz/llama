@@ -546,20 +546,41 @@ class Parser:
     typeTable = None
     verbose = False
 
-    def __init__(self, logger, verbose=False, **kwargs):
-        """Create a parser for the entire Llama grammar."""
+    def __init__(self, logger, debug=False, optimize=True, start='program',
+                 verbose=False):
+        """
+        Create a parser.
+
+        By default, the parser is optimized (i.e. caches LALR tables
+        accross invocations).
+        For detailed reporting on the tables construction, enable
+        'debug' and check the 'parser.out' file.
+        For manually specifying the initial state, modify 'start'.
+        For echoing LR stack to stdout while parsing, enable 'verbose'.
+        """
         self.verbose = verbose
         self.logger = logger
+
         if verbose:
-            self.parser = yacc.yacc(module=self, **kwargs)
-        else:
-            self.parser = yacc.yacc(module=self, errorlog=yacc.NullLogger(), **kwargs)
-        if verbose:
+            self.parser = yacc.yacc(
+                module=self,
+                debug=debug,
+                optimize=optimize,
+                start=start
+            )
             self.logger.info(
                 "%s: %s: %s",
                 __name__,
                 self.__class__.__name__,
                 'parser ready'
+            )
+        else:
+            self.parser = yacc.yacc(
+                module=self,
+                debug=debug,
+                errorlog=yacc.NullLogger(),
+                optimize=optimize,
+                start=start
             )
         self.typeTable = type.Table(logger=self.logger)
 
