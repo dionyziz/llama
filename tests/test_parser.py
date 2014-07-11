@@ -39,6 +39,16 @@ class TestParser(unittest.TestCase):
     def test_empty_program(self):
         self._parse("").should.be.equal(ast.Program([]))
 
+    def test_letdef(self):
+        letdef = ast.LetDef(
+            [ast.FunctionDef("x", [], self.one)]
+        )
+        letdefrec = ast.LetDef(
+            [ast.FunctionDef("x", [], self.one)], True
+        )
+        self._parse("let x = 1", "letdef").should.be.equal(letdef)
+        self._parse("let rec x = 1", "letdef").should.be.equal(letdefrec)
+
     def test_empty_param_list(self):
         self._parse("", "param_list").should.be.equal([])
 
