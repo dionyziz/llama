@@ -4,7 +4,7 @@ import unittest
 
 import sure
 
-from compiler import lex, error
+from compiler import error, lex
 
 
 class TestLexer(unittest.TestCase):

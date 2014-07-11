@@ -2,7 +2,7 @@ import itertools
 import unittest
 
 import sure
-from compiler import ast, error, lex, parse
+from compiler import ast, error, parse
 
 
 class TestType(unittest.TestCase):
