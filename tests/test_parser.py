@@ -120,6 +120,9 @@ class TestParser(unittest.TestCase):
     def test_match_expr(self):
         self._parse("match true with true -> true end", "expr").should.be.equal(ast.MatchExpression(self.true, [ast.Clause(self.true, self.true)]))
 
+    def test_delete(self):
+        self._parse("delete true", "expr").should.be.equal(ast.DeleteExpression(self.true))
+
     def _check_binary_operator(self, operator):
         expr = "1 %s 2" % operator
         parsed = self._parse(expr, "expr")
