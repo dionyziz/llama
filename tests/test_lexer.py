@@ -25,17 +25,11 @@ class TestLexer(unittest.TestCase):
         mock.success.should.be.ok
 
     def _assert_lex_success(self, input):
-        mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock)
-        lexer.input(input)
-        list(lexer)  # Force lexing
+        l, mock = self._lex_data(input)
         mock.success.should.be.ok
 
     def _assert_lex_failure(self, input):
-        mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock)
-        lexer.input(input)
-        list(lexer)  # Force lexing
+        l, mock = self._lex_data(input)
         mock.success.shouldnt.be.ok
 
     def test_init(self):
