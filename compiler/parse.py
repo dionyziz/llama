@@ -317,7 +317,7 @@ class Parser:
     def p_for_expr(self, p):
         """for_expr : FOR GENID EQ expr DOWNTO expr DO expr DONE
                     | FOR GENID EQ expr TO expr DO expr DONE"""
-        if p[5] == 'TO':
+        if p[5] == 'to':
             p[0] = ast.ForExpression(p[2], p[4], p[6], p[8])
         else:
             p[0] = ast.ForExpression(p[2], p[4], p[6], p[8], isDown=True)

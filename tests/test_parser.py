@@ -101,6 +101,9 @@ class TestParser(unittest.TestCase):
 
 #    def test_pattern(self):
 #        self._parse("", "pattern")
+    def test_for_expr(self):
+        self._parse("for i = 1 to 1 do true done", "expr").should.be.equal(ast.ForExpression("i", self.one, self.one, self.true))
+        self._parse("for i = 1 downto 1 do true done", "expr").should.be.equal(ast.ForExpression("i", self.one, self.one, self.true, True))
 
     def test_match_expr(self):
         self._parse("match true with true -> true end", "expr").should.be.equal(ast.MatchExpression(self.true, [ast.Clause(self.true, self.true)]))
