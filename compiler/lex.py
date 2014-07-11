@@ -171,7 +171,7 @@ tokens = sum(
 )
 
 
-class _LexerBuilder:
+class _LexerFactory:
     """
     Implementation of a Llama lexer
 
@@ -508,13 +508,13 @@ class _LexerBuilder:
 class Lexer:
     """ A Llama lexer"""
 
-    # The actual lexer as returned by _LexerBuilder
+    # The actual lexer as returned by _LexerFactory
     _lexer = None
 
     # Logger used for logging events. Possibly shared with other modules.
     logger = None
 
-    # == REQUIRED METHODS (see _LexerBuilder for details) ==
+    # == REQUIRED METHODS (see _LexerFactory for details) ==
 
     token = None
     input = None
@@ -526,14 +526,18 @@ class Lexer:
 
         By default, the lexer accepts only ASCII and is optimized (i.e
         caches the lexing tables across invocations).
-        For detailed reporting on regexe construction, enable 'debug'.
+        For detailed reporting on regex construction, enable 'debug'.
         For echoing matched tokens to stdout, enable 'verbose'.
         """
-        self.logger = logger
-        self._lexer = _LexerBuilder(logger=logger, verbose=verbose)
+        if logger is None:
+            self.logger = error.LoggerMock()
+        else:
+            self.logger = logger
+
+        self._lexer = _LexerFactory(logger=logger, verbose=verbose)
         self._lexer.build(debug=debug, optimize=optimize, reflags=re.ASCII)
 
-        # Bind methods of interface to _LexerBuilder object methods.
+        # Bind methods of interface to _LexerFactory object methods.
         self.token = self._lexer.token
         self.input = self._lexer.input
         self.skip  = self._lexer.skip
