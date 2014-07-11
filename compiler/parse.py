@@ -581,9 +581,11 @@ class Parser:
             )
         self.typeTable = type.Table(logger=self.logger)
 
-    def parse(self, data, lexer):
+    def parse(self, data, lexer=None):
         """
-        Parse the input and return the AST. If 'debug' is set,
-        output matched productions, state and other info to stdout.
+        Parse the input and return the AST. If a lexer is not provided,
+        create one on the fly.
         """
+        if lexer is None:
+            lexer = lex.Lexer(logger=self.logger)
         return self.parser.parse(data, lexer, debug=self.verbose)
