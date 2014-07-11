@@ -64,9 +64,8 @@ class TestType(unittest.TestCase):
 
     def _process_typedef(self, typeDefListList):
         mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock)
         parser = parse.Parser(logger=mock)
-        parser.parse(data=typeDefListList, lexer=lexer)
+        parser.parse(data=typeDefListList)
         return parser.logger.success
 
     def test_type_process(self):
