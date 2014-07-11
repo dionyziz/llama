@@ -184,6 +184,9 @@ class ForExpression(Expression):
         self.body = body
         self.isDown = isDown
 
+    def __repr__(self):
+        return "ASTNode:ForExpression with:\n\t* counter = '%s'\n\t* startExpr = '%s'\n\t* stopExpr = '%s'\n\t* body = '%s'\n\t* isDown = '%s'" % (self.counter, self.startExpr, self.stopExpr, self.body, self.isDown)
+
 
 class FunctionCallExpression(Expression, ListNode):
     def __init__(self, name, list):
