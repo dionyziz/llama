@@ -37,7 +37,7 @@ class TestParser(unittest.TestCase):
         return tree
 
     def test_empty_program(self):
-       self._parse("").should.be.equal(ast.Program([]))
+        self._parse("").should.be.equal(ast.Program([]))
 
     def test_empty_param_list(self):
         self._parse("", "param_list").should.be.equal([])
