@@ -17,6 +17,8 @@ import re
 
 from ply import lex
 
+from compiler import error
+
 # Represent reserved words as a frozenset for fast lookup
 reserved_words = frozenset('''
     and
@@ -520,17 +522,18 @@ class Lexer:
     input = None
     skip = None
 
-    def __init__(self, logger, debug=False, optimize=True, verbose=False):
+    def __init__(self, debug=False, optimize=True, logger=None, verbose=False):
         """
         Create a new lexer.
 
         By default, the lexer accepts only ASCII and is optimized (i.e
         caches the lexing tables across invocations).
+        If a 'logger' is not provided, create one.
         For detailed reporting on regex construction, enable 'debug'.
         For echoing matched tokens to stdout, enable 'verbose'.
         """
         if logger is None:
-            self.logger = error.LoggerMock()
+            self.logger = error.Logger(inputfile='<stdin>')
         else:
             self.logger = logger
 
