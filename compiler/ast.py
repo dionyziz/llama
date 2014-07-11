@@ -37,6 +37,18 @@ class Node:
         self.lineno = node.lineno
         self.lexpos = node.lexpos
 
+    def __repr__(self):
+        attrs = [attr for attr in dir(self) if attr[0] != '_']
+        values = [getattr(self, attr) for attr in attrs]
+        safe_values = []
+        for value in values:
+            if isinstance(value, (int, float, bool, str, list)) or value is None:
+                safe_values.append(value)
+            else:
+                safe_values.append('(non-scalar of type %s)' % value.__class__.__name__)
+        pairs = ["%s = '%s'" % (attr, value) for (attr, value) in zip(attrs, safe_values)]
+        return "ASTNode:%s with attributes:\n\t* %s" % (self.__class__.__name__, "\n\t* ".join(pairs))
+
 
 class DataNode(Node):
     """A node to which a definite type can and should be assigned."""
@@ -113,9 +125,6 @@ class Param(DataNode):
         self.name = name
         self.type = type
 
-    def __repr__(self):
-        return 'ASTNode:Param with name "%s" and type: %s' % (self.name, self.type)
-
 
 class Expression(DataNode):
     def __init__(self):
@@ -152,9 +161,6 @@ class ConstExpression(Expression):
         self.type = type
         self.value = value
 
-    def __repr__(self):
-        return "ASTNode:ConstExpression of type %s and of value '%s'" % (self.type, self.value)
-
 class ConidExpression(Expression):
     def __init__(self, name):
         self.name = name
@@ -183,9 +189,6 @@ class ForExpression(Expression):
         self.stopExpr = stopExpr
         self.body = body
         self.isDown = isDown
-
-    def __repr__(self):
-        return "ASTNode:ForExpression with:\n\t* counter = '%s'\n\t* startExpr = '%s'\n\t* stopExpr = '%s'\n\t* body = '%s'\n\t* isDown = '%s'" % (self.counter, self.startExpr, self.stopExpr, self.body, self.isDown)
 
 
 class FunctionCallExpression(Expression, ListNode):
@@ -245,8 +248,6 @@ class VariableDef(Def):
         self.name = name
         self.type = type
 
-    def __repr__(self):
-        return "ASTNode:VariableDef of name '%s' and type '%s'" % (self.name, self.type)
 
 class ArrayVariableDef(VariableDef):
     def __init__(self, name, dimensions, type=None):
