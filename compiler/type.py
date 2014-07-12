@@ -109,7 +109,6 @@ class Table:
                         newType.lexpos,
                         newType.name
                     )
-                    return
                 else:
                     self.logger.error(
                         "%d:%d: error: Redefining user-defined type '%s'"
@@ -120,7 +119,7 @@ class Table:
                         alias.lineno,
                         alias.lexpos
                     )
-                    return
+                return
             except KeyError:
                 self.knownTypes[newType] = Table._TypeEntry(
                     key=newType,
