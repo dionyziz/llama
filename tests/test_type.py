@@ -11,8 +11,11 @@ class TestType(unittest.TestCase):
         mock = error.LoggerMock()
         lexer = lex.Lexer(logger=mock, optimize=1)
         parser = parse.Parser(logger=mock, optimize=1)
-        parser.parse(data=typeDefListList, lexer=lexer)
-        return parser.logger.success
+        typeTable = type.Table(logger=mock)
+        tree = parser.parse(data=typeDefListList, lexer=lexer)
+        for typeDef in tree:
+            typeTable.process(typeDef)
+        return typeTable.logger.success
 
     def test_type_process(self):
         right_testcases = (
