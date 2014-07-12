@@ -10,11 +10,8 @@ from compiler import error, lex
 class TestLexer(unittest.TestCase):
     def _lex_data(self, input):
         mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock)
-        lexer.input(input)
-        token_list = list(lexer)
-
-        return (token_list, mock)
+        tokens = lex.tokenize(input, logger=mock)
+        return list(tokens), mock
 
     def _assert_individual_token(self, input, expected_type, expected_value):
         l, mock = self._lex_data(input)
