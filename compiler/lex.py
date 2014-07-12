@@ -576,7 +576,7 @@ class Lexer:
         return tok
 
 
-def lex(data, logger=None):
+def tokenize(data, logger=None):
     """
     Lex the given string using the default Lexer.
     Returns an iterator over the string tokens.
