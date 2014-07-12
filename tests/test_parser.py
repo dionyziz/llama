@@ -220,3 +220,63 @@ class TestParser(unittest.TestCase):
         self.assertTrue(isinstance(dim, ast.DimExpression))
         self.assertEqual(dim.name, "name")
         self.assertEqual(dim.dimension, 2)
+
+    def test_in_expr(self):
+        self._parse("let x = 1 in 1", "expr").should.be.equal(ast.LetInExpression(TestParser.xfunc, TestParser.one))
+
+    def test_new(self):
+        self._parse("new int", "expr").should.be.equal(ast.NewExpression(ast.Int()))
+
+    def test_expr_comma_seq(self):
+        self._parse("", "expr_comma_seq").should.be.equal(None)
+        self._parse("1", "expr_comma_seq").should.be.equal([TestParser.one])
+        self._parse("1, 2", "expr_comma_seq").should.be.equal([TestParser.one, TestParser.two])
+
+    def test_array_expr(self):
+        self._parse("a[1]", "expr").should.be.equal(ast.ArrayExpression("a", [TestParser.one]))
+
+    def test_paren_expr(self):
+        self._parse("(1)", "expr").should.be.equal(TestParser.one)
+
+    def test_conid_expr(self):
+        self._parse("Red", "expr").should.be.equal(ast.ConidExpression("Red"))
+
+    def test_genid_expr(self):
+        self._parse("f", "expr").should.be.equal(ast.GenidExpression("f"))
+
+    def test_constr_pipe_seq(self):
+        self._parse("", "constr_pipe_seq").should.be.equal(None)
+        self._parse("Red | Green | Blue", "constr_pipe_seq").should.be.equal(
+            [ast.Constructor("Red"),
+             ast.Constructor("Green"),
+             ast.Constructor("Blue")]
+        )
+
+    def test_tdef(self):
+        self._parse("color = Red", "tdef").should.be.equal(ast.TDef(ast.User("color"), [ast.Constructor("Red")]))
+        self._parse("int = Red", "tdef").should.be.equal(ast.TDef(ast.Int(), [ast.Constructor("Red")]))
+
+    def test_tdef_and_seq(self):
+        self._parse("", "tdef_and_seq").should.be.equal(None)
+        self._parse("color = Red and shoes = Slacks", "tdef_and_seq").should.be.equal(
+            [ast.TDef(ast.User("color"), [ast.Constructor("Red")]),
+             ast.TDef(ast.User("shoes"), [ast.Constructor("Slacks")])]
+        )
+
+    def test_typedef(self):
+        raise unittest.SkipTest("re-enable me after simple_api branch gets merged")
+
+        self._parse("type color = Red", "typedef").should.be.equal(
+            ast.TypeDefList(
+                [
+                    ast.TDef(
+                        ast.User("color"),
+                        [ast.Constructor("Red")]
+                    )
+                ]
+            )
+        )
+
+    def test_type_seq(self):
+        self._parse("", "type_seq").should.be.equal(None)
+        self._parse("int int", "type_seq").should.be.equal([ast.Int(), ast.Int()])
