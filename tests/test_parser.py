@@ -188,7 +188,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(parsed.operand, TestParser.one, "Unary operator '%s' did not correctly provide the value for its argument" % operator)
 
     def test_binary_expr(self):
-        for operator in lex.binary_operators.keys():
+        for operator in list(lex.binary_operators.keys()) + ["mod"]:
             self._check_binary_operator(operator)
 
     def test_unary_expr(self):
