@@ -148,8 +148,26 @@ class TestParser(unittest.TestCase):
         self._parse("true", "pattern").should.be.equal(self.true)
         self._parse("Red true", "pattern").should.be.equal(ast.Pattern("Red", [self.true]))
 
+    def test_simple_pattern_list(self):
+        pattern = ast.Pattern("Red", [])
+        self._parse("", "simple_pattern_list").should.be.equal([])
+
+    def test_regression_pattern_constructor_without_parens(self):
+        raise unittest.SkipTest("re-enable me after bug #33 is fixed")
+
+        self._parse("Red Red", "simple_pattern_list").should.be.equal([pattern, pattern])
+
     def test_match_expr(self):
         self._parse("match true with true -> true end", "expr").should.be.equal(ast.MatchExpression(self.true, [ast.Clause(self.true, self.true)]))
+
+    def test_clause(self):
+        self._parse("true -> true", "clause").should.be.equal(ast.Clause(self.true, self.true))
+
+    def test_clause_seq(self):
+        clause = ast.Clause(self.true, self.true)
+
+        self._parse("", "clause_seq").should.be.equal(None)
+        self._parse("true -> true | true -> true", "clause_seq").should.be.equal([clause, clause])
 
     def test_delete(self):
         self._parse("delete true", "expr").should.be.equal(ast.DeleteExpression(self.true))
