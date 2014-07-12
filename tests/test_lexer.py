@@ -32,6 +32,11 @@ class TestLexer(unittest.TestCase):
         l, mock = self._lex_data(input)
         mock.success.shouldnt.be.ok
 
+    def test_tokenize(self):
+        list(lex.tokenize("")).should.be.equal([])
+        mock = error.LoggerMock()
+        list(lex.tokenize("", mock)).should.be.equal([])
+
     def test_init(self):
         mock = error.LoggerMock()
         lexer = lex.Lexer(logger=mock)

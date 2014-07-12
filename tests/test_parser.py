@@ -30,6 +30,11 @@ class TestParser(unittest.TestCase):
 
         return tree
 
+    def test_parse(self):
+        parse.parse("").should.be.equal(ast.Program([]))
+        mock = error.LoggerMock()
+        parse.parse("", logger=mock).should.be.equal(ast.Program([]))
+
     def test_empty_program(self):
        self._parse("").should.be.equal(ast.Program([]))
 
