@@ -319,12 +319,19 @@ class Parser:
         _track(p)
 
     def p_for_expr(self, p):
-        """for_expr : FOR GENID EQ expr DOWNTO expr DO expr DONE
-                    | FOR GENID EQ expr TO expr DO expr DONE"""
-        if p[5] == 'to':
-            p[0] = ast.ForExpression(p[2], p[4], p[6], p[8])
-        else:
-            p[0] = ast.ForExpression(p[2], p[4], p[6], p[8], isDown=True)
+        """for_expr : for_to_expr
+                    | for_downto_expr"""
+        p[0] = p[1]
+        _track(p)
+
+    def p_for_to_expr(self, p):
+        """for_to_expr : FOR GENID EQ expr TO expr DO expr DONE"""
+        p[0] = ast.ForExpression(p[2], p[4], p[6], p[8])
+        _track(p)
+
+    def p_for_downto_expr(self, p):
+        """for_downto_expr : FOR GENID EQ expr DOWNTO expr DO expr DONE"""
+        p[0] = ast.ForExpression(p[2], p[4], p[6], p[8], isDown=True)
         _track(p)
 
     def p_function_call_expr(self, p):
