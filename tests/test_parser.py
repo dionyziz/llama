@@ -195,7 +195,21 @@ class TestParser(unittest.TestCase):
         for operator in list(lex.unary_operators.keys()) + ["not"]:
             self._check_unary_operator(operator)
 
-    def test_dim(self):
+    def test_begin_end_expr(self):
+        self._parse("begin 1 end", "expr").should.be.equal(TestParser.one)
+
+    def test_function_call_expr(self):
+        self._parse("f 1", "expr").should.be.equal(ast.FunctionCallExpression("f", [TestParser.one]))
+
+    def test_constructor_call_expr(self):
+        self._parse("Red 1", "expr").should.be.equal(ast.ConstructorCallExpression("Red", [TestParser.one]))
+
+    def test_simple_expr_seq(self):
+        self._parse("", "simple_expr_seq").should.be.equal(None)
+        self._parse("1", "simple_expr_seq").should.be.equal([TestParser.one])
+        self._parse("1 2", "simple_expr_seq").should.be.equal([TestParser.one, TestParser.two])
+
+    def test_dim_expr(self):
         dim = self._parse("dim name", "expr")
 
         self.assertTrue(isinstance(dim, ast.DimExpression))
