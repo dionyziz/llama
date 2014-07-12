@@ -2,7 +2,7 @@ import itertools
 import unittest
 
 import sure
-from compiler import ast, error, lex, parse
+from compiler import ast, error, parse
 
 
 class TestType(unittest.TestCase):
@@ -64,10 +64,8 @@ class TestType(unittest.TestCase):
 
     def _process_typedef(self, typeDefListList):
         mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock, optimize=1)
-        parser = parse.Parser(logger=mock, optimize=1)
-        parser.parse(data=typeDefListList, lexer=lexer)
-        return parser.logger.success
+        parse.parse(typeDefListList, logger=mock)
+        return mock.success
 
     def test_type_process(self):
         right_testcases = (

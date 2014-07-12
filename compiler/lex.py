@@ -13,7 +13,11 @@
 # ----------------------------------------------------------------------
 """
 
+import re
+
 from ply import lex
+
+from compiler import error
 
 # Represent reserved words as a frozenset for fast lookup
 reserved_words = frozenset('''
@@ -169,7 +173,7 @@ tokens = sum(
 )
 
 
-class _LexerBuilder:
+class _LexerFactory:
     """
     Implementation of a Llama lexer
 
@@ -506,25 +510,37 @@ class _LexerBuilder:
 class Lexer:
     """ A Llama lexer"""
 
-    # The actual lexer as returned by _LexerBuilder
+    # The actual lexer as returned by _LexerFactory
     _lexer = None
 
     # Logger used for logging events. Possibly shared with other modules.
     logger = None
 
-    # == REQUIRED METHODS (see _LexerBuilder for details) ==
+    # == REQUIRED METHODS (see _LexerFactory for details) ==
 
     token = None
     input = None
     skip = None
 
-    def __init__(self, logger, verbose=False, **kwargs):
-        """Create a new lexer."""
-        self.logger = logger
-        self._lexer = _LexerBuilder(logger=logger, verbose=verbose)
-        self._lexer.build(**kwargs)
+    def __init__(self, debug=False, optimize=True, logger=None, verbose=False):
+        """
+        Create a new lexer.
 
-        # Bind methods of interface to _LexerBuilder object methods.
+        By default, the lexer accepts only ASCII and is optimized (i.e
+        caches the lexing tables across invocations).
+        If a 'logger' is not provided, create one.
+        For detailed reporting on regex construction, enable 'debug'.
+        For echoing matched tokens to stdout, enable 'verbose'.
+        """
+        if logger is None:
+            self.logger = error.Logger(inputfile='<stdin>')
+        else:
+            self.logger = logger
+
+        self._lexer = _LexerFactory(logger=logger, verbose=verbose)
+        self._lexer.build(debug=debug, optimize=optimize, reflags=re.ASCII)
+
+        # Bind methods of interface to _LexerFactory object methods.
         self.token = self._lexer.token
         self.input = self._lexer.input
         self.skip  = self._lexer.skip
@@ -558,3 +574,13 @@ class Lexer:
         if tok is None:
             raise StopIteration
         return tok
+
+
+def tokenize(data, logger=None):
+    """
+    Lex the given string using the default Lexer.
+    Returns an iterator over the string tokens.
+    """
+    lexer = Lexer(logger=logger)
+    lexer.input(data)
+    return iter(lexer)

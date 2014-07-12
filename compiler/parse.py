@@ -13,7 +13,7 @@
 
 from ply import yacc
 
-from compiler import ast, lex, type
+from compiler import ast, error, lex, type
 
 
 def _track(p):
@@ -546,14 +546,36 @@ class Parser:
     typeTable = None
     verbose = False
 
-    def __init__(self, logger, verbose=False, **kwargs):
-        """Create a parser for the entire Llama grammar."""
+    def __init__(self, debug=False, logger=None, optimize=True, start='program',
+                 verbose=False):
+        """
+        Create a parser.
+
+        By default, the parser is optimized (i.e. caches LALR tables
+        accross invocations).
+        If a 'logger' is not provided, create one.
+        For detailed reporting on the tables construction, enable
+        'debug' and check the 'parser.out' file.
+        For manually specifying the initial state, modify 'start'.
+        For echoing LR stack to stdout while parsing, enable 'verbose'.
+        """
         self.verbose = verbose
-        self.logger = logger
-        if verbose:
-            self.parser = yacc.yacc(module=self, **kwargs)
+        if logger is None:
+            self.logger = error.Logger(inputfile='<stdin>')
         else:
-            self.parser = yacc.yacc(module=self, errorlog=yacc.NullLogger(), **kwargs)
+            self.logger = logger
+
+        # Explicitly silence warnings about unused rules when
+        # starting from a state other than the default.
+        errorlog = None if start == 'program' else yacc.NullLogger()
+        self.parser = yacc.yacc(
+            module=self,
+            errorlog=errorlog,
+            debug=debug,
+            optimize=optimize,
+            start=start
+        )
+
         if verbose:
             self.logger.info(
                 "%s: %s: %s",
@@ -563,9 +585,20 @@ class Parser:
             )
         self.typeTable = type.Table(logger=self.logger)
 
-    def parse(self, data, lexer):
+    def parse(self, data, lexer=None):
         """
-        Parse the input and return the AST. If 'debug' is set,
-        output matched productions, state and other info to stdout.
+        Parse the input and return the AST. If a lexer is not provided,
+        create one on the fly.
         """
+        if lexer is None:
+            lexer = lex.Lexer(logger=self.logger)
         return self.parser.parse(data, lexer, debug=self.verbose)
+
+
+def parse(data, logger=None):
+    """
+    Parse the given string using the default Parser.
+    Returns the AST.
+    """
+    parser = Parser(logger=logger)
+    return parser.parse(data)

@@ -2,7 +2,7 @@ import unittest
 
 import sure
 
-from compiler import parse, lex, error, ast, type
+from compiler import ast, error, lex, parse, type
 
 
 class TestParser(unittest.TestCase):
@@ -16,25 +16,24 @@ class TestParser(unittest.TestCase):
     def _parse(self, data, start='program'):
         mock = error.LoggerMock()
 
-        lexer = lex.Lexer(logger=mock, optimize=1)
-
         # memoization
         try:
             parser = self.parsers[start]
         except:
             parser = self.parsers[start] = parse.Parser(
                 logger=mock,
-                optimize=0,
-                start=start,
-                debug=0
+                optimize=False,
+                start=start
             )
 
-        tree = parser.parse(
-            data=data,
-            lexer=lexer
-        )
+        tree = parser.parse(data=data)
 
         return tree
+
+    def test_parse(self):
+        parse.parse("").should.be.equal(ast.Program([]))
+        mock = error.LoggerMock()
+        parse.parse("", logger=mock).should.be.equal(ast.Program([]))
 
     def test_empty_program(self):
        self._parse("").should.be.equal(ast.Program([]))
