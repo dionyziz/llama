@@ -37,7 +37,7 @@ let rec treePrint t =
 let rec treeCount t =
    match t with
      Nil          -> 0
-   | Node n t1 t2 -> 1 + treeCount t2 + treeCount t2
+   | Node n t1 t2 -> 1 + treeCount t1 + treeCount t2
    end
 
 let main =
