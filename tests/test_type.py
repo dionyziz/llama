@@ -72,73 +72,67 @@ class TestType(unittest.TestCase):
         for builtin_type in ast.builtin_types_map.values():
             (type.Table.is_array(builtin_type)).shouldnt.be.true
 
-    def _assert_validate_success(self, t):
+    def _validate(self, t):
         mock = error.LoggerMock()
         typeTable = type.Table(logger=mock)
         typeTable.validate(t)
-        mock.success.should.be.ok
-
-    def _assert_validate_failure(self, t):
-        mock = error.LoggerMock()
-        typeTable = type.Table(logger=mock)
-        typeTable.validate(t)
-        mock.success.shouldnt.be.ok
+        return mock.success
 
     def test_validate(self):
         for builtin_type in ast.builtin_types_map.values():
-            self._assert_validate_success(builtin_type())
+            self._validate(builtin_type()).should.be.ok
 
         t = ast.User('foo')
-        self._assert_validate_success(t)
+        self._validate(t).should.be.ok
 
         t = ast.Ref(ast.Int())
-        self._assert_validate_success(t)
+        self._validate(t).should.be.ok
 
         t = ast.Ref(ast.User('foo'))
-        self._assert_validate_success(t)
+        self._validate(t).should.be.ok
 
         t = ast.Array(ast.Int())
-        self._assert_validate_success(t)
+        self._validate(t).should.be.ok
 
         t = ast.Array(ast.Int(), 2)
-        self._assert_validate_success(t)
+        self._validate(t).should.be.ok
 
         t = ast.Array(ast.User('foo'))
-        self._assert_validate_success(t)
+        self._validate(t).should.be.ok
 
         t = ast.Array(ast.Ref(ast.User('foo')))
-        self._assert_validate_success(t)
+        self._validate(t).should.be.ok
 
         t = ast.Function(ast.Int(), ast.Int())
-        self._assert_validate_success(t)
+        self._validate(t).should.be.ok
 
         t = ast.Function(ast.Ref(ast.Int()), ast.Int())
-        self._assert_validate_success(t)
+        self._validate(t).should.be.ok
 
         t = ast.Function(ast.Int(), ast.Ref(ast.Int()))
-        self._assert_validate_success(t)
+        self._validate(t).should.be.ok
 
         t = ast.Function(ast.Array(ast.Int()), ast.Int())
-        self._assert_validate_success(t)
+        self._validate(t).should.be.ok
 
 
         t = ast.Ref(ast.Array(ast.Int()))
-        self._assert_validate_failure(t)
+        self._validate(t).shouldnt.be.ok
 
         t = ast.Ref(ast.Ref(ast.Array(ast.Int())))
-        self._assert_validate_failure(t)
+        self._validate(t).shouldnt.be.ok
 
         t = ast.Array(ast.Array(ast.Int()))
-        self._assert_validate_failure(t)
+        self._validate(t).shouldnt.be.ok
 
         t = ast.Array(ast.Ref(ast.Array(ast.Array(ast.Int()))))
-        self._assert_validate_failure(t)
+        self._validate(t).shouldnt.be.ok
 
         t = ast.Function(ast.Int(), ast.Array(ast.Int()))
-        self._assert_validate_failure(t)
+        self._validate(t).shouldnt.be.ok
 
         t = ast.Function(ast.Array(ast.Array(ast.Int())), ast.Int())
-        self._assert_validate_failure(t)
+        self._validate(t).shouldnt.be.ok
 
         t = ast.Function(ast.Int(), ast.Ref(ast.Array(ast.Int())))
-        self._assert_validate_failure(t)
+        self._validate(t).shouldnt.be.ok
