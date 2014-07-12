@@ -70,7 +70,6 @@ class TestParser(unittest.TestCase):
         self._parse("(my_parameter: int)", "param").should.be.equal(ast.Param("my_parameter", ast.Int()))
 
     def test_builtin_type(self):
-        self._parse("int", "builtin_type").should.be.equal(ast.Int())
         self._parse("int", "type").should.be.equal(ast.Int())
 
     def test_star_comma_seq(self):
@@ -78,36 +77,39 @@ class TestParser(unittest.TestCase):
         self._parse("*, *, *", "star_comma_seq").should.be.equal(3)
 
     def test_array_type(self):
-        self._parse("array of int", "array_type").should.be.equal(ast.Array(ast.Int()))
-        self._parse("array [*, *] of int", "array_type").should.be.equal(ast.Array(ast.Int(), 2))
+        self._parse("array of int", "type").should.be.equal(ast.Array(ast.Int()))
+        self._parse("array [*, *] of int", "type").should.be.equal(ast.Array(ast.Int(), 2))
 
     def test_function_type(self):
-        self._parse("int -> float", "function_type").should.be.equal(ast.Function(ast.Int(), ast.Float()))
+        self._parse("int -> float", "type").should.be.equal(ast.Function(ast.Int(), ast.Float()))
 
     def test_ref_type(self):
-        self._parse("int ref", "ref_type").should.be.equal(ast.Ref(ast.Int()))
+        self._parse("int ref", "type").should.be.equal(ast.Ref(ast.Int()))
 
     def test_user_type(self):
-        self._parse("mytype", "user_type").should.be.equal(ast.User("mytype"))
+        self._parse("mytype", "type").should.be.equal(ast.User("mytype"))
 
     def test_type_paren(self):
         self._parse("(int)", "type").should.be.equal(ast.Int())
 
     def test_const(self):
-        self._parse("5", "simple_expr").should.be.equal(ast.ConstExpression(ast.Int(), 5))
-        self._parse("5.7", "simple_expr").should.be.equal(ast.ConstExpression(ast.Float(), 5.7))
-        self._parse("'z'", "simple_expr").should.be.equal(ast.ConstExpression(ast.Char(), 'z'))
-        self._parse('"z"', "simple_expr").should.be.equal(ast.ConstExpression(ast.String(), ['z', '\0']))
-        self._parse("true", "simple_expr").should.be.equal(ast.ConstExpression(ast.Bool(), True))
-        self._parse("()", "simple_expr").should.be.equal(ast.ConstExpression(ast.Unit(), None))
+        self._parse("5", "expr").should.be.equal(ast.ConstExpression(ast.Int(), 5))
+        self._parse("5.7", "expr").should.be.equal(ast.ConstExpression(ast.Float(), 5.7))
+        self._parse("'z'", "expr").should.be.equal(ast.ConstExpression(ast.Char(), 'z'))
+        self._parse('"z"', "expr").should.be.equal(ast.ConstExpression(ast.String(), ['z', '\0']))
+        self._parse("true", "expr").should.be.equal(ast.ConstExpression(ast.Bool(), True))
+        self._parse("()", "expr").should.be.equal(ast.ConstExpression(ast.Unit(), None))
 
     def test_constr(self):
         self._parse("Node", "constr").should.be.equal(ast.Constructor("Node", []))
         self._parse("Node of int", "constr").should.be.equal(ast.Constructor("Node", [ast.Int()]))
 
     def test_simple_variable_def(self):
-        self._parse("mutable foo", "simple_variable_def").should.be.equal(ast.VariableDef("foo"))
-        self._parse("mutable foo : int", "simple_variable_def").should.be.equal(ast.VariableDef("foo", ast.Ref(ast.Int())))
+        self._parse("mutable foo : int", "def").should.be.equal(
+            ast.VariableDef("foo", ast.Ref(ast.Int()))
+        )
+
+        self._parse("mutable foo", "def").should.be.equal(ast.VariableDef("foo"))
 
     def test_array_variable_def(self):
         self._parse("mutable foo [2]", "def").should.be.equal(ast.ArrayVariableDef("foo", [TestParser.two]))
