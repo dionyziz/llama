@@ -237,9 +237,9 @@ class Parser:
         self._expand_seq(p, 1, 2)
 
     def p_simple_expr(self, p):
-        """simple_expr : GENID LBRACKET expr_comma_seq RBRACKET
-                       | LPAREN expr RPAREN
-                       | BANG simple_expr
+        """simple_expr : array_simple_expr
+                       | paren_simple_expr
+                       | bang_simple_expr
                        | bconst_simple_expr
                        | cconst_simple_expr
                        | conid_simple_expr
@@ -248,16 +248,20 @@ class Parser:
                        | iconst_simple_expr
                        | sconst_simple_expr
                        | uconst_simple_expr"""
-        if len(p) == 5:
-            p[0] = ast.ArrayExpression(p[1], p[3])
-        elif len(p) == 4:
-            p[0] = p[2]
-        elif len(p) == 3:
-            # bang
-            p[0] = ast.UnaryExpression(p[1], p[2])
-        else:
-            p[0] = p[1]
+        p[0] = p[1]
         _track(p)
+
+    def p_array_simple_expr(self, p):
+        """array_simple_expr : GENID LBRACKET expr_comma_seq RBRACKET"""
+        p[0] = ast.ArrayExpression(p[1], p[3])
+
+    def p_paren_simple_expr(self, p):
+        """paren_simple_expr : LPAREN expr RPAREN"""
+        p[0] = p[2]
+
+    def p_bang_simple_expr(self, p):
+        """bang_simple_expr : BANG simple_expr"""
+        p[0] = ast.UnaryExpression(p[1], p[2])
 
     def p_bconst_simple_expr(self, p):
         """bconst_simple_expr : TRUE
