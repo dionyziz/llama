@@ -574,3 +574,13 @@ class Lexer:
         if tok is None:
             raise StopIteration
         return tok
+
+
+def lex(data, logger=None):
+    """
+    Lex the given string using the default Lexer.
+    Returns an iterator over the string tokens.
+    """
+    lexer = Lexer(logger=logger)
+    lexer.input(data)
+    return iter(lexer)
