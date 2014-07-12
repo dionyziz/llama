@@ -593,3 +593,12 @@ class Parser:
         if lexer is None:
             lexer = lex.Lexer(logger=self.logger)
         return self.parser.parse(data, lexer, debug=self.verbose)
+
+
+def parse(data, logger=None):
+    """
+    Parse the given string using the default Parser.
+    Returns the AST.
+    """
+    parser = Parser(logger=logger)
+    return parser.parse(data)
