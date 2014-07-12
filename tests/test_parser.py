@@ -81,7 +81,8 @@ class TestParser(unittest.TestCase):
         self._parse("my_parameter: int", "param").should.be.equal(None)
 
     def test_builtin_type(self):
-        self._parse("int", "type").should.be.equal(ast.Int())
+        for type_name, type_node in ast.builtin_types_map.items():
+            self._parse(type_name, "type").should.be.equal(type_node())
 
     def test_star_comma_seq(self):
         self._parse("*", "star_comma_seq").should.be.equal(1)
