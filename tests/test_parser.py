@@ -60,14 +60,25 @@ class TestParser(unittest.TestCase):
         self._parse("let x = 1", "letdef").should.be.equal(letdef)
         self._parse("let rec x = 1", "letdef").should.be.equal(letdefrec)
 
-    def test_empty_param_list(self):
+    def test_function_def(self):
+        xfunc = ast.FunctionDef("x", [], TestParser.one)
+        self._parse("let x = 1", "def").should.be.equal(xfunc)
+        self._parse("let x y (z:int) = 1", "def").should.be.equal(
+            ast.FunctionDef("x", [ast.Param("y"), ast.Param("z", ast.Int())], TestParser.one)
+        )
+        self._parse("let x y z:int = 1", "def").should.be.equal(
+            ast.FunctionDef("x", [ast.Param("y"), ast.Param("z")], TestParser.one, ast.Int())
+        )
+
+    def test_param_list(self):
         self._parse("", "param_list").should.be.equal([])
+        self._parse("my_param", "param_list").should.be.equal([ast.Param("my_param")])
+        self._parse("a b", "param_list").should.be.equal([ast.Param("a"), ast.Param("b")])
 
-    def test_param_without_type(self):
+    def test_param(self):
         self._parse("my_parameter", "param").should.be.equal(ast.Param("my_parameter"))
-
-    def test_param_with_type(self):
         self._parse("(my_parameter: int)", "param").should.be.equal(ast.Param("my_parameter", ast.Int()))
+        self._parse("my_parameter: int", "param").should.be.equal(None)
 
     def test_builtin_type(self):
         self._parse("int", "type").should.be.equal(ast.Int())
