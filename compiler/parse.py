@@ -202,11 +202,11 @@ class Parser:
                 | FPLUS expr %prec SIGN
                 | FMINUS expr %prec SIGN
                 | begin_end_expr
-                | ccall_expr
+                | constructor_call_expr
                 | delete_expr
                 | dim_expr
                 | for_expr
-                | gcall_expr
+                | function_call_expr
                 | in_expr
                 | if_expr
                 | match_expr
@@ -226,8 +226,8 @@ class Parser:
         p[0] = p[2]
         _track(p)
 
-    def p_ccall_expr(self, p):
-        """ccall_expr : CONID simple_expr_seq"""
+    def p_constructor_call_expr(self, p):
+        """constructor_call_expr : CONID simple_expr_seq"""
         p[0] = ast.ConstructorCallExpression(p[1], p[2])
         _track(p)
 
@@ -323,8 +323,8 @@ class Parser:
             p[0] = ast.ForExpression(p[2], p[4], p[6], p[8], isDown=True)
         _track(p)
 
-    def p_gcall_expr(self, p):
-        """gcall_expr : GENID simple_expr_seq"""
+    def p_function_call_expr(self, p):
+        """function_call_expr : GENID simple_expr_seq"""
         p[0] = ast.FunctionCallExpression(p[1], p[2])
         _track(p)
 
