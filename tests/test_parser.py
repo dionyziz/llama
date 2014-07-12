@@ -6,13 +6,18 @@ from compiler import parse, lex, error, ast, type
 
 
 class TestParser(unittest.TestCase):
-    def setUp(self):
-        self.parsers = {}
+    parsers = {}
 
-        self.one = self._parse("1", "expr")
-        self.two = self._parse("2", "expr")
-        self.true = self._parse("true", "expr")
+    @classmethod
+    def setUpClass(cls):
+        cls.one = cls._parse("1", "expr")
+        cls.two = cls._parse("2", "expr")
+        cls.true = cls._parse("true", "expr")
 
+        cls.xfunc = cls._parse("let x = 1", "letdef")
+        cls.yfunc = cls._parse("let y = 2", "letdef")
+
+    @classmethod
     def _parse(self, data, start='program'):
         mock = error.LoggerMock()
 
@@ -20,9 +25,9 @@ class TestParser(unittest.TestCase):
 
         # memoization
         try:
-            parser = self.parsers[start]
+            parser = TestParser.parsers[start]
         except:
-            parser = self.parsers[start] = parse.Parser(
+            parser = TestParser.parsers[start] = parse.Parser(
                 logger=mock,
                 optimize=0,
                 start=start,
@@ -41,10 +46,10 @@ class TestParser(unittest.TestCase):
 
     def test_letdef(self):
         letdef = ast.LetDef(
-            [ast.FunctionDef("x", [], self.one)]
+            [ast.FunctionDef("x", [], TestParser.one)]
         )
         letdefrec = ast.LetDef(
-            [ast.FunctionDef("x", [], self.one)], True
+            [ast.FunctionDef("x", [], TestParser.one)], True
         )
         self._parse("let x = 1", "letdef").should.be.equal(letdef)
         self._parse("let rec x = 1", "letdef").should.be.equal(letdefrec)
@@ -99,8 +104,8 @@ class TestParser(unittest.TestCase):
         self._parse("mutable foo : int", "simple_variable_def").should.be.equal(ast.VariableDef("foo", ast.Ref(ast.Int())))
 
     def test_array_variable_def(self):
-        self._parse("mutable foo [2]", "array_variable_def").should.be.equal(ast.ArrayVariableDef("foo", [self.two]))
-        self._parse("mutable foo [2] : int", "array_variable_def").should.be.equal(ast.ArrayVariableDef("foo", [self.two], ast.Array(ast.Int())))
+        self._parse("mutable foo [2]", "def").should.be.equal(ast.ArrayVariableDef("foo", [TestParser.two]))
+        self._parse("mutable foo [2] : int", "def").should.be.equal(ast.ArrayVariableDef("foo", [TestParser.two], ast.Array(ast.Int())))
 
     def test_while_expr(self):
         self._parse("while true do true done", "expr").should.be.equal(ast.WhileExpression(self.true, self.true))
@@ -110,8 +115,8 @@ class TestParser(unittest.TestCase):
         self._parse("if true then true", "expr").should.be.equal(ast.IfExpression(self.true, self.true))
 
     def test_for_expr(self):
-        self._parse("for i = 1 to 1 do true done", "expr").should.be.equal(ast.ForExpression("i", self.one, self.one, self.true))
-        self._parse("for i = 1 downto 1 do true done", "expr").should.be.equal(ast.ForExpression("i", self.one, self.one, self.true, True))
+        self._parse("for i = 1 to 1 do true done", "expr").should.be.equal(ast.ForExpression("i", TestParser.one, TestParser.one, self.true))
+        self._parse("for i = 1 downto 1 do true done", "expr").should.be.equal(ast.ForExpression("i", TestParser.one, TestParser.one, self.true, True))
 
     def test_pattern(self):
         self._parse("true", "pattern").should.be.equal(self.true)
@@ -128,15 +133,15 @@ class TestParser(unittest.TestCase):
         parsed = self._parse(expr, "expr")
         self.assertTrue(isinstance(parsed, ast.BinaryExpression))
         self.assertEqual(parsed.operator, operator)
-        self.assertEqual(parsed.leftOperand, self.one)
-        self.assertEqual(parsed.rightOperand, self.two)
+        self.assertEqual(parsed.leftOperand, TestParser.one)
+        self.assertEqual(parsed.rightOperand, TestParser.two)
 
     def _check_unary_operator(self, operator):
         expr = "%s 1" % operator
         parsed = self._parse(expr, "expr")
         self.assertTrue(isinstance(parsed, ast.UnaryExpression), "Unary operator '%s' failed to parse as a unary expression" % operator)
         self.assertEqual(parsed.operator, operator, "Unary operator '%s' failed to parse; instead, it is parsing as '%s'" % (operator, parsed.operator))
-        self.assertEqual(parsed.operand, self.one, "Unary operator '%s' did not correctly provide the value for its argument" % operator)
+        self.assertEqual(parsed.operand, TestParser.one, "Unary operator '%s' did not correctly provide the value for its argument" % operator)
 
     def test_binary_expr(self):
         for operator in lex.binary_operators.keys():
