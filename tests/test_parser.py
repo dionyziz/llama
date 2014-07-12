@@ -88,17 +88,21 @@ class TestParser(unittest.TestCase):
         self._parse("*, *, *", "star_comma_seq").should.be.equal(3)
 
     def test_array_type(self):
-        self._parse("array of int", "type").should.be.equal(ast.Array(ast.Int()))
+        array_node = ast.Array(ast.Int())
+        self._parse("array of int", "type").should.be.equal(array_node)
         self._parse("array [*, *] of int", "type").should.be.equal(ast.Array(ast.Int(), 2))
 
     def test_function_type(self):
-        self._parse("int -> float", "type").should.be.equal(ast.Function(ast.Int(), ast.Float()))
+        func_node = ast.Function(ast.Int(), ast.Float())
+        self._parse("int -> float", "type").should.be.equal(func_node)
 
     def test_ref_type(self):
-        self._parse("int ref", "type").should.be.equal(ast.Ref(ast.Int()))
+        ref_node = ast.Ref(ast.Int())
+        self._parse("int ref", "type").should.be.equal(ref_node)
 
     def test_user_type(self):
-        self._parse("mytype", "type").should.be.equal(ast.User("mytype"))
+        user_node = ast.User("mytype")
+        self._parse("mytype", "type").should.be.equal(user_node)
 
     def test_type_paren(self):
         self._parse("(int)", "type").should.be.equal(ast.Int())
@@ -116,14 +120,16 @@ class TestParser(unittest.TestCase):
         self._parse("Node of int", "constr").should.be.equal(ast.Constructor("Node", [ast.Int()]))
 
     def test_simple_variable_def(self):
+        foo_var = ast.VariableDef("foo")
         self._parse("mutable foo : int", "def").should.be.equal(
             ast.VariableDef("foo", ast.Ref(ast.Int()))
         )
 
-        self._parse("mutable foo", "def").should.be.equal(ast.VariableDef("foo"))
+        self._parse("mutable foo", "def").should.be.equal(foo_var)
 
     def test_array_variable_def(self):
-        self._parse("mutable foo [2]", "def").should.be.equal(ast.ArrayVariableDef("foo", [TestParser.two]))
+        array_var = ast.ArrayVariableDef("foo", [TestParser.two])
+        self._parse("mutable foo [2]", "def").should.be.equal(array_var)
         self._parse("mutable foo [2] : int", "def").should.be.equal(ast.ArrayVariableDef("foo", [TestParser.two], ast.Array(ast.Int())))
 
     def test_while_expr(self):
