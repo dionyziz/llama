@@ -12,9 +12,13 @@ all: clean prepare test
 beauty:
 	pep8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
 
-test: clean prepare $(BINPATH)/ptest.sh
-	$(BINPATH)/ptest.sh
+test: clean unittest prepare functionaltests
+
+unittest:
 	nosetests
+
+functionaltests: $(BINPATH)/ptest.sh
+	$(BINPATH)/ptest.sh
 
 static:
 	pylint -E $(SOURCEFILES)
