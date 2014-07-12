@@ -44,6 +44,12 @@ class TestParser(unittest.TestCase):
     def test_empty_program(self):
         self._parse("").should.be.equal(ast.Program([]))
 
+
+    def test_def_list(self):
+        self._parse("", "def_list").should.be.equal([])
+        self._parse("let x = 1", "def_list").should.be.equal([TestParser.xfunc])
+        self._parse("let x = 1 let y = 2", "def_list").should.be.equal([TestParser.xfunc, TestParser.yfunc])
+
     def test_letdef(self):
         letdef = ast.LetDef(
             [ast.FunctionDef("x", [], TestParser.one)]
