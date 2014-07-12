@@ -67,18 +67,18 @@ class TestType(unittest.TestCase):
             self._process_typedef(t).shouldnt.be.ok
 
     def test_isarray(self):
-        (type.Table.is_array(ast.Array(ast.Int()))).should.be.true
-        (type.Table.is_array(ast.Array(ast.Int(), 2))).should.be.true
-        (type.Table.is_array(ast.Array(ast.User('foo')))).should.be.true
+        (type.Validator.is_array(ast.Array(ast.Int()))).should.be.true
+        (type.Validator.is_array(ast.Array(ast.Int(), 2))).should.be.true
+        (type.Validator.is_array(ast.Array(ast.User('foo')))).should.be.true
 
-        (type.Table.is_array(ast.User('foo'))).shouldnt.be.true
+        (type.Validator.is_array(ast.User('foo'))).shouldnt.be.true
         for builtin_type in ast.builtin_types_map.values():
-            (type.Table.is_array(builtin_type)).shouldnt.be.true
+            (type.Validator.is_array(builtin_type)).shouldnt.be.true
 
     def _validate(self, t):
         mock = error.LoggerMock()
-        typeTable = type.Table(logger=mock)
-        typeTable.validate(t)
+        validator = type.Validator(logger=mock)
+        validator.validate(t)
         return mock.success
 
     def test_validate(self):

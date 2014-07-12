@@ -13,7 +13,97 @@
 
 from collections import namedtuple
 
-from compiler import ast
+import compiler
+from compiler import ast, error
+
+
+class Validator:
+    """
+    Type validator. Ensures type structure and semantics follow
+    language spec.
+    """
+
+    # Logger used for logging events. Possibly shared with other modules.
+    logger = None
+    _dispatcher = None
+
+    @staticmethod
+    def is_array(t):
+        """Check if a type is an array type."""
+        return isinstance(t, ast.Array)
+
+    def _validate_array(self, t):
+        """An 'array of T' type is valid iff T is a valid, non-array type."""
+        basetype = t.type
+        if self.is_array(basetype):
+            self.logger.error(
+                "%d:%d: error: Invalid type: Array of array",
+                t.lineno,
+                t.lexpos
+            )
+            return False
+        return self.validate(basetype)
+
+    def _validate_builtin(self, t):
+        """A builtin type is always valid."""
+        return True
+
+    def _validate_function(self, t):
+        """
+        A 'T1 -> T2' type is valid iff T1 is a valid type and T2 is a
+        valid, non-array type.
+        """
+        t1, t2 = t.fromType, t.toType
+        if self.is_array(t2):
+            self.logger.error(
+                "%d:%d: error: Invalid type: Function returning array",
+                t.lineno,
+                t.lexpos
+            )
+            return False
+        return self.validate(t1) and self.validate(t2)
+
+    def _validate_ref(self, t):
+        """A 'ref T' type is valid iff T is a valid, non-array type."""
+        basetype = t.type
+        if self.is_array(basetype):
+            self.logger.error(
+                "%d:%d: error: Invalid type: Reference of array",
+                t.lineno,
+                t.lexpos
+            )
+            return False
+        return self.validate(basetype)
+
+    def _validate_user(self, t):
+        """A user-defined type is always valid."""
+        return True
+
+    def __init__(self, logger=None):
+        """Create a new Validator."""
+        if logger is None:
+            self.logger = error.Logger(inputfile='<stdin>')
+        else:
+            self.logger = logger
+
+        # Bulk-add dispatching for builtin types.
+        self._dispatcher = {
+            type(typecon()): self._validate_builtin
+            for typecon in ast.builtin_types_map.values()
+        }
+
+        # Add dispatching for other types.
+        self._dispatcher.update((
+            (compiler.ast.Array, self._validate_array),
+            (compiler.ast.Function, self._validate_function),
+            (compiler.ast.Ref, self._validate_ref),
+            (compiler.ast.User, self._validate_user)
+        ))
+
+
+    def validate(self, t):
+        """Verify that a type is a valid type."""
+        return self._dispatcher[type(t)](t)
 
 
 class Table:
@@ -48,48 +138,6 @@ class Table:
 
     # Logger used for logging events. Possibly shared with other modules.
     logger = None
-
-    @staticmethod
-    def is_array(t):
-        """Check if a type is an array type."""
-        return isinstance(t, ast.Array)
-
-    def validate(self, t):
-        """Verify that a type is a valid type."""
-
-        if isinstance(t, ast.Builtin):
-            return True
-        elif isinstance(t, ast.Ref):
-            tt = t.type
-            if self.is_array(tt):
-                self.logger.error(
-                    "%d:%d: error: Invalid type: Reference of array",
-                    t.lineno,
-                    t.lexpos
-                )
-                return False
-            return self.validate(tt)
-        elif isinstance(t, ast.Array):
-            tt = t.type
-            if self.is_array(tt):
-                self.logger.error(
-                    "%d:%d: error: Invalid type: Array of array",
-                    t.lineno,
-                    t.lexpos
-                )
-                return False
-            return self.validate(tt)
-        elif isinstance(t, ast.Function):
-            t1, t2 = t.fromType, t.toType
-            if self.is_array(t2):
-                self.logger.error(
-                    "%d:%d: error: Invalid type: Function returning array",
-                    t.lineno,
-                    t.lexpos
-                )
-                return False
-            return self.validate(t1) and self.validate(t2)
-        return True  # FIXME: What to do on user-defined type?
 
     def process(self, typeDefList):
         """
