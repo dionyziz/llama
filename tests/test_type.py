@@ -91,6 +91,9 @@ class TestType(unittest.TestCase):
         t = ast.Ref(ast.User('foo'))
         self._validate(t).should.be.ok
 
+        t = ast.Ref(ast.Ref(ast.Int()))
+        self._validate(t).should.be.ok
+
         t = ast.Array(ast.Int())
         self._validate(t).should.be.ok
 
