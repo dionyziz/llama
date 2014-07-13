@@ -2,17 +2,16 @@ import itertools
 import unittest
 
 import sure
-from compiler import ast, error, lex, parse, type
+
+from compiler import ast, error, parse, type
 
 
 class TestType(unittest.TestCase):
 
     def _process_typedef(self, typeDefListList):
         mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock, optimize=1)
-        parser = parse.Parser(logger=mock, optimize=1)
+        tree = parse.parse(typeDefListList, logger=mock)
         typeTable = type.Table(logger=mock)
-        tree = parser.parse(data=typeDefListList, lexer=lexer)
         for typeDef in tree:
             typeTable.process(typeDef)
         return typeTable.logger.success
