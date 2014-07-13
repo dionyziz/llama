@@ -15,7 +15,7 @@ beauty:
 test: clean unittest prepare functionaltests
 
 unittest:
-	nosetests
+	for i in `find tests -iname 'test_*.py'`; do echo "\n\nRunning $$i"; nosetests $$i || exit 2; done
 
 functionaltests: $(BINPATH)/ptest.sh
 	$(BINPATH)/ptest.sh
