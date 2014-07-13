@@ -86,7 +86,7 @@ class TestType(unittest.TestCase):
 
     def test_validate(self):
         for builtin_type in ast.builtin_types_map.values():
-            self._assert_validate_success(builtin_type)
+            self._assert_validate_success(builtin_type())
 
         t = ast.User('foo')
         self._assert_validate_success(t)
