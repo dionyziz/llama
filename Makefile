@@ -12,7 +12,7 @@ all: clean prepare test
 beauty:
 	pep8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
 
-test: clean unittest prepare functionaltests
+test: clean prepare unittest functionaltests
 
 unittest:
 	for i in `find tests -iname 'test_*.py'`; do echo "\n\nRunning $$i"; nosetests $$i || exit 2; done
