@@ -245,18 +245,12 @@ class WhileExpression(Expression):
 
 class VariableDef(Def):
     def __init__(self, name, type=None):
-        if type is not None:
-            assert(isinstance(type, Type))
-
         self.name = name
         self.type = type
 
 
 class ArrayVariableDef(VariableDef):
     def __init__(self, name, dimensions, type=None):
-        if type is not None:
-            assert(isinstance(type, Type))
-
         self.name = name
         self.dimensions = dimensions
         self.type = type
@@ -269,8 +263,6 @@ class TypeDefList(ListNode):
 
 class TDef(ListNode):
     def __init__(self, type, list):
-        assert(isinstance(type, Type))
-
         self.type = type
         self.list = list
 
