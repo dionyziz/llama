@@ -7,19 +7,20 @@ from compiler import ast, error, lex, parse
 
 class TestAST(unittest.TestCase):
 # TODO: remove boilerplate code after simple_api branch gets merged
-    def setUp(self):
-        self.parsers = {}
 
-    def _parse(self, data, start='program'):
+    parsers = {}
+
+    @classmethod
+    def _parse(cls, data, start='program'):
         mock = error.LoggerMock()
 
         lexer = lex.Lexer(logger=mock, optimize=1)
 
         # memoization
         try:
-            parser = self.parsers[start]
+            parser = TestAST.parsers[start]
         except:
-            parser = self.parsers[start] = parse.Parser(
+            parser = TestAST.parsers[start] = parse.Parser(
                 logger=mock,
                 optimize=0,
                 start=start,
@@ -40,7 +41,7 @@ class TestAST(unittest.TestCase):
     def test_regression_attr_equality(self):
         raise unittest.SkipTest("re-enable me after #25 gets merged")
 
-        tdef = self._parse("type color = Red", "typedef")
+        tdef = TestAST._parse("type color = Red", "typedef")
         tdef2 = ast.TypeDefList([ast.TDef(ast.User("color"), [ast.Constructor("Red")])])
 
         try:
