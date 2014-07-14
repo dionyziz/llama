@@ -46,7 +46,7 @@ class Node:
                 safe_values.append(value)
             else:
                 safe_values.append('(non-scalar of type %s)' % value.__class__.__name__)
-        pairs = ["%s = '%s'" % (attr, value) for (attr, value) in zip(attrs, safe_values)]
+        pairs = ("%s = '%s'" % (attr, value) for (attr, value) in zip(attrs, safe_values))
         return "ASTNode:%s with attributes:\n\t* %s" % (self.__class__.__name__, "\n\t* ".join(pairs))
 
 
