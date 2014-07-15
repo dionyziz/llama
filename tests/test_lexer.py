@@ -1,4 +1,3 @@
-import re
 import string
 import unittest
 
@@ -46,7 +45,9 @@ class TestLexer(unittest.TestCase):
 
     def test_keywords(self):
         for input_program in lex.reserved_words:
-            self._assert_individual_token(input_program, input_program.upper(), input_program)
+            self._assert_individual_token(
+                input_program, input_program.upper(), input_program
+            )
 
     def test_genid(self):
         self._assert_individual_token("koko", "GENID", "koko")

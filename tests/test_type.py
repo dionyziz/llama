@@ -62,10 +62,18 @@ class TestType(unittest.TestCase):
         (i2float).shouldnt.be.equal(ast.Ref(ast.Int()))
         (i2float).shouldnt.be.equal(ast.Array(ast.Int()))
 
-    def _process_typedef(self, typeDefListList):
+    @classmethod
+    def setUpClass(cls):
         mock = error.LoggerMock()
-        parse.parse(typeDefListList, logger=mock)
-        return mock.success
+        cls.parser = parse.Parser(logger=mock, optimize=False)
+
+    @classmethod
+    def _process_typedef(cls, typeDefListList):
+        cls.parser.parse(data=typeDefListList)
+        return cls.parser.logger.success
+
+    def tearDown(self):
+        TestType.parser.logger.clear()
 
     def test_type_process(self):
         right_testcases = (
@@ -82,7 +90,10 @@ class TestType(unittest.TestCase):
         )
 
         for t in right_testcases:
-            self._process_typedef(t).should.be.ok
+            self.assertTrue(
+                self._process_typedef(t),
+                "'%s' type processing should be OK" % t
+            )
 
         wrong_testcases = (
             """
@@ -114,4 +125,7 @@ class TestType(unittest.TestCase):
         )
 
         for t in wrong_testcases:
-            self._process_typedef(t).shouldnt.be.ok
+            self.assertFalse(
+                self._process_typedef(t),
+                "'%s' type processing should not be OK" % t
+            )

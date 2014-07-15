@@ -85,7 +85,7 @@ class Table:
                     for argType in constructor.list:
                         if argType not in self.knownTypes:
                             self.logger.error(
-                                    "%d:%d: error: Undefined type '%s'" % (
+                                "%d:%d: error: Undefined type '%s'" % (
                                     argType.lexpos,
                                     argType.lineno,
                                     argType.name

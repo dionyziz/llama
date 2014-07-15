@@ -82,7 +82,7 @@ class Parser:
 
     def p_def(self, p):
         """def : function_def
-               | variable_def"""
+               | var_def"""
         p[0] = p[1]
         _track(p)
 
@@ -202,11 +202,11 @@ class Parser:
                 | FPLUS expr %prec SIGN
                 | FMINUS expr %prec SIGN
                 | begin_end_expr
-                | ccall_expr
+                | constructor_call_expr
                 | delete_expr
                 | dim_expr
                 | for_expr
-                | gcall_expr
+                | function_call_expr
                 | in_expr
                 | if_expr
                 | match_expr
@@ -226,8 +226,8 @@ class Parser:
         p[0] = p[2]
         _track(p)
 
-    def p_ccall_expr(self, p):
-        """ccall_expr : CONID simple_expr_seq"""
+    def p_constructor_call_expr(self, p):
+        """constructor_call_expr : CONID simple_expr_seq"""
         p[0] = ast.ConstructorCallExpression(p[1], p[2])
         _track(p)
 
@@ -237,9 +237,9 @@ class Parser:
         self._expand_seq(p, 1, 2)
 
     def p_simple_expr(self, p):
-        """simple_expr : GENID LBRACKET expr_comma_seq RBRACKET
-                       | LPAREN expr RPAREN
-                       | BANG simple_expr
+        """simple_expr : array_simple_expr
+                       | paren_simple_expr
+                       | bang_simple_expr
                        | bconst_simple_expr
                        | cconst_simple_expr
                        | conid_simple_expr
@@ -248,15 +248,22 @@ class Parser:
                        | iconst_simple_expr
                        | sconst_simple_expr
                        | uconst_simple_expr"""
-        if len(p) == 5:
-            p[0] = ast.ArrayExpression(p[1], p[3])
-        elif len(p) == 4:
-            p[0] = p[2]
-        elif len(p) == 3:
-            # bang
-            p[0] = ast.UnaryExpression(p[1], p[2])
-        else:
-            p[0] = p[1]
+        p[0] = p[1]
+        _track(p)
+
+    def p_array_simple_expr(self, p):
+        """array_simple_expr : GENID LBRACKET expr_comma_seq RBRACKET"""
+        p[0] = ast.ArrayExpression(p[1], p[3])
+        _track(p)
+
+    def p_paren_simple_expr(self, p):
+        """paren_simple_expr : LPAREN expr RPAREN"""
+        p[0] = p[2]
+        _track(p)
+
+    def p_bang_simple_expr(self, p):
+        """bang_simple_expr : BANG simple_expr"""
+        p[0] = ast.UnaryExpression(p[1], p[2])
         _track(p)
 
     def p_bconst_simple_expr(self, p):
@@ -315,16 +322,23 @@ class Parser:
         _track(p)
 
     def p_for_expr(self, p):
-        """for_expr : FOR GENID EQ expr DOWNTO expr DO expr DONE
-                    | FOR GENID EQ expr TO expr DO expr DONE"""
-        if p[5] == 'TO':
-            p[0] = ast.ForExpression(p[2], p[4], p[6], p[8])
-        else:
-            p[0] = ast.ForExpression(p[2], p[4], p[6], p[8], isDown=True)
+        """for_expr : for_to_expr
+                    | for_downto_expr"""
+        p[0] = p[1]
         _track(p)
 
-    def p_gcall_expr(self, p):
-        """gcall_expr : GENID simple_expr_seq"""
+    def p_for_to_expr(self, p):
+        """for_to_expr : FOR GENID EQ expr TO expr DO expr DONE"""
+        p[0] = ast.ForExpression(p[2], p[4], p[6], p[8])
+        _track(p)
+
+    def p_for_downto_expr(self, p):
+        """for_downto_expr : FOR GENID EQ expr DOWNTO expr DO expr DONE"""
+        p[0] = ast.ForExpression(p[2], p[4], p[6], p[8], isDown=True)
+        _track(p)
+
+    def p_function_call_expr(self, p):
+        """function_call_expr : GENID simple_expr_seq"""
         p[0] = ast.FunctionCallExpression(p[1], p[2])
         _track(p)
 
@@ -442,21 +456,28 @@ class Parser:
         p[0] = ast.WhileExpression(p[2], p[4])
         _track(p)
 
-    def p_variable_def(self, p):
-        """variable_def : array_variable_def
-                        | simple_variable_def"""
+    def p_var_def(self, p):
+        """var_def : array_var_def
+                   | simple_var_def"""
         p[0] = p[1]
         _track(p)
 
-    def p_array_variable_def(self, p):
-        """array_variable_def : MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type
-                              | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET"""
-        if len(p) == 8:
-            arrtype = ast.Array(p[7], len(p[4]))
-            arrtype.copy_pos(p[7])
-            p[0] = ast.ArrayVariableDef(p[2], p[4], arrtype)
-        else:
-            p[0] = ast.ArrayVariableDef(p[2], p[4])
+    def p_array_var_def(self, p):
+        """array_var_def : array_var_def_typed
+                         | array_var_def_untyped"""
+        p[0] = p[1]
+        _track(p)
+
+    def p_array_var_def_typed(self, p):
+        """array_var_def_typed : MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type"""
+        item_type = p[7]
+        arr_type = ast.Array(item_type, len(p[4]))
+        p[0] = ast.ArrayVariableDef(p[2], p[4], arr_type)
+        _track(p)
+
+    def p_array_var_def_untyped(self, p):
+        """array_var_def_untyped : MUTABLE GENID LBRACKET expr_comma_seq RBRACKET"""
+        p[0] = ast.ArrayVariableDef(p[2], p[4])
         _track(p)
 
     def p_expr_comma_seq(self, p):
@@ -464,9 +485,9 @@ class Parser:
                           | expr"""
         self._expand_seq(p)
 
-    def p_simple_variable_def(self, p):
-        """simple_variable_def : MUTABLE GENID
-                               | MUTABLE GENID COLON type"""
+    def p_simple_var_def(self, p):
+        """simple_var_def : MUTABLE GENID
+                          | MUTABLE GENID COLON type"""
         if len(p) == 5:
             vartype = ast.Ref(p[4])
             vartype.copy_pos(p[4])
@@ -546,8 +567,8 @@ class Parser:
     typeTable = None
     verbose = False
 
-    def __init__(self, debug=False, logger=None, optimize=True, start='program',
-                 verbose=False):
+    def __init__(self, debug=False, logger=None, optimize=True,
+                 start='program', verbose=False):
         """
         Create a parser.
 
