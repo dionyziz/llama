@@ -7,14 +7,24 @@ TESTPATH=./tests/
 
 .PHONY: beauty clean prepare static test
 
-all: clean prepare test
+all: test
 
 beauty:
 	pep8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
 
-test: clean prepare $(BINPATH)/ptest.sh
+test:
+	make clean
+	make prepare
+	make unittest
+	make clean
+	make prepare
+	make functionaltest
+
+unittest:
+	for i in `find tests -iname 'test_*.py'`; do echo "\n\nRunning $$i"; nosetests $$i || exit 2; done
+
+functionaltest: $(BINPATH)/ptest.sh
 	$(BINPATH)/ptest.sh
-	nosetests
 
 static:
 	pylint -E $(SOURCEFILES)

@@ -25,13 +25,27 @@ class TestType(unittest.TestCase):
         sd.get(t).should.be(None)
         sd.getKey(t).should.be(None)
 
-    def _process_typedef(self, typeDefListList):
+    @classmethod
+    def setUpClass(cls):
         mock = error.LoggerMock()
-        tree = parse.parse(typeDefListList, logger=mock)
+        cls.parser = parse.Parser(
+            logger=mock,
+            optimize=False,
+            debug=False
+        )
+
+    @classmethod
+    def _process_typedef(cls, typeDefListList):
+        tree = cls.parser.parse(data=typeDefListList)
+        mock = error.LoggerMock()
         typeTable = type.Table(logger=mock)
         for typeDef in tree:
             typeTable.process(typeDef)
         return typeTable.logger.success
+
+    def tearDown(self):
+        # FIXME: This shouldn't be useful anymore.
+        TestType.parser.logger.clear()
 
     def test_type_process(self):
         right_testcases = (
@@ -48,7 +62,10 @@ class TestType(unittest.TestCase):
         )
 
         for t in right_testcases:
-            self._process_typedef(t).should.be.ok
+            self.assertTrue(
+                self._process_typedef(t),
+                "'%s' type processing should be OK" % t
+            )
 
         wrong_testcases = (
             """
@@ -80,7 +97,10 @@ class TestType(unittest.TestCase):
         )
 
         for t in wrong_testcases:
-            self._process_typedef(t).shouldnt.be.ok
+            self.assertFalse(
+                self._process_typedef(t),
+                "'%s' type processing should not be OK" % t
+            )
 
     def test_isarray(self):
         (type.Validator.is_array(ast.Array(ast.Int()))).should.be.true
