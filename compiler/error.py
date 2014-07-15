@@ -31,6 +31,8 @@ class LoggerInterface:
         raise NotImplementedError
 
     def clear(self):
+        """Reset logger state for testability"""
+
         self.errors = 0
         self.warnings = 0
 
