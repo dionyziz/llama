@@ -133,11 +133,6 @@ class Param(DataNode):
         self.type = type
 
 
-class Expression(DataNode):
-    def __init__(self):
-        raise NotImplementedError
-
-
 class BinaryExpression(Expression):
     def __init__(self, leftOperand, operator, rightOperand):
         self.leftOperand = leftOperand
