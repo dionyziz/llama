@@ -65,7 +65,7 @@ class TestType(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         mock = error.LoggerMock()
-        cls.parser = parse.Parser(logger=mock, optimize=0)
+        cls.parser = parse.Parser(logger=mock, optimize=False)
 
     @classmethod
     def _process_typedef(cls, typeDefListList):
