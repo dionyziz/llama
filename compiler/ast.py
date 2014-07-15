@@ -42,9 +42,9 @@ class Node:
         values = [getattr(self, attr) for attr in attrs]
         safe_values = []
         for value in values:
-            displayable_types = (int, float, bool, str, list)
+            displayable_types = (int, float, bool, str, list, Type)
             if isinstance(value, displayable_types) or value is None:
-                safe_values.append(value)
+                safe_values.append(str(value).replace("\n", "\n\t"))
             else:
                 safe_values.append(
                     '(non-scalar of type %s)' % value.__class__.__name__
