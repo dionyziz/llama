@@ -93,6 +93,7 @@ class TestType(unittest.TestCase):
         t = ast.Ref(ast.User('foo'))
         self._validate(t).should.be.ok
 
+        # Can have a ref to a ref.
         t = ast.Ref(ast.Ref(ast.Int()))
         self._validate(t).should.be.ok
 
@@ -105,6 +106,7 @@ class TestType(unittest.TestCase):
         t = ast.Array(ast.User('foo'))
         self._validate(t).should.be.ok
 
+        # Can have an array of refs
         t = ast.Array(ast.Ref(ast.User('foo')))
         self._validate(t).should.be.ok
 
@@ -121,23 +123,24 @@ class TestType(unittest.TestCase):
         self._validate(t).should.be.ok
 
 
+        # Can't have a ref to an array.
         t = ast.Ref(ast.Array(ast.Int()))
         self._validate(t).shouldnt.be.ok
 
+        # Can't have a ref to an array (nested).
         t = ast.Ref(ast.Ref(ast.Array(ast.Int())))
         self._validate(t).shouldnt.be.ok
 
+        t = ast.Function(ast.Ref(ast.Array(ast.Int())), ast.Int())
+        self._validate(t).shouldnt.be.ok
+
+        # Can't have an array of array of ...
         t = ast.Array(ast.Array(ast.Int()))
-        self._validate(t).shouldnt.be.ok
-
-        t = ast.Array(ast.Ref(ast.Array(ast.Array(ast.Int()))))
-        self._validate(t).shouldnt.be.ok
-
-        t = ast.Function(ast.Int(), ast.Array(ast.Int()))
         self._validate(t).shouldnt.be.ok
 
         t = ast.Function(ast.Array(ast.Array(ast.Int())), ast.Int())
         self._validate(t).shouldnt.be.ok
 
-        t = ast.Function(ast.Int(), ast.Ref(ast.Array(ast.Int())))
+        # Can't have array as return type.
+        t = ast.Function(ast.Int(), ast.Array(ast.Int()))
         self._validate(t).shouldnt.be.ok
