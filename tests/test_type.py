@@ -40,11 +40,10 @@ class TestType(unittest.TestCase):
 
     @classmethod
     def _process_typedef(cls, typeDefListList):
-        tree = cls.parser.parse(data=typeDefListList)
         mock = error.LoggerMock()
         typeTable = type.Table(logger=mock)
-        for typeDef in tree:
-            typeTable.process(typeDef)
+        for typeDefList in typeDefListList:
+            typeTable.process(typeDefList)
         return typeTable.logger.success
 
     def tearDown(self):
@@ -83,8 +82,9 @@ class TestType(unittest.TestCase):
         )
 
         for t in right_testcases:
+            tree = self._parse(t)
             self.assertTrue(
-                self._process_typedef(t),
+                self._process_typedef(tree),
                 "'%s' type processing should be OK" % t
             )
 
@@ -118,8 +118,9 @@ class TestType(unittest.TestCase):
         )
 
         for t in wrong_testcases:
+            tree = self._parse(t)
             self.assertFalse(
-                self._process_typedef(t),
+                self._process_typedef(tree),
                 "'%s' type processing should not be OK" % t
             )
 
