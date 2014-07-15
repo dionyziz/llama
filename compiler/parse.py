@@ -560,8 +560,8 @@ class Parser:
     typeTable = None
     verbose = False
 
-    def __init__(self, debug=False, logger=None, optimize=True, start='program',
-                 verbose=False):
+    def __init__(self, debug=False, logger=None, optimize=True,
+                 start='program', verbose=False):
         """
         Create a parser.
 

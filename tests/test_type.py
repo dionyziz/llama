@@ -90,7 +90,10 @@ class TestType(unittest.TestCase):
         )
 
         for t in right_testcases:
-            self.assertTrue(self._process_typedef(t), "'%s' type processing should be OK" % t)
+            self.assertTrue(
+                self._process_typedef(t),
+                "'%s' type processing should be OK" % t
+            )
 
         wrong_testcases = (
             """
@@ -122,4 +125,7 @@ class TestType(unittest.TestCase):
         )
 
         for t in wrong_testcases:
-            self.assertFalse(self._process_typedef(t), "'%s' type processing should not be OK" % t)
+            self.assertFalse(
+                self._process_typedef(t),
+                "'%s' type processing should not be OK" % t
+            )

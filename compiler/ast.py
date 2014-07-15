@@ -42,12 +42,19 @@ class Node:
         values = [getattr(self, attr) for attr in attrs]
         safe_values = []
         for value in values:
-            if isinstance(value, (int, float, bool, str, list)) or value is None:
+            displayable_types = (int, float, bool, str, list)
+            if isinstance(value, displayable_types) or value is None:
                 safe_values.append(value)
             else:
-                safe_values.append('(non-scalar of type %s)' % value.__class__.__name__)
-        pairs = ("%s = '%s'" % (attr, value) for (attr, value) in zip(attrs, safe_values))
-        return "ASTNode:%s with attributes:\n\t* %s" % (self.__class__.__name__, "\n\t* ".join(pairs))
+                safe_values.append(
+                    '(non-scalar of type %s)' % value.__class__.__name__
+                )
+        pairs = (
+            "%s = '%s'" % (attr, value)
+            for (attr, value) in zip(attrs, safe_values)
+        )
+        return "ASTNode:%s with attributes:\n\t* %s" \
+               % (self.__class__.__name__, "\n\t* ".join(pairs))
 
 
 class DataNode(Node):
@@ -161,6 +168,7 @@ class ConstExpression(Expression):
         self.type = type
         self.value = value
 
+
 class ConidExpression(Expression):
     def __init__(self, name):
         self.name = name
@@ -242,6 +250,7 @@ class WhileExpression(Expression):
     def __init__(self, condition, body):
         self.condition = condition
         self.body = body
+
 
 class VariableDef(Def):
     def __init__(self, name, type=None):

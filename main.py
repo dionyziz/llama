@@ -120,7 +120,7 @@ def main():
     OPTS['lexer_verbose'] = args.lexer_verbose
     OPTS['parser_verbose'] = args.parser_verbose
 
-    logger = error.Logger(inputfile=OPTS['input'],level=logging.DEBUG)
+    logger = error.Logger(inputfile=OPTS['input'], level=logging.DEBUG)
 
     lexer = lex.Lexer(logger=logger, verbose=OPTS['lexer_verbose'])
 
