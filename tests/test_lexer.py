@@ -4,17 +4,14 @@ import unittest
 
 import sure
 
-from compiler import lex, error
+from compiler import error, lex
 
 
 class TestLexer(unittest.TestCase):
     def _lex_data(self, input):
         mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock)
-        lexer.input(input)
-        token_list = list(lexer)
-
-        return (token_list, mock)
+        tokens = lex.tokenize(input, logger=mock)
+        return list(tokens), mock
 
     def _assert_individual_token(self, input, expected_type, expected_value):
         l, mock = self._lex_data(input)
@@ -25,18 +22,17 @@ class TestLexer(unittest.TestCase):
         mock.success.should.be.ok
 
     def _assert_lex_success(self, input):
-        mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock)
-        lexer.input(input)
-        list(lexer)  # Force lexing
+        l, mock = self._lex_data(input)
         mock.success.should.be.ok
 
     def _assert_lex_failure(self, input):
-        mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock)
-        lexer.input(input)
-        list(lexer)  # Force lexing
+        l, mock = self._lex_data(input)
         mock.success.shouldnt.be.ok
+
+    def test_tokenize(self):
+        list(lex.tokenize("")).should.be.equal([])
+        mock = error.LoggerMock()
+        list(lex.tokenize("", mock)).should.be.equal([])
 
     def test_init(self):
         mock = error.LoggerMock()
