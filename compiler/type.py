@@ -11,8 +11,6 @@
 # ----------------------------------------------------------------------
 """
 
-from collections import namedtuple
-
 import compiler
 from compiler import ast, error
 
@@ -112,29 +110,40 @@ class Table:
     of user defined types and more.
     """
 
-    _TypeEntry = namedtuple('TypeEntry', ['key', 'list'])
-    _ConstructorEntry = namedtuple('ConstructorEntry', ['key', 'type'])
+    class smartdict(dict):
+        """A dict which can return its keys for inspection.
+
+        Useful when keys contain information overlooked by equality."""
+        keydict = {}
+
+        def __delitem__(self, key):
+            super().__delitem__(key)
+            self.keydict.__delitem__(key)
+
+        def __setitem__(self, key, value):
+            super().__setitem__(key, value)
+            self.keydict.__setitem__(key, key)
+
+        def getKey(self, key, default=None):
+            """Return the key for inspection."""
+            return self.keydict.get(key, None)
+
 
     def __init__(self, logger):
         """Initialize a new Table."""
         self.logger = logger
 
         # Dictionary of types seen so far. Builtin types always available.
-        #     Key:   Type node
-        #     Value: A named 2-tuple (self, list), where
-        #               key:  the Key
-        #               list: list of Constructors which the type defines
-        self.knownTypes = {}
+        # Values : list of constructors which the type defines
+        # This is a smartdict, so keys can be retrieved.
+        self.knownTypes = Table.smartdict()
         for t in ast.builtin_types_map.values():
-            tt = t()
-            self.knownTypes[tt] = self._TypeEntry(key=tt, list=None)
+            self.knownTypes[t()] = None
 
         # Dictionary of constructors encountered so far.
-        #     Key:   Constructor node
-        #     Value: A named 2-tuple (self, type), where
-        #               key:  the Key
-        #               type: Type which the constructor produces
-        self.knownConstructors = {}
+        # Value: Type which the constructor produces.
+        # This is a smartdict, so keys can be retrieved.
+        self.knownConstructors = Table.smartdict()
 
     # Logger used for logging events. Possibly shared with other modules.
     logger = None
@@ -148,38 +157,48 @@ class Table:
         # First, insert all newly-defined types.
         for tdef in typeDefList:
             newType = tdef.type
-            try:
-                alias = self.knownTypes[newType].key
-                if isinstance(alias, ast.Builtin):
-                    self.logger.error(
-                        "%d:%d: error: Redefining builtin type '%s'",
-                        newType.lineno,
-                        newType.lexpos,
-                        newType.name
-                    )
-                else:
-                    self.logger.error(
-                        "%d:%d: error: Redefining user-defined type '%s'"
-                        "\tPrevious definition: %d:%d",
-                        newType.lineno,
-                        newType.lexpos,
-                        newType.name,
-                        alias.lineno,
-                        alias.lexpos
-                    )
-                return
-            except KeyError:
-                self.knownTypes[newType] = Table._TypeEntry(
-                    key=newType,
-                    list=[]
+            alias = self.knownTypes.getKey(newType)
+            if alias is None:
+                self.knownTypes[newType] = []
+            elif isinstance(alias, ast.Builtin):
+                self.logger.error(
+                    "%d:%d: error: Redefining builtin type '%s'",
+                    newType.lineno,
+                    newType.lexpos,
+                    newType.name
                 )
+                return
+            else:
+                self.logger.error(
+                    "%d:%d: error: Redefining user-defined type '%s'"
+                    "\tPrevious definition: %d:%d",
+                    newType.lineno,
+                    newType.lexpos,
+                    newType.name,
+                    alias.lineno,
+                    alias.lexpos
+                )
+                return
 
-        # Process each constructor.
+        # Then, process each constructor.
         for tdef in typeDefList:
             newType = tdef.type
             for constructor in tdef:
-                try:
-                    alias = self.knownConstructors[constructor].key
+                alias = self.knownConstructors.getKey(constructor)
+                if alias is None:
+                    self.knownTypes[newType].append(constructor)
+                    self.knownConstructors[constructor] = newType
+
+                    for argType in constructor:
+                        if argType not in self.knownTypes:
+                            self.logger.error(
+                                "%d:%d: error: Undefined type '%s'",
+                                argType.lineno,
+                                argType.lexpos,
+                                argType.name
+                            )
+                            return
+                else:
                     self.logger.error(
                         "%d:%d: error: Redefining constructor '%s'"
                         "\tPrevious definition: %d:%d",
@@ -190,20 +209,4 @@ class Table:
                         alias.lexpos
                     )
                     return
-                except KeyError:
-                    for argType in constructor:
-                        if argType not in self.knownTypes:
-                            self.logger.error(
-                                "%d:%d: error: Undefined type '%s'",
-                                argType.lineno,
-                                argType.lexpos,
-                                argType.name
-                            )
-                            return
-
-                self.knownTypes[newType].list.append(constructor)
-                self.knownConstructors[constructor] = Table._ConstructorEntry(
-                    key=constructor,
-                    type=newType
-                )
         # TODO: Emit warnings when typenames clash with definition names.
