@@ -143,6 +143,8 @@ class TestType(unittest.TestCase):
 
         wrong_testcases = (
             "foo",
+            "int ref",
+            "int -> int",
         )
 
         for t in wrong_testcases:
