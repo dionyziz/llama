@@ -254,14 +254,17 @@ class Parser:
     def p_array_simple_expr(self, p):
         """array_simple_expr : GENID LBRACKET expr_comma_seq RBRACKET"""
         p[0] = ast.ArrayExpression(p[1], p[3])
+        _track(p)
 
     def p_paren_simple_expr(self, p):
         """paren_simple_expr : LPAREN expr RPAREN"""
         p[0] = p[2]
+        _track(p)
 
     def p_bang_simple_expr(self, p):
         """bang_simple_expr : BANG simple_expr"""
         p[0] = ast.UnaryExpression(p[1], p[2])
+        _track(p)
 
     def p_bconst_simple_expr(self, p):
         """bconst_simple_expr : TRUE
