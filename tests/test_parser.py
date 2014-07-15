@@ -380,10 +380,6 @@ class TestParser(unittest.TestCase):
         )
 
     def test_typedef(self):
-        raise unittest.SkipTest(
-            "re-enable me after simple_api branch gets merged"
-        )
-
         self._parse("type color = Red", "typedef").should.be.equal(
             ast.TypeDefList(
                 [

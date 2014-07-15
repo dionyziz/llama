@@ -37,8 +37,6 @@ class TestAST(unittest.TestCase):
         )
 
     def test_regression_attr_equality(self):
-        raise unittest.SkipTest("re-enable me after #25 gets merged")
-
         tdef = TestAST._parse("type color = Red", "typedef")
         tdef2 = ast.TypeDefList(
             [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
