@@ -72,6 +72,9 @@ class TestType(unittest.TestCase):
         cls.parser.parse(data=typeDefListList)
         return cls.parser.logger.success
 
+    def tearDown(self):
+        TestType.parser.logger.clear()
+
     def test_type_process(self):
         right_testcases = (
             "type color = Red | Green | Blue",

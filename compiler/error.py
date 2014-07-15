@@ -30,6 +30,10 @@ class LoggerInterface:
     def __init__(self):
         raise NotImplementedError
 
+    def clear(self):
+        self.errors = 0
+        self.warnings = 0
+
     @_format
     def debug(self, msg):
         pass
