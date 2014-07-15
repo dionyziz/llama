@@ -62,12 +62,16 @@ class TestType(unittest.TestCase):
         (i2float).shouldnt.be.equal(ast.Ref(ast.Int()))
         (i2float).shouldnt.be.equal(ast.Array(ast.Int()))
 
-    def _process_typedef(self, typeDefListList):
+    @classmethod
+    def setUpClass(cls):
         mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock, optimize=1)
-        parser = parse.Parser(logger=mock, optimize=0)
-        parser.parse(data=typeDefListList, lexer=lexer)
-        return parser.logger.success
+        cls.lexer = lex.Lexer(logger=mock, optimize=1)
+        cls.parser = parse.Parser(logger=mock, optimize=0)
+
+    @classmethod
+    def _process_typedef(cls, typeDefListList):
+        cls.parser.parse(data=typeDefListList, lexer=cls.lexer)
+        return cls.parser.logger.success
 
     def test_type_process(self):
         right_testcases = (
