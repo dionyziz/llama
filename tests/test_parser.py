@@ -28,7 +28,8 @@ class TestParser(unittest.TestCase):
             parser = TestParser.parsers[start] = parse.Parser(
                 logger=mock,
                 optimize=False,
-                start=start
+                start=start,
+                debug=False
             )
 
         tree = parser.parse(data=data)
@@ -42,7 +43,6 @@ class TestParser(unittest.TestCase):
 
     def test_empty_program(self):
         self._parse("").should.be.equal(ast.Program([]))
-
 
     def test_def_list(self):
         self._parse("", "def_list").should.be.equal([])
