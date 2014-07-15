@@ -401,36 +401,82 @@ class TestParser(unittest.TestCase):
             [ast.Int(), ast.Int()]
         )
 
-    def test_regression_bang_new(self):
+    def test_regression_new(self):
         raise unittest.SkipTest("enable me after fixing #41")
 
-        self._parse("!new int", "expr").should.be.equal(
-            ast.UnaryExpression("!", ast.NewExpression(ast.Int()))
-        )
+        self._assert_equivalent("!new int", "!(new int)")
+        self._assert_equivalent("f new int", "f (new int)")
+
+    def _assert_equivalent(self, expr1, expr2):
+        # self.assertEqual(self._parse(expr1, "expr"), self._parse(expr2, "expr"), "'%s' must equal '%s'" % (expr1, expr2))
+        self._parse(expr1, "expr").should.be.equal(self._parse(expr2, "expr"))
+
+    def _assert_non_equivalent(self, expr1, expr2):
+        self._parse(expr1, "expr").shouldnt.be.equal(self._parse(expr2, "expr"))
 
     def test_precedence(self):
-        self._parse(    "1 +  2 * 3 ", "expr").should.be.equal(
-            self._parse("1 + (2 * 3)", "expr")
-        )
-        self._parse(    "1 -  2 * 3 ", "expr").should.be.equal(
-            self._parse("1 - (2 * 3)", "expr")
-        )
-        self._parse(    "1 +  2 / 3 ", "expr").should.be.equal(
-            self._parse("1 + (2 / 3)", "expr")
-        )
-        self._parse(    "1 -  2 / 3 ", "expr").should.be.equal(
-            self._parse("1 - (2 / 3)", "expr")
-        )
+        exprs = (
+            # int arithmetic
+            ("1 + 2 * 3", "1 + (2 * 3)"),
+            ("1 + 2 * 3", "1 + (2 * 3)"),
+            ("1 - 2 / 3", "1 - (2 / 3)"),
+            ("1 - (2 / 3)", "1 - 2 / 3 "),
+            ("1 + 2 + 3", "(1 + 2) + 3"),
+            ("1 - 2 - 3", "(1 - 2) - 3"),
+            ("1 - 2 + 3", "(1 - 2) + 3"),
+            ("1 * 2 * 3", "(1 * 2) * 3"),
+            ("1 / 2 / 3", "(1 / 2) / 3"),
+            ("1 / 2 * 3", "(1 / 2) * 3"),
 
-        self._parse(    "1.0 +.  2.0 *. 3.0 ", "expr").should.be.equal(
-            self._parse("1.0 +. (2.0 *. 3.0)", "expr")
+            # float arithmetic
+            ("1.0 +. 2.0 *. 3.0", "1.0 +. (2.0 *. 3.0)"),
+            ("1.0 -. 2.0 *. 3.0", "1.0 -. (2.0 *. 3.0)"),
+            ("1.0 +. 2.0 /. 3.0", "1.0 +. (2.0 /. 3.0)"),
+            ("1.0 -. 2.0 /. 3.0", "1.0 -. (2.0 /. 3.0)"),
+
+            # bool arithmetic
+            ("a || b && c", "a || (b && c)"),
+            ("not a || b", "(not a) || b"),
+            ("not a && b", "(not a) && b"),
+
+            ("1 - 2 mod 3", "1 - (2 mod 3)"),
+
+            ("-2 ** 4", "(-2) ** 4"),
+
+            ("f 1 + 2", "(f 1) + 2"),
+            ("x + y[1]", "x + (y[1])"),
+            ("!a[1]", "!(a[1])"),
+            ("!f x", "(!f) x"),
+            ("not f x", "not (f x)"),
+            ("delete f x", "delete (f x)"),
+
+            ("a == b && c == d", "(a == b) && (c == d)"),
+            ("a != b && c != d", "(a != b) && (c != d)"),
+            ("a = b && c = d", "(a = b) && (c = d)"),
+            ("a < b || c < d", "(a < b) || (c < d)"),
+            ("a > b || c > d", "(a > b) || (c > d)"),
+            ("a <= b && c <> d", "(a <= b) && (c <> d)"),
+            ("a >= b && c <> d", "(a >= b) && (c <> d)"),
+
+            ("1 + 1 = 2", "(1 + 1) = 2"),
+            ("x := a && b", "x := (a && b)"),
+            ("x := 1 + 1", "x := (1 + 1)"),
+
+            ("if p then if q then a else b", "if p then (if q then a else b)"),
+            ("if p then 1 else 1 + 1", "if p then 1 else (1 + 1)"),
+            ("if p then 1 else 2; if q then 1 else 2", "(if p then 1 else 2); (if q then 1 else 2)"),
+            ("let x = 5 in x; let y = 5 in y", "let x = 5 in (x; let y = 5 in y)")
         )
-        self._parse(    "1.0 -.  2.0 *. 3.0 ", "expr").should.be.equal(
-            self._parse("1.0 -. (2.0 *. 3.0)", "expr")
-        )
-        self._parse(    "1.0 +.  2.0 /. 3.0 ", "expr").should.be.equal(
-            self._parse("1.0 +. (2.0 /. 3.0)", "expr")
-        )
-        self._parse(    "1.0 -.  2.0 /. 3.0 ", "expr").should.be.equal(
-            self._parse("1.0 -. (2.0 /. 3.0)", "expr")
-        )
+        for (expr1, expr2) in exprs:
+            self._assert_equivalent(expr1, expr2)
+
+        non_equiv = [
+            ("f -2", "f (-2)"),
+            ("a == b && c", "a == (b && c)"),
+            ("if p then 1 else 2; if q then 1 else 2", "if p then 1 else (2; if q then 1 else 2)"),
+            ("if p then if q then a else b", "if p then (if q then a) else b"),
+            ("let x = 5 in x; let y = 5 in y", "(let x = 5 in x); (let y = 5 in y)")
+        ]
+
+        for (expr1, expr2) in non_equiv:
+            self._assert_non_equivalent(expr1, expr2)
