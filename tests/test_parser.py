@@ -400,3 +400,10 @@ class TestParser(unittest.TestCase):
         self._parse("int int", "type_seq").should.be.equal(
             [ast.Int(), ast.Int()]
         )
+
+    def test_regression_bang_new(self):
+        raise unittest.SkipTest("enable me after fixing #41")
+
+        self._parse("!new int", "expr").should.be.equal(
+            ast.UnaryExpression("!", ast.NewExpression(ast.Int()))
+        )
