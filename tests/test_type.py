@@ -8,6 +8,49 @@ from compiler import ast, error, parse, type
 
 class TestType(unittest.TestCase):
 
+    parsers = {}
+
+    @classmethod
+    def setUpClass(cls):
+        mock = error.LoggerMock()
+        cls.parser = parse.Parser(
+            logger=mock,
+            optimize=False,
+            debug=False
+        )
+
+    @classmethod
+    def _parse(cls, data, start='program'):
+        mock = error.LoggerMock()
+
+        # memoization
+        try:
+            parser = TestType.parsers[start]
+        except:
+            parser = TestType.parsers[start] = parse.Parser(
+                logger=mock,
+                optimize=False,
+                start=start,
+                debug=False
+            )
+
+        tree = parser.parse(data=data)
+
+        return tree
+
+    @classmethod
+    def _process_typedef(cls, typeDefListList):
+        tree = cls.parser.parse(data=typeDefListList)
+        mock = error.LoggerMock()
+        typeTable = type.Table(logger=mock)
+        for typeDef in tree:
+            typeTable.process(typeDef)
+        return typeTable.logger.success
+
+    def tearDown(self):
+        # FIXME: This shouldn't be useful anymore.
+        TestType.parser.logger.clear()
+
     def test_smartdict(self):
         sd = type.Table.smartdict()
         t = ast.User("foo")
@@ -24,28 +67,6 @@ class TestType(unittest.TestCase):
         del sd[t]
         sd.get(t).should.be(None)
         sd.getKey(t).should.be(None)
-
-    @classmethod
-    def setUpClass(cls):
-        mock = error.LoggerMock()
-        cls.parser = parse.Parser(
-            logger=mock,
-            optimize=False,
-            debug=False
-        )
-
-    @classmethod
-    def _process_typedef(cls, typeDefListList):
-        tree = cls.parser.parse(data=typeDefListList)
-        mock = error.LoggerMock()
-        typeTable = type.Table(logger=mock)
-        for typeDef in tree:
-            typeTable.process(typeDef)
-        return typeTable.logger.success
-
-    def tearDown(self):
-        # FIXME: This shouldn't be useful anymore.
-        TestType.parser.logger.clear()
 
     def test_type_process(self):
         right_testcases = (
