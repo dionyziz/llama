@@ -124,14 +124,30 @@ class TestType(unittest.TestCase):
                 "'%s' type processing should not be OK" % t
             )
 
-    def test_isarray(self):
-        (type.Validator.is_array(ast.Array(ast.Int()))).should.be.true
-        (type.Validator.is_array(ast.Array(ast.Int(), 2))).should.be.true
-        (type.Validator.is_array(ast.Array(ast.User('foo')))).should.be.true
+    def _is_array(self, t):
+        return type.Validator.is_array(t)
 
-        (type.Validator.is_array(ast.User('foo'))).shouldnt.be.true
+    def test_isarray(self):
+        right_testcases = (
+            "array of int",
+            "array of foo",
+            "array [*, *] of int"
+        )
+
+        for t in right_testcases:
+            tree = self._parse(t, 'type')
+            self._is_array(tree).should.be.ok
+
         for builtin_type in ast.builtin_types_map.values():
-            (type.Validator.is_array(builtin_type)).shouldnt.be.true
+            self._is_array(builtin_type()).shouldnt.be.ok
+
+        wrong_testcases = (
+            "foo",
+        )
+
+        for t in wrong_testcases:
+            tree = self._parse(t, 'type')
+            self._is_array(tree).shouldnt.be.ok
 
     def _validate(self, t):
         mock = error.LoggerMock()
@@ -143,63 +159,33 @@ class TestType(unittest.TestCase):
         for builtin_type in ast.builtin_types_map.values():
             self._validate(builtin_type()).should.be.ok
 
-        t = ast.User('foo')
-        self._validate(t).should.be.ok
+        right_testcases = (
+            "foo",
+            "int ref",
+            "foo ref",
+            "array of int",
+            "array of foo",
+            "array [*, *] of int",
+            "array of (foo ref)",
+            "int -> int",
+            "int ref -> int",
+            "int -> int ref",
+            "(array of int) -> int"
+        )
 
-        t = ast.Ref(ast.Int())
-        self._validate(t).should.be.ok
+        for t in right_testcases:
+            tree = self._parse(t, 'type')
+            self._validate(tree).should.be.ok
 
-        t = ast.Ref(ast.User('foo'))
-        self._validate(t).should.be.ok
+        wrong_testcases = (
+            "array of int ref",
+            "array of int ref ref",
+            "array of int ref -> int",
+            "array of (array of int)",
+            "array of (array of int) -> int",
+            "int -> array of int"
+        )
 
-        # Can have a ref to a ref.
-        t = ast.Ref(ast.Ref(ast.Int()))
-        self._validate(t).should.be.ok
-
-        t = ast.Array(ast.Int())
-        self._validate(t).should.be.ok
-
-        t = ast.Array(ast.Int(), 2)
-        self._validate(t).should.be.ok
-
-        t = ast.Array(ast.User('foo'))
-        self._validate(t).should.be.ok
-
-        # Can have an array of refs
-        t = ast.Array(ast.Ref(ast.User('foo')))
-        self._validate(t).should.be.ok
-
-        t = ast.Function(ast.Int(), ast.Int())
-        self._validate(t).should.be.ok
-
-        t = ast.Function(ast.Ref(ast.Int()), ast.Int())
-        self._validate(t).should.be.ok
-
-        t = ast.Function(ast.Int(), ast.Ref(ast.Int()))
-        self._validate(t).should.be.ok
-
-        t = ast.Function(ast.Array(ast.Int()), ast.Int())
-        self._validate(t).should.be.ok
-
-
-        # Can't have a ref to an array.
-        t = ast.Ref(ast.Array(ast.Int()))
-        self._validate(t).shouldnt.be.ok
-
-        # Can't have a ref to an array (nested).
-        t = ast.Ref(ast.Ref(ast.Array(ast.Int())))
-        self._validate(t).shouldnt.be.ok
-
-        t = ast.Function(ast.Ref(ast.Array(ast.Int())), ast.Int())
-        self._validate(t).shouldnt.be.ok
-
-        # Can't have an array of array of ...
-        t = ast.Array(ast.Array(ast.Int()))
-        self._validate(t).shouldnt.be.ok
-
-        t = ast.Function(ast.Array(ast.Array(ast.Int())), ast.Int())
-        self._validate(t).shouldnt.be.ok
-
-        # Can't have array as return type.
-        t = ast.Function(ast.Int(), ast.Array(ast.Int()))
-        self._validate(t).shouldnt.be.ok
+        for t in wrong_testcases:
+            tree = self._parse(t, 'type')
+            self._validate(tree).shouldnt.be.ok
