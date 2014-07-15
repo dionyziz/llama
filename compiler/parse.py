@@ -535,7 +535,7 @@ class Parser:
 
     def p_error(self, p):
         """Signal syntax error"""
-        if p is not None:
+        if isinstance(p, ast.Node):
             self.logger.error(
                 "%d:%d: error: Syntax error on token %s\t%s",
                 p.lineno,
