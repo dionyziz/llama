@@ -82,7 +82,7 @@ class Parser:
 
     def p_def(self, p):
         """def : function_def
-               | variable_def"""
+               | var_def"""
         p[0] = p[1]
         _track(p)
 
@@ -456,21 +456,28 @@ class Parser:
         p[0] = ast.WhileExpression(p[2], p[4])
         _track(p)
 
-    def p_variable_def(self, p):
-        """variable_def : array_variable_def
-                        | simple_variable_def"""
+    def p_var_def(self, p):
+        """var_def : array_var_def
+                   | simple_var_def"""
         p[0] = p[1]
         _track(p)
 
-    def p_array_variable_def(self, p):
-        """array_variable_def : MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type
-                              | MUTABLE GENID LBRACKET expr_comma_seq RBRACKET"""
-        if len(p) == 8:
-            arrtype = ast.Array(p[7], len(p[4]))
-            arrtype.copy_pos(p[7])
-            p[0] = ast.ArrayVariableDef(p[2], p[4], arrtype)
-        else:
-            p[0] = ast.ArrayVariableDef(p[2], p[4])
+    def p_array_var_def(self, p):
+        """array_var_def : array_var_def_typed
+                         | array_var_def_untyped"""
+        p[0] = p[1]
+        _track(p)
+
+    def p_array_var_def_typed(self, p):
+        """array_var_def_typed : MUTABLE GENID LBRACKET expr_comma_seq RBRACKET COLON type"""
+        item_type = p[7]
+        arr_type = ast.Array(item_type, len(p[4]))
+        p[0] = ast.ArrayVariableDef(p[2], p[4], arr_type)
+        _track(p)
+
+    def p_array_var_def_untyped(self, p):
+        """array_var_def_untyped : MUTABLE GENID LBRACKET expr_comma_seq RBRACKET"""
+        p[0] = ast.ArrayVariableDef(p[2], p[4])
         _track(p)
 
     def p_expr_comma_seq(self, p):
@@ -478,9 +485,9 @@ class Parser:
                           | expr"""
         self._expand_seq(p)
 
-    def p_simple_variable_def(self, p):
-        """simple_variable_def : MUTABLE GENID
-                               | MUTABLE GENID COLON type"""
+    def p_simple_var_def(self, p):
+        """simple_var_def : MUTABLE GENID
+                          | MUTABLE GENID COLON type"""
         if len(p) == 5:
             vartype = ast.Ref(p[4])
             vartype.copy_pos(p[4])
