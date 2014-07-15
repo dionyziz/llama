@@ -407,3 +407,30 @@ class TestParser(unittest.TestCase):
         self._parse("!new int", "expr").should.be.equal(
             ast.UnaryExpression("!", ast.NewExpression(ast.Int()))
         )
+
+    def test_precedence(self):
+        self._parse(    "1 +  2 * 3 ", "expr").should.be.equal(
+            self._parse("1 + (2 * 3)", "expr")
+        )
+        self._parse(    "1 -  2 * 3 ", "expr").should.be.equal(
+            self._parse("1 - (2 * 3)", "expr")
+        )
+        self._parse(    "1 +  2 / 3 ", "expr").should.be.equal(
+            self._parse("1 + (2 / 3)", "expr")
+        )
+        self._parse(    "1 -  2 / 3 ", "expr").should.be.equal(
+            self._parse("1 - (2 / 3)", "expr")
+        )
+
+        self._parse(    "1.0 +.  2.0 *. 3.0 ", "expr").should.be.equal(
+            self._parse("1.0 +. (2.0 *. 3.0)", "expr")
+        )
+        self._parse(    "1.0 -.  2.0 *. 3.0 ", "expr").should.be.equal(
+            self._parse("1.0 -. (2.0 *. 3.0)", "expr")
+        )
+        self._parse(    "1.0 +.  2.0 /. 3.0 ", "expr").should.be.equal(
+            self._parse("1.0 +. (2.0 /. 3.0)", "expr")
+        )
+        self._parse(    "1.0 -.  2.0 /. 3.0 ", "expr").should.be.equal(
+            self._parse("1.0 -. (2.0 /. 3.0)", "expr")
+        )
