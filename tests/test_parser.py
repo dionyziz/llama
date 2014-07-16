@@ -27,9 +27,7 @@ class TestParser(unittest.TestCase):
         except KeyError:
             parser = cls.parsers[start] = parse.Parser(
                 logger=mock,
-                optimize=False,
-                start=start,
-                debug=False
+                start=start
             )
 
         tree = parser.parse(data=data)
