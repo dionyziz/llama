@@ -16,11 +16,11 @@ test:
 	make -B unittest
 	make -B functionaltest
 
-unittest: clean prepare
-	for i in `find tests -iname 'test_*.py'`; do echo "\n\nRunning $$i"; nosetests $$i || exit 2; done
+unittest: clean prepare $(BINPATH)/utest.sh
+	$(BINPATH)/utest.sh
 
-functionaltest: clean prepare $(BINPATH)/ptest.sh
-	$(BINPATH)/ptest.sh
+functionaltest: clean prepare $(BINPATH)/ftest.sh
+	$(BINPATH)/ftest.sh
 
 static:
 	pylint -E $(SOURCEFILES)
