@@ -165,6 +165,7 @@ class TestType(unittest.TestCase):
             "foo",
             "int ref",
             "foo ref",
+            "int ref ref",
             "array of int",
             "array of foo",
             "array [*, *] of int",
