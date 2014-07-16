@@ -1,4 +1,5 @@
 *.swp
+aux*.py
 lextab.py
 parsetab.py
 parser.out
