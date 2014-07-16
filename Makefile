@@ -5,7 +5,7 @@ SOURCEFILES=main.py ./compiler/*.py
 BINPATH=./bin
 TESTPATH=./tests/
 
-.PHONY: beauty clean functionaltest prepare static test unittest
+.PHONY: beauty clean cleanaux functionaltest prepare static test unittest
 
 all: test
 
@@ -28,5 +28,8 @@ static:
 prepare:
 	$(PYTHON) main.py $(PREPARE_FLAG)
 
-clean:
+cleanaux:
+	$(RM) aux*.py
+
+clean: cleanaux
 	$(RM) lextab.py parsetab.py parser.out
