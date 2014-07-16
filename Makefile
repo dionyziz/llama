@@ -16,10 +16,10 @@ test:
 	make -B unittest
 	make -B functionaltest
 
-unittest: clean prepare $(BINPATH)/utest.sh
+unittest: cleanmain prepare $(BINPATH)/utest.sh
 	$(BINPATH)/utest.sh
 
-functionaltest: clean prepare $(BINPATH)/ftest.sh
+functionaltest: cleanmain prepare $(BINPATH)/ftest.sh
 	$(BINPATH)/ftest.sh
 
 static:
@@ -31,5 +31,7 @@ prepare:
 cleanaux:
 	$(RM) aux*.py
 
-clean: cleanaux
+cleanmain:
 	$(RM) lextab.py parsetab.py parser.out
+
+clean: cleanaux cleanmain
