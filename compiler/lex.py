@@ -516,12 +516,6 @@ class Lexer:
     # Logger used for logging events. Possibly shared with other modules.
     logger = None
 
-    # == REQUIRED METHODS (see _LexerFactory for details) ==
-
-    token = None
-    input = None
-    skip = None
-
     def __init__(self, debug=False, optimize=True, logger=None, verbose=False):
         """
         Create a new lexer.
