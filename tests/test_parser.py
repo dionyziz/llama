@@ -505,3 +505,11 @@ class TestParser(unittest.TestCase):
 
     def test_precedence_non_equiv(self):
         self._assert_non_equivalent("f -2", "f (-2)")
+
+    def test_precedence_type_ref_ref(self):
+        self._assert_equivalent("int ref ref", "(int ref) ref")
+
+    def test_regression_precedence_type_array_ref(self):
+        raise unittest.SkipTest("enable me after #46 is fixed")
+
+        self._assert_equivalent("array of int ref", "array of (int ref)", 'type')
