@@ -213,13 +213,6 @@ class _LexerFactory:
         """
         self.logger = logger
         self.verbose = verbose
-        if self.verbose:
-            self.logger.info(
-                "%s: %s: %s",
-                __name__,
-                self.__class__.__name__,
-                'wrapper initialized'
-            )
 
     # == REQUIRED METHODS ==
 
@@ -231,13 +224,6 @@ class _LexerFactory:
         or attributes of the wrapper object are accessed.
         """
         self.lexer = lex.lex(module=self, **kwargs)
-        if self.verbose:
-            self.logger.info(
-                "%s: %s: %s",
-                __name__,
-                self.__class__.__name__,
-                'lexer ready'
-            )
 
     # A wrapper around the function of the inner lexer
     def token(self):
@@ -538,13 +524,6 @@ class Lexer:
         self.token = self._lexer.token
         self.input = self._lexer.input
         self.skip  = self._lexer.skip
-        if verbose:
-            self.logger.info(
-                "%s: %s: %s",
-                __name__,
-                self.__class__.__name__,
-                'lexer ready'
-            )
 
     # == EXPORT POSITION ATTRIBUTES ==
 
