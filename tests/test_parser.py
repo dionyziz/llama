@@ -401,18 +401,18 @@ class TestParser(unittest.TestCase):
             [ast.Int(), ast.Int()]
         )
 
-    def test_regression_new(self):
-        raise unittest.SkipTest("enable me after fixing #41")
-
-        self._assert_equivalent("!new int", "!(new int)")
-        self._assert_equivalent("f new int", "f (new int)")
-
     def _assert_equivalent(self, expr1, expr2):
         # self.assertEqual(self._parse(expr1, "expr"), self._parse(expr2, "expr"), "'%s' must equal '%s'" % (expr1, expr2))
         self._parse(expr1, "expr").should.be.equal(self._parse(expr2, "expr"))
 
     def _assert_non_equivalent(self, expr1, expr2):
         self._parse(expr1, "expr").shouldnt.be.equal(self._parse(expr2, "expr"))
+
+    def test_regression_new(self):
+        raise unittest.SkipTest("enable me after fixing #41")
+
+        self._assert_equivalent("!new int", "!(new int)")
+        self._assert_equivalent("f new int", "f (new int)")
 
     def test_precedence(self):
         exprs = (
