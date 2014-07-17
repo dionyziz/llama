@@ -31,6 +31,13 @@ class TestLexer(unittest.TestCase):
         mock = error.LoggerMock()
         list(lex.tokenize("", mock)).should.equal([])
 
+    def test_iterator(self):
+        mock = error.LoggerMock()
+        lexer = lex.Lexer(logger=mock)
+        lexer.input("foo")
+        i = iter(lexer)
+        next(lexer)
+
     def test_init(self):
         mock = error.LoggerMock()
         lexer = lex.Lexer(logger=mock)
