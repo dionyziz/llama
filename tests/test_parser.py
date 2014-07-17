@@ -401,12 +401,22 @@ class TestParser(unittest.TestCase):
             [ast.Int(), ast.Int()]
         )
 
-    def _assert_equivalent(self, expr1, expr2):
-        # self.assertEqual(self._parse(expr1, "expr"), self._parse(expr2, "expr"), "'%s' must equal '%s'" % (expr1, expr2))
-        self._parse(expr1, "expr").should.be.equal(self._parse(expr2, "expr"))
+    def _assert_equivalent(self, expr1, expr2=None, state="expr"):
+        if expr2 is None:
+            exprs = expr1
+            for expr1, expr2 in exprs:
+                self._assert_equivalent(expr1, expr2, state)
+        else:
+            # self.assertEqual(self._parse(expr1, "expr"), self._parse(expr2, "expr"), "'%s' must equal '%s'" % (expr1, expr2))
+            self._parse(expr1, state).should.be.equal(self._parse(expr2, state))
 
-    def _assert_non_equivalent(self, expr1, expr2):
-        self._parse(expr1, "expr").shouldnt.be.equal(self._parse(expr2, "expr"))
+    def _assert_non_equivalent(self, expr1, expr2=None, state="expr"):
+        if expr2 is None:
+            exprs = expr1
+            for expr1, expr2 in exprs:
+                self._assert_non_equivalent(expr1, expr2, state)
+        else:
+            self._parse(expr1, state).shouldnt.be.equal(self._parse(expr2, state))
 
     def test_regression_new(self):
         raise unittest.SkipTest("enable me after fixing #41")
