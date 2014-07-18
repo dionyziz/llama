@@ -48,12 +48,12 @@ class Validator:
                 t.lineno,
                 t.lexpos
             )
-            return False
-        return self.validate(basetype)
+            raise LlamaInvalidTypeError
+        self.validate(basetype)
 
     def _validate_builtin(self, t):
         """A builtin type is always valid."""
-        return True
+        pass
 
     def _validate_function(self, t):
         """
@@ -67,8 +67,9 @@ class Validator:
                 t.lineno,
                 t.lexpos
             )
-            return False
-        return self.validate(t1) and self.validate(t2)
+            raise LlamaInvalidTypeError
+        self.validate(t1)
+        self.validate(t2)
 
     def _validate_ref(self, t):
         """A 'ref T' type is valid iff T is a valid, non-array type."""
@@ -79,12 +80,12 @@ class Validator:
                 t.lineno,
                 t.lexpos
             )
-            return False
-        return self.validate(basetype)
+            raise LlamaInvalidTypeError
+        self.validate(basetype)
 
     def _validate_user(self, t):
         """A user-defined type is always valid."""
-        return True
+        pass
 
     def __init__(self, logger=None):
         """Create a new Validator."""
