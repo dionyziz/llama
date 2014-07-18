@@ -402,7 +402,12 @@ class TestParser(unittest.TestCase):
         )
 
     def _assert_equivalent(self, expr1, expr2=None, start="expr"):
+        """Assert that two expressions are parsed two equivalent ASTs.
+           You can pass either two expressions (expr1, expr2) or a list
+           of expression tuples as expr1, leaving expr2 to None."""
+
         if expr2 is None:
+            # list of expressions
             exprs = expr1
             for expr1, expr2 in exprs:
                 self._assert_equivalent(expr1, expr2, start)
@@ -411,7 +416,11 @@ class TestParser(unittest.TestCase):
             self._parse(expr1, start).should.be.equal(self._parse(expr2, start))
 
     def _assert_non_equivalent(self, expr1, expr2=None, start="expr"):
+        """Assert that two expressions are not parsed as equivalent ASTs.
+           The API is similar to _assert_equivalent."""
+
         if expr2 is None:
+            # list of expressions
             exprs = expr1
             for expr1, expr2 in exprs:
                 self._assert_non_equivalent(expr1, expr2, start)
