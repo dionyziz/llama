@@ -139,12 +139,12 @@ class Table:
         raise LlamaBadTypeError  # Notify semantic analyzer.
 
     def _insert_new_type(self, newType):
-        alias = self.knownTypes.getKey(newType)
-        if alias is None:
+        existingType = self.knownTypes.getKey(newType)
+        if existingType is None:
             self.knownTypes[newType] = []
             return
 
-        if isinstance(alias, ast.Builtin):
+        if isinstance(existingType, ast.Builtin):
             self._signal_error(
                 "%d:%d: error: Redefining builtin type '%s'",
                 newType.lineno,
@@ -158,13 +158,13 @@ class Table:
                 newType.lineno,
                 newType.lexpos,
                 newType.name,
-                alias.lineno,
-                alias.lexpos
+                existingType.lineno,
+                existingType.lexpos
             )
 
     def _insert_new_constructor(self, newType, constructor):
-        alias = self.knownConstructors.getKey(constructor)
-        if alias is None:
+        existingConstructor = self.knownConstructors.getKey(constructor)
+        if existingConstructor is None:
             self.knownTypes[newType].append(constructor)
             self.knownConstructors[constructor] = newType
 
@@ -183,8 +183,8 @@ class Table:
                 constructor.lineno,
                 constructor.lexpos,
                 constructor.name,
-                alias.lineno,
-                alias.lexpos
+                existingConstructor.lineno,
+                existingConstructor.lexpos
             )
 
     def process(self, typeDefList):
