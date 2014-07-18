@@ -151,17 +151,21 @@ class TestType(unittest.TestCase):
             "int ref",
             "foo ref",
             "(int -> int) ref",
-            "int ref ref",
+            "(int ref) ref",
 
             "array of int",
             "array of foo",
-            "array [*, *] of int",
+            "array of (int ref)",
             "array of (foo ref)",
+            "array [*, *] of int",
 
             "int -> int",
+            "foo -> int",
+            "int -> foo",
             "int ref -> int",
             "int -> (int ref)",
             "(array of int) -> int"
+            "int -> (array of int -> int)"
         )
 
         for t in right_testcases:
@@ -169,12 +173,14 @@ class TestType(unittest.TestCase):
             self._validate(tree).should.be.ok
 
         wrong_testcases = (
-            "array of int ref",
-            "array of int ref ref",
-            "array of int ref -> int",
+            "(array of int) ref",
+            "(int -> array of int) ref",
+
             "array of (array of int)",
-            "array of (array of int) -> int",
+            "array of ((array of int) ref)",
+
             "int -> array of int"
+            "int -> (int -> array of int)"
         )
 
         for t in wrong_testcases:
