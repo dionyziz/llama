@@ -42,7 +42,7 @@ class Node:
         values = [getattr(self, attr) for attr in attrs]
         safe_values = []
         for value in values:
-            displayable_types = (int, float, bool, str, list, Type)
+            displayable_types = (int, float, bool, str, list, Type, Expression)
             if isinstance(value, displayable_types) or value is None:
                 safe_values.append(str(value).replace("\n", "\n\t"))
             else:
