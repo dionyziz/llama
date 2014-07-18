@@ -103,11 +103,20 @@ class Validator:
         return self._dispatcher[type(t)](t)
 
 
+class LlamaBadTypeError(Exception):
+    """Exception thrown on bad type declaration."""
+    pass
+
+
+
 class Table:
     """
     Database of all the program's types. Enables semantic checking
     of user defined types and more.
     """
+
+    # Logger used for logging events. Possibly shared with other modules.
+    logger = None
 
     def __init__(self, logger):
         """Initialize a new Table."""
@@ -125,8 +134,58 @@ class Table:
         # This is a smartdict, so keys can be retrieved.
         self.knownConstructors = smartdict.Smartdict()
 
-    # Logger used for logging events. Possibly shared with other modules.
-    logger = None
+    def _signal_error(self, msg, *args):
+        self.logger.error(msg, *args)
+        raise LlamaBadTypeError  # Notify semantic analyzer.
+
+    def _insert_new_type(self, newType):
+        alias = self.knownTypes.getKey(newType)
+        if alias is None:
+            self.knownTypes[newType] = []
+            return
+
+        if isinstance(alias, ast.Builtin):
+            self._signal_error(
+                "%d:%d: error: Redefining builtin type '%s'",
+                newType.lineno,
+                newType.lexpos,
+                newType.name
+            )
+        else:
+            self._signal_error(
+                "%d:%d: error: Redefining user-defined type '%s'"
+                "\tPrevious definition: %d:%d",
+                newType.lineno,
+                newType.lexpos,
+                newType.name,
+                alias.lineno,
+                alias.lexpos
+            )
+
+    def _insert_new_constructor(self, newType, constructor):
+        alias = self.knownConstructors.getKey(constructor)
+        if alias is None:
+            self.knownTypes[newType].append(constructor)
+            self.knownConstructors[constructor] = newType
+
+            for argType in constructor:
+                if argType not in self.knownTypes:
+                    self._signal_error(
+                        "%d:%d: error: Undefined type '%s'",
+                        argType.lineno,
+                        argType.lexpos,
+                        argType.name
+                    )
+        else:
+            self._signal_error(
+                "%d:%d: error: Redefining constructor '%s'"
+                "\tPrevious definition: %d:%d",
+                constructor.lineno,
+                constructor.lexpos,
+                constructor.name,
+                alias.lineno,
+                alias.lexpos
+            )
 
     def process(self, typeDefList):
         """
@@ -136,57 +195,12 @@ class Table:
 
         # First, insert all newly-defined types.
         for tdef in typeDefList:
-            newType = tdef.type
-            alias = self.knownTypes.getKey(newType)
-            if alias is None:
-                self.knownTypes[newType] = []
-            elif isinstance(alias, ast.Builtin):
-                self.logger.error(
-                    "%d:%d: error: Redefining builtin type '%s'",
-                    newType.lineno,
-                    newType.lexpos,
-                    newType.name
-                )
-                return
-            else:
-                self.logger.error(
-                    "%d:%d: error: Redefining user-defined type '%s'"
-                    "\tPrevious definition: %d:%d",
-                    newType.lineno,
-                    newType.lexpos,
-                    newType.name,
-                    alias.lineno,
-                    alias.lexpos
-                )
-                return
+             self._insert_new_type(tdef.type)
 
         # Then, process each constructor.
         for tdef in typeDefList:
             newType = tdef.type
             for constructor in tdef:
-                alias = self.knownConstructors.getKey(constructor)
-                if alias is None:
-                    self.knownTypes[newType].append(constructor)
-                    self.knownConstructors[constructor] = newType
+                self._insert_new_constructor(newType, constructor)
 
-                    for argType in constructor:
-                        if argType not in self.knownTypes:
-                            self.logger.error(
-                                "%d:%d: error: Undefined type '%s'",
-                                argType.lineno,
-                                argType.lexpos,
-                                argType.name
-                            )
-                            return
-                else:
-                    self.logger.error(
-                        "%d:%d: error: Redefining constructor '%s'"
-                        "\tPrevious definition: %d:%d",
-                        constructor.lineno,
-                        constructor.lexpos,
-                        constructor.name,
-                        alias.lineno,
-                        alias.lexpos
-                    )
-                    return
         # TODO: Emit warnings when typenames clash with definition names.

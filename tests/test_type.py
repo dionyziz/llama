@@ -66,10 +66,10 @@ class TestType(unittest.TestCase):
 
         for t in right_testcases:
             tree = self._parse(t)
-            self.assertTrue(
-                self._process_typedef(tree),
-                "'%s' type processing should be OK" % t
-            )
+            try:
+                self._process_typedef(tree)
+            except type.LlamaBadTypeError:
+                self.fail("'%s' type processing should be OK" % t)
 
         wrong_testcases = (
             """
@@ -102,9 +102,10 @@ class TestType(unittest.TestCase):
 
         for t in wrong_testcases:
             tree = self._parse(t)
-            self.assertFalse(
-                self._process_typedef(tree),
-                "'%s' type processing should not be OK" % t
+            self.assertRaises(
+                type.LlamaBadTypeError,
+                self._process_typedef,
+                tree
             )
 
     def _is_array(self, t):
