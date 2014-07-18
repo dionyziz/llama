@@ -1,10 +1,10 @@
 import unittest
 
 from compiler import ast, error, lex, parse
+from tests import parser_db
 
 
-class TestParser(unittest.TestCase):
-    parsers = {}
+class TestParser(unittest.TestCase, parser_db.ParserDB):
 
     @classmethod
     def setUpClass(cls):
@@ -16,23 +16,6 @@ class TestParser(unittest.TestCase):
 
         cls.xfunc = cls._parse("let x = 1", "letdef")
         cls.yfunc = cls._parse("let y = 2", "letdef")
-
-    @classmethod
-    def _parse(cls, data, start='program'):
-        mock = error.LoggerMock()
-
-        # memoization
-        try:
-            parser = cls.parsers[start]
-        except KeyError:
-            parser = cls.parsers[start] = parse.Parser(
-                logger=mock,
-                start=start
-            )
-
-        tree = parser.parse(data=data)
-
-        return tree
 
     def test_parse(self):
         parse.parse("").should.equal(ast.Program([]))

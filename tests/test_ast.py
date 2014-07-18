@@ -1,28 +1,9 @@
 import unittest
 
 from compiler import ast, error, parse
+from tests import parser_db
 
-
-class TestAST(unittest.TestCase):
-
-    parsers = {}
-
-    @classmethod
-    def _parse(cls, data, start='program'):
-        mock = error.LoggerMock()
-
-        # memoization
-        try:
-            parser = cls.parsers[start]
-        except KeyError:
-            parser = cls.parsers[start] = parse.Parser(
-                logger=mock,
-                start=start
-            )
-
-        tree = parser.parse(data=data)
-
-        return tree
+class TestAST(unittest.TestCase, parser_db.ParserDB):
 
     def test_eq(self):
         foocon = ast.Constructor("foo", [])
