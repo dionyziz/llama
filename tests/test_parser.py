@@ -523,11 +523,7 @@ class TestParser(unittest.TestCase):
         ), None, "type")
 
     def test_regression_precedence_func_ref(self):
-        raise unittest.SkipTest("enable me after fixing #48")
-
         self._assert_equivalent("int -> int ref", "int -> (int ref)", "type")
 
     def test_regression_precedence_type_array_ref(self):
-        raise unittest.SkipTest("enable me after #46 is fixed")
-
         self._assert_equivalent("array of int ref", "array of (int ref)", 'type')
