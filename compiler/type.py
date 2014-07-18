@@ -97,7 +97,6 @@ class Validator:
             (ast.User, self._validate_user)
         ))
 
-
     def validate(self, t):
         """Verify that a type is a valid type."""
         return self._dispatcher[type(t)](t)
@@ -106,7 +105,6 @@ class Validator:
 class LlamaBadTypeError(Exception):
     """Exception thrown on bad type declaration."""
     pass
-
 
 
 class Table:
@@ -195,7 +193,7 @@ class Table:
 
         # First, insert all newly-defined types.
         for tdef in typeDefList:
-             self._insert_new_type(tdef.type)
+            self._insert_new_type(tdef.type)
 
         # Then, process each constructor.
         for tdef in typeDefList:
