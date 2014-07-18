@@ -401,22 +401,22 @@ class TestParser(unittest.TestCase):
             [ast.Int(), ast.Int()]
         )
 
-    def _assert_equivalent(self, expr1, expr2=None, state="expr"):
+    def _assert_equivalent(self, expr1, expr2=None, start="expr"):
         if expr2 is None:
             exprs = expr1
             for expr1, expr2 in exprs:
-                self._assert_equivalent(expr1, expr2, state)
+                self._assert_equivalent(expr1, expr2, start)
         else:
             # self.assertEqual(self._parse(expr1, "expr"), self._parse(expr2, "expr"), "'%s' must equal '%s'" % (expr1, expr2))
-            self._parse(expr1, state).should.be.equal(self._parse(expr2, state))
+            self._parse(expr1, start).should.be.equal(self._parse(expr2, start))
 
-    def _assert_non_equivalent(self, expr1, expr2=None, state="expr"):
+    def _assert_non_equivalent(self, expr1, expr2=None, start="expr"):
         if expr2 is None:
             exprs = expr1
             for expr1, expr2 in exprs:
-                self._assert_non_equivalent(expr1, expr2, state)
+                self._assert_non_equivalent(expr1, expr2, start)
         else:
-            self._parse(expr1, state).shouldnt.be.equal(self._parse(expr2, state))
+            self._parse(expr1, start).shouldnt.be.equal(self._parse(expr2, start))
 
     def test_regression_new(self):
         raise unittest.SkipTest("enable me after fixing #41")
