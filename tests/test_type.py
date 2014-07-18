@@ -146,16 +146,20 @@ class TestType(unittest.TestCase):
 
         right_testcases = (
             "foo",
+
             "int ref",
             "foo ref",
+            "(int -> int) ref",
             "int ref ref",
+
             "array of int",
             "array of foo",
             "array [*, *] of int",
             "array of (foo ref)",
+
             "int -> int",
             "int ref -> int",
-            "int -> int ref",
+            "int -> (int ref)",
             "(array of int) -> int"
         )
 
