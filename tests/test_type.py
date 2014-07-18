@@ -142,8 +142,11 @@ class TestType(unittest.TestCase):
         return mock.success
 
     def test_validate(self):
-        for builtin_type in ast.builtin_types_map.values():
-            self._validate(builtin_type()).should.be.ok
+        for name, builtin_type in ast.builtin_types_map.items():
+            try:
+                self._validate(builtin_type()).should.be.ok
+            except type.LlamaInvalidTypeError:
+                self.fail("Failed to validate type '%s'." % name)
 
         right_testcases = (
             "foo",
@@ -170,7 +173,10 @@ class TestType(unittest.TestCase):
 
         for t in right_testcases:
             tree = self._parse(t, 'type')
-            self._validate(tree).should.be.ok
+            try:
+                self._validate(tree).should.be.ok
+            except type.LlamaInvalidTypeError:
+                self.fail("Failed to validate type '%s'." % t)
 
         wrong_testcases = (
             "(array of int) ref",
@@ -185,4 +191,8 @@ class TestType(unittest.TestCase):
 
         for t in wrong_testcases:
             tree = self._parse(t, 'type')
-            self._validate(tree).shouldnt.be.ok
+            self.assertRaises(
+                type.LlamaInvalidTypeError,
+                self._validate,
+                tree
+            )
