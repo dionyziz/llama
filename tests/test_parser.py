@@ -499,6 +499,8 @@ class TestParser(unittest.TestCase):
             ("!f x", "(!f) x"),
             ("not f x", "not (f x)"),
             ("delete f x", "delete (f x)"),
+            ("not F x", "not (F x)"),
+            ("delete F x", "delete (F x)"),
 
             ("1 + 1 = 2", "(1 + 1) = 2"),
             ("x := a && b", "x := (a && b)"),
