@@ -32,6 +32,7 @@ class Parser:
         # Type operator precedence
         ('right', 'ARROW'),
         ('nonassoc', 'OF'),
+        ('nonassoc', 'REF'),
 
         # Normal operator precedence
         ('nonassoc', 'IN'),
