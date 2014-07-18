@@ -18,6 +18,9 @@ class ParserDB():
                 start=start
             )
 
+        # Clear previous logger state prior to parsing.
+        parser.logger.clear()
+
         tree = parser.parse(data=data)
 
         return tree
