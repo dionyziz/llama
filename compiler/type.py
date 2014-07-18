@@ -11,7 +11,6 @@
 # ----------------------------------------------------------------------
 """
 
-import compiler
 from compiler import ast, error
 
 
@@ -86,16 +85,16 @@ class Validator:
 
         # Bulk-add dispatching for builtin types.
         self._dispatcher = {
-            type(typecon()): self._validate_builtin
+            typecon: self._validate_builtin
             for typecon in ast.builtin_types_map.values()
         }
 
         # Add dispatching for other types.
         self._dispatcher.update((
-            (compiler.ast.Array, self._validate_array),
-            (compiler.ast.Function, self._validate_function),
-            (compiler.ast.Ref, self._validate_ref),
-            (compiler.ast.User, self._validate_user)
+            (ast.Array, self._validate_array),
+            (ast.Function, self._validate_function),
+            (ast.Ref, self._validate_ref),
+            (ast.User, self._validate_user)
         ))
 
 
