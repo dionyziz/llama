@@ -428,8 +428,6 @@ class TestParser(unittest.TestCase):
             self._parse(expr1, start).shouldnt.be.equal(self._parse(expr2, start))
 
     def test_regression_new(self):
-        raise unittest.SkipTest("enable me after fixing #41")
-
         self._assert_equivalent((
             ("!new int", "!(new int)"),
             ("f new int", "f (new int)"),
