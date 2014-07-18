@@ -14,6 +14,16 @@
 from compiler import ast, error, smartdict
 
 
+class LlamaInvalidTypeError(Exception):
+    """Exception thrown on detecting an invalid type."""
+    pass
+
+
+class LlamaBadTypeError(Exception):
+    """Exception thrown on detecting a bad type declaration."""
+    pass
+
+
 class Validator:
     """
     Type validator. Ensures type structure and semantics follow
@@ -100,11 +110,6 @@ class Validator:
     def validate(self, t):
         """Verify that a type is a valid type."""
         return self._dispatcher[type(t)](t)
-
-
-class LlamaBadTypeError(Exception):
-    """Exception thrown on bad type declaration."""
-    pass
 
 
 class Table:
