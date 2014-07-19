@@ -48,41 +48,41 @@ class TestParser(unittest.TestCase):
     def test_def_list(self):
         self._parse("", "def_list").should.equal([])
 
-        self._parse("let x = 1", "def_list").should.equal([TestParser.xfunc])
+        self._parse("let x = 1", "def_list").should.equal([self.xfunc])
 
         self._parse("let x = 1 let y = 2", "def_list").should.equal(
-            [TestParser.xfunc, TestParser.yfunc]
+            [self.xfunc, self.yfunc]
         )
 
     def test_letdef(self):
         self._parse("let x = 1", "letdef").should.equal(
             ast.LetDef(
-                [ast.FunctionDef("x", [], TestParser.one)]
+                [ast.FunctionDef("x", [], self.one)]
             )
         )
         self._parse("let rec x = 1", "letdef").should.equal(
             ast.LetDef(
-                [ast.FunctionDef("x", [], TestParser.one)], True
+                [ast.FunctionDef("x", [], self.one)], True
             )
         )
 
     def test_function_def(self):
         self._parse("let x = 1", "def").should.equal(
-            ast.FunctionDef("x", [], TestParser.one)
+            ast.FunctionDef("x", [], self.one)
         )
 
         self._parse("let x y (z:int) = 1", "def").should.equal(
             ast.FunctionDef(
                 "x",
                 [ast.Param("y"), ast.Param("z", ast.Int())],
-                TestParser.one
+                self.one
             )
         )
 
         self._parse("let x y z:int = 1", "def").should.equal(
             ast.FunctionDef(
                 "x",
-                [ast.Param("y"), ast.Param("z")], TestParser.one, ast.Int()
+                [ast.Param("y"), ast.Param("z")], self.one, ast.Int()
             )
         )
 
@@ -173,10 +173,10 @@ class TestParser(unittest.TestCase):
         self._parse("mutable foo", "def").should.equal(foo_var)
 
     def test_array_variable_def(self):
-        array_var = ast.ArrayVariableDef("foo", [TestParser.two])
+        array_var = ast.ArrayVariableDef("foo", [self.two])
         self._parse("mutable foo [2]", "def").should.equal(array_var)
         self._parse("mutable foo [2] : int", "def").should.equal(
-            ast.ArrayVariableDef("foo", [TestParser.two], ast.Array(ast.Int()))
+            ast.ArrayVariableDef("foo", [self.two], ast.Array(ast.Int()))
         )
 
     def test_while_expr(self):
@@ -195,12 +195,12 @@ class TestParser(unittest.TestCase):
     def test_for_expr(self):
         self._parse("for i = 1 to 1 do true done", "expr").should.equal(
             ast.ForExpression(
-                "i", TestParser.one, TestParser.one, self.true
+                "i", self.one, self.one, self.true
             )
         )
         self._parse("for i = 1 downto 1 do true done", "expr").should.equal(
             ast.ForExpression(
-                "i", TestParser.one, TestParser.one, self.true, True
+                "i", self.one, self.one, self.true, True
             )
         )
 
@@ -253,15 +253,15 @@ class TestParser(unittest.TestCase):
         parsed = self._parse(expr, "expr")
         parsed.should.be.an(ast.BinaryExpression)
         (parsed.operator).should.equal(operator)
-        (parsed.leftOperand).should.equal(TestParser.one)
-        (parsed.rightOperand).should.equal(TestParser.two)
+        (parsed.leftOperand).should.equal(self.one)
+        (parsed.rightOperand).should.equal(self.two)
 
     def _check_unary_operator(self, operator):
         expr = "%s 1" % operator
         parsed = self._parse(expr, "expr")
         parsed.should.be.an(ast.UnaryExpression)
         (parsed.operator).should.equal(operator)
-        (parsed.operand).should.equal(TestParser.one)
+        (parsed.operand).should.equal(self.one)
 
     def test_binary_expr(self):
         for operator in list(lex.binary_operators.keys()) + ["mod"]:
@@ -272,23 +272,23 @@ class TestParser(unittest.TestCase):
             self._check_unary_operator(operator)
 
     def test_begin_end_expr(self):
-        self._parse("begin 1 end", "expr").should.equal(TestParser.one)
+        self._parse("begin 1 end", "expr").should.equal(self.one)
 
     def test_function_call_expr(self):
         self._parse("f 1", "expr").should.equal(
-            ast.FunctionCallExpression("f", [TestParser.one])
+            ast.FunctionCallExpression("f", [self.one])
         )
 
     def test_constructor_call_expr(self):
         self._parse("Red 1", "expr").should.equal(
-            ast.ConstructorCallExpression("Red", [TestParser.one])
+            ast.ConstructorCallExpression("Red", [self.one])
         )
 
     def test_simple_expr_seq(self):
         self._parse("", "simple_expr_seq").should.be(None)
-        self._parse("1", "simple_expr_seq").should.equal([TestParser.one])
+        self._parse("1", "simple_expr_seq").should.equal([self.one])
         self._parse("1 2", "simple_expr_seq").should.equal(
-            [TestParser.one, TestParser.two]
+            [self.one, self.two]
         )
 
     def test_dim_expr(self):
@@ -302,7 +302,7 @@ class TestParser(unittest.TestCase):
         (parsed.dimension).should.equal(2)
 
     def test_in_expr(self):
-        in_expr = ast.LetInExpression(TestParser.xfunc, TestParser.one)
+        in_expr = ast.LetInExpression(self.xfunc, self.one)
         self._parse("let x = 1 in 1", "expr").should.equal(in_expr)
 
     def test_new(self):
@@ -312,18 +312,18 @@ class TestParser(unittest.TestCase):
 
     def test_expr_comma_seq(self):
         self._parse("", "expr_comma_seq").should.be(None)
-        self._parse("1", "expr_comma_seq").should.equal([TestParser.one])
+        self._parse("1", "expr_comma_seq").should.equal([self.one])
         self._parse("1, 2", "expr_comma_seq").should.equal(
-            [TestParser.one, TestParser.two]
+            [self.one, self.two]
         )
 
     def test_array_expr(self):
         self._parse("a[1]", "expr").should.equal(
-            ast.ArrayExpression("a", [TestParser.one])
+            ast.ArrayExpression("a", [self.one])
         )
 
     def test_paren_expr(self):
-        self._parse("(1)", "expr").should.equal(TestParser.one)
+        self._parse("(1)", "expr").should.equal(self.one)
 
     def test_conid_expr(self):
         self._parse("Red", "expr").should.equal(ast.ConidExpression("Red"))
