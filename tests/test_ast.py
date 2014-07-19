@@ -39,12 +39,10 @@ class TestAST(unittest.TestCase):
 
     @unittest.skip("Enable me after #25 is merged.")
     def test_regression_attr_equality(self):
-        tdef = TestAST._parse("type color = Red", "typedef")
+        tdef1 = TestAST._parse("type color = Red", "typedef")
         tdef2 = ast.TypeDefList(
             [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
         )
 
-        try:
-            tdef == tdef2
-        except:
-            self.assertTrue(False, "equality should not throw")
+        node_eq = ast.Node.__eq__
+        node_eq.when.called_with(tdef1, tdef2).shouldnt.throw(AttributeError)
