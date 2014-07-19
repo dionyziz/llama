@@ -14,34 +14,34 @@ class TestLexer(unittest.TestCase):
 
     def _assert_individual_token(self, input, expected_type, expected_value):
         l, mock = self._lex_data(input)
-        len(l).should.be.equal(1)
+        l.should.have.length_of(1)
         tok = l[0]
-        tok.type.should.be.equal(expected_type)
-        tok.value.should.be.equal(expected_value)
-        mock.success.should.be.ok
+        tok.type.shouldnt.be.different_of(expected_type)
+        tok.value.should.equal(expected_value)
+        mock.success.should.be.true
 
     def _assert_lex_success(self, input):
         l, mock = self._lex_data(input)
-        mock.success.should.be.ok
+        mock.success.should.be.true
 
     def _assert_lex_failure(self, input):
         l, mock = self._lex_data(input)
-        mock.success.shouldnt.be.ok
+        mock.success.should.be.false
 
     def test_tokenize(self):
-        list(lex.tokenize("")).should.be.equal([])
+        list(lex.tokenize("")).should.equal([])
         mock = error.LoggerMock()
-        list(lex.tokenize("", mock)).should.be.equal([])
+        list(lex.tokenize("", mock)).should.equal([])
 
     def test_init(self):
         mock = error.LoggerMock()
         lexer = lex.Lexer(logger=mock)
-        mock.should.be.equal(lexer.logger)
+        lexer.should.have.property("logger").being.equal(mock)
 
     def test_empty(self):
         l, mock = self._lex_data("")
         l.should.be.empty
-        mock.success.should.be.ok
+        mock.success.should.be.true
 
     def test_keywords(self):
         for input_program in lex.reserved_words:
@@ -100,7 +100,7 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failure("4.2e1.0")
 
     def test_unescape(self):
-        lex.unescape('\\n').should.be.equal('\n')
+        lex.unescape('\\n').should.equal('\n')
 
     def test_cconst(self):
         single_chars = set(string.printable) - set(string.whitespace) | {' '}
