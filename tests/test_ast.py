@@ -6,7 +6,6 @@ from compiler import ast, error, parse
 
 
 class TestAST(unittest.TestCase):
-# TODO: remove boilerplate code after simple_api branch gets merged
 
     parsers = {}
 
@@ -16,9 +15,9 @@ class TestAST(unittest.TestCase):
 
         # memoization
         try:
-            parser = TestAST.parsers[start]
-        except:
-            parser = TestAST.parsers[start] = parse.Parser(
+            parser = cls.parsers[start]
+        except KeyError:
+            parser = cls.parsers[start] = parse.Parser(
                 logger=mock,
                 optimize=False,
                 start=start,
@@ -30,16 +29,13 @@ class TestAST(unittest.TestCase):
         return tree
 
     def test_eq(self):
-        ast.Constructor("foo", []).should.be.equal(
-            ast.Constructor("foo", [])
-        )
-        ast.Constructor("foo", []).shouldnt.be.equal(
-            ast.Constructor("bar", [])
-        )
+        foocon = ast.Constructor("foo", [])
+        ast.Constructor("foo", []).should.equal(foocon)
+        ast.Constructor("bar", []).shouldnt.equal(foocon)
 
     @unittest.skip("Enable me after #25 is merged.")
     def test_regression_attr_equality(self):
-        tdef1 = TestAST._parse("type color = Red", "typedef")
+        tdef1 = self._parse("type color = Red", "typedef")
         tdef2 = ast.TypeDefList(
             [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
         )
