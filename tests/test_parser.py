@@ -14,6 +14,7 @@ class TestParser(unittest.TestCase):
         cls.two = cls._parse("2", "expr")
         cls.true = cls._parse("true", "expr")
         cls.false = cls._parse("false", "expr")
+        cls.unit = cls._parse("()", "expr")
 
         cls.xfunc = cls._parse("let x = 1", "letdef")
         cls.yfunc = cls._parse("let y = 2", "letdef")
@@ -180,27 +181,27 @@ class TestParser(unittest.TestCase):
         )
 
     def test_while_expr(self):
-        self._parse("while true do true done", "expr").should.equal(
-            ast.WhileExpression(self.true, self.true)
+        self._parse("while true do () done", "expr").should.equal(
+            ast.WhileExpression(self.true, self.unit)
         )
 
     def test_if_expr(self):
-        self._parse("if true then true else true", "expr").should.equal(
-            ast.IfExpression(self.true, self.true, self.true)
+        self._parse("if true then 1 else 2", "expr").should.equal(
+            ast.IfExpression(self.true, self.one, self.two)
         )
-        self._parse("if true then true", "expr").should.equal(
-            ast.IfExpression(self.true, self.true)
+        self._parse("if true then ()", "expr").should.equal(
+            ast.IfExpression(self.true, self.unit)
         )
 
     def test_for_expr(self):
-        self._parse("for i = 1 to 1 do true done", "expr").should.equal(
+        self._parse("for i = 1 to 2 do () done", "expr").should.equal(
             ast.ForExpression(
-                "i", self.one, self.one, self.true
+                "i", self.one, self.two, self.unit
             )
         )
-        self._parse("for i = 1 downto 1 do true done", "expr").should.equal(
+        self._parse("for i = 2 downto 1 do () done", "expr").should.equal(
             ast.ForExpression(
-                "i", self.one, self.one, self.true, True
+                "i", self.two, self.one, self.unit, True
             )
         )
 
@@ -222,14 +223,14 @@ class TestParser(unittest.TestCase):
 
     def test_match_expr(self):
         self._parse(
-            "match true with true -> true end", "expr"
+            "match true with false -> 1 end", "expr"
         ).should.equal(
-            ast.MatchExpression(self.true, [ast.Clause(self.true, self.true)])
+            ast.MatchExpression(self.true, [ast.Clause(self.false, self.one)])
         )
 
     def test_clause(self):
-        self._parse("true -> true", "clause").should.equal(
-            ast.Clause(self.true, self.true)
+        self._parse("true -> false", "clause").should.equal(
+            ast.Clause(self.true, self.false)
         )
 
     def test_clause_seq(self):
@@ -244,8 +245,10 @@ class TestParser(unittest.TestCase):
         )
 
     def test_delete(self):
-        self._parse("delete true", "expr").should.equal(
-            ast.DeleteExpression(self.true)
+        self._parse("delete p", "expr").should.equal(
+            ast.DeleteExpression(
+                ast.GenidExpression("p")
+            )
         )
 
     def _check_binary_operator(self, operator):
