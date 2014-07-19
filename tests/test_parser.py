@@ -18,14 +18,14 @@ class TestParser(unittest.TestCase):
         cls.yfunc = cls._parse("let y = 2", "letdef")
 
     @classmethod
-    def _parse(self, data, start='program'):
+    def _parse(cls, data, start='program'):
         mock = error.LoggerMock()
 
         # memoization
         try:
-            parser = TestParser.parsers[start]
-        except:
-            parser = TestParser.parsers[start] = parse.Parser(
+            parser = cls.parsers[start]
+        except KeyError:
+            parser = cls.parsers[start] = parse.Parser(
                 logger=mock,
                 optimize=False,
                 start=start,
@@ -412,8 +412,12 @@ class TestParser(unittest.TestCase):
             for expr1, expr2 in exprs:
                 self._assert_equivalent(expr1, expr2, start)
         else:
-            # self.assertEqual(self._parse(expr1, "expr"), self._parse(expr2, "expr"), "'%s' must equal '%s'" % (expr1, expr2))
-            self._parse(expr1, start).should.be.equal(self._parse(expr2, start))
+            # self.assertEqual(
+            #     self._parse(expr1, "expr"),
+            #     self._parse(expr2, "expr"),
+            #     "'%s' must equal '%s'" % (expr1, expr2)
+            # )
+            self._parse(expr1, start).should.equal(self._parse(expr2, start))
 
     def _assert_non_equivalent(self, expr1, expr2=None, start="expr"):
         """Assert that two expressions are not parsed as equivalent ASTs.
@@ -506,8 +510,14 @@ class TestParser(unittest.TestCase):
 
             ("if p then if q then a else b", "if p then (if q then a else b)"),
             ("if p then 1 else 1 + 1", "if p then 1 else (1 + 1)"),
-            ("if p then 1 else 2; if q then 1 else 2", "(if p then 1 else 2); (if q then 1 else 2)"),
-            ("let x = 5 in x; let y = 5 in y", "let x = 5 in (x; let y = 5 in y)"),
+            (
+                "if p then 1 else 2; if q then 1 else 2",
+                "(if p then 1 else 2); (if q then 1 else 2)"
+            ),
+            (
+                "let x = 5 in x; let y = 5 in y",
+                "let x = 5 in (x; let y = 5 in y)"
+            ),
 
             ("x; y; z", "(x; y); z"),
         ))
@@ -526,4 +536,8 @@ class TestParser(unittest.TestCase):
         self._assert_equivalent("int -> int ref", "int -> (int ref)", "type")
 
     def test_regression_precedence_type_array_ref(self):
-        self._assert_equivalent("array of int ref", "array of (int ref)", 'type')
+        self._assert_equivalent(
+            "array of int ref",
+            "array of (int ref)",
+            'type'
+        )
