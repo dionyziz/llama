@@ -13,6 +13,7 @@ class TestParser(unittest.TestCase):
         cls.one = cls._parse("1", "expr")
         cls.two = cls._parse("2", "expr")
         cls.true = cls._parse("true", "expr")
+        cls.false = cls._parse("false", "expr")
 
         cls.xfunc = cls._parse("let x = 1", "letdef")
         cls.yfunc = cls._parse("let y = 2", "letdef")
@@ -234,13 +235,14 @@ class TestParser(unittest.TestCase):
         )
 
     def test_clause_seq(self):
-        clause = ast.Clause(self.true, self.true)
+        clause1 = ast.Clause(self.one, self.two)
+        clause2 = ast.Clause(self.true, self.false)
 
         self._parse("", "clause_seq").should.be(None)
         self._parse(
-            "true -> true | true -> true", "clause_seq"
+            "1 -> 2 | true -> false", "clause_seq"
         ).should.equal(
-            [clause, clause]
+            [clause1, clause2]
         )
 
     def test_delete(self):
@@ -394,8 +396,8 @@ class TestParser(unittest.TestCase):
 
     def test_type_seq(self):
         self._parse("", "type_seq").should.be(None)
-        self._parse("int int", "type_seq").should.equal(
-            [ast.Int(), ast.Int()]
+        self._parse("int float", "type_seq").should.equal(
+            [ast.Int(), ast.Float()]
         )
 
     def _assert_equivalent(self, expr1, expr2=None, start="expr"):
