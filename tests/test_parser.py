@@ -48,9 +48,7 @@ class TestParser(unittest.TestCase):
     def test_def_list(self):
         self._parse("", "def_list").should.equal([])
 
-        self._parse("let x = 1", "def_list").should.equal(
-            [TestParser.xfunc]
-        )
+        self._parse("let x = 1", "def_list").should.equal([TestParser.xfunc])
 
         self._parse("let x = 1 let y = 2", "def_list").should.equal(
             [TestParser.xfunc, TestParser.yfunc]
@@ -366,12 +364,7 @@ class TestParser(unittest.TestCase):
 
         self._parse("type color = Red", "typedef").should.equal(
             ast.TypeDefList(
-                [
-                    ast.TDef(
-                        ast.User("color"),
-                        [ast.Constructor("Red")]
-                    )
-                ]
+                [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
             )
         )
 
@@ -382,12 +375,14 @@ class TestParser(unittest.TestCase):
         )
 
     def _assert_equivalent(self, expr1, expr2=None, start="expr"):
-        """Assert that two expressions are parsed two equivalent ASTs.
-           You can pass either two expressions (expr1, expr2) or a list
-           of expression tuples as expr1, leaving expr2 to None."""
+        """
+        Assert that two expressions are parsed into equivalent ASTs.
+        You can pass either two expressions (expr1, expr2) or a sequence
+        of expression tuples as expr1, leaving expr2 to None.
+        """
 
         if expr2 is None:
-            # list of expressions
+            # sequence of expressions
             exprs = expr1
             for expr1, expr2 in exprs:
                 self._assert_equivalent(expr1, expr2, start)
@@ -402,11 +397,13 @@ class TestParser(unittest.TestCase):
             parsed1.should.equal(parsed2)
 
     def _assert_non_equivalent(self, expr1, expr2=None, start="expr"):
-        """Assert that two expressions are not parsed as equivalent ASTs.
-           The API is similar to _assert_equivalent."""
+        """
+        Assert that two expressions are not parsed as equivalent ASTs.
+        The API is similar to _assert_equivalent.
+        """
 
         if expr2 is None:
-            # list of expressions
+            # sequence of expressions
             exprs = expr1
             for expr1, expr2 in exprs:
                 self._assert_non_equivalent(expr1, expr2, start)
