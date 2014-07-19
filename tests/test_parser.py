@@ -253,34 +253,17 @@ class TestParser(unittest.TestCase):
     def _check_binary_operator(self, operator):
         expr = "1 %s 2" % operator
         parsed = self._parse(expr, "expr")
-        self.assertTrue(isinstance(parsed, ast.BinaryExpression))
-        self.assertEqual(parsed.operator, operator)
-        self.assertEqual(parsed.leftOperand, TestParser.one)
-        self.assertEqual(parsed.rightOperand, TestParser.two)
+        parsed.should.be.an(ast.BinaryExpression)
+        (parsed.operator).should.equal(operator)
+        (parsed.leftOperand).should.equal(TestParser.one)
+        (parsed.rightOperand).should.equal(TestParser.two)
 
     def _check_unary_operator(self, operator):
         expr = "%s 1" % operator
         parsed = self._parse(expr, "expr")
-        self.assertTrue(
-            isinstance(parsed, ast.UnaryExpression),
-            "Unary operator '%s' failed to parse\
-             as a unary expression"
-            % operator
-        )
-        self.assertEqual(
-            parsed.operator,
-            operator,
-            "Unary operator '%s' failed to parse;\
-             instead, it is parsing as '%s'"
-            % (operator, parsed.operator)
-        )
-        self.assertEqual(
-            parsed.operand,
-            TestParser.one,
-            "Unary operator '%s' did not correctly\
-             provide the value for its argument"
-            % operator
-        )
+        parsed.should.be.an(ast.UnaryExpression)
+        (parsed.operator).should.equal(operator)
+        (parsed.operand).should.equal(TestParser.one)
 
     def test_binary_expr(self):
         for operator in list(lex.binary_operators.keys()) + ["mod"]:
@@ -311,16 +294,14 @@ class TestParser(unittest.TestCase):
         )
 
     def test_dim_expr(self):
-        dim = self._parse("dim name", "expr")
+        parsed = self._parse("dim name", "expr")
+        parsed.should.be.an(ast.DimExpression)
+        (parsed.name).should.equal("name")
 
-        self.assertTrue(isinstance(dim, ast.DimExpression))
-        self.assertEqual(dim.name, "name")
-
-        dim = self._parse("dim 2 name", "expr")
-
-        self.assertTrue(isinstance(dim, ast.DimExpression))
-        self.assertEqual(dim.name, "name")
-        self.assertEqual(dim.dimension, 2)
+        parsed = self._parse("dim 2 name", "expr")
+        parsed.should.be.an(ast.DimExpression)
+        (parsed.name).should.equal("name")
+        (parsed.dimension).should.equal(2)
 
     def test_in_expr(self):
         in_expr = ast.LetInExpression(TestParser.xfunc, TestParser.one)
@@ -416,7 +397,9 @@ class TestParser(unittest.TestCase):
             #     self._parse(expr2, "expr"),
             #     "'%s' must equal '%s'" % (expr1, expr2)
             # )
-            self._parse(expr1, start).should.equal(self._parse(expr2, start))
+            parsed1 = self._parse(expr1, start)
+            parsed2 = self._parse(expr2, start)
+            parsed1.should.equal(parsed2)
 
     def _assert_non_equivalent(self, expr1, expr2=None, start="expr"):
         """Assert that two expressions are not parsed as equivalent ASTs.
@@ -428,7 +411,9 @@ class TestParser(unittest.TestCase):
             for expr1, expr2 in exprs:
                 self._assert_non_equivalent(expr1, expr2, start)
         else:
-            self._parse(expr1, start).shouldnt.equal(self._parse(expr2, start))
+            parsed1 = self._parse(expr1, start)
+            parsed2 = self._parse(expr2, start)
+            parsed1.shouldnt.equal(parsed2)
 
     def test_regression_new(self):
         self._assert_equivalent((
