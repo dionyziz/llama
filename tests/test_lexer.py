@@ -13,19 +13,19 @@ class TestLexer(unittest.TestCase):
         return list(tokens), mock
 
     def _assert_individual_token(self, input, expected_type, expected_value):
-        l, mock = self._lex_data(input)
-        l.should.have.length_of(1)
-        tok = l[0]
+        tokens, mock = self._lex_data(input)
+        tokens.should.have.length_of(1)
+        tok = tokens[0]
         tok.type.shouldnt.be.different_of(expected_type)
         tok.value.should.equal(expected_value)
         mock.success.should.be.true
 
     def _assert_lex_success(self, input):
-        l, mock = self._lex_data(input)
+        _, mock = self._lex_data(input)
         mock.success.should.be.true
 
     def _assert_lex_failure(self, input):
-        l, mock = self._lex_data(input)
+        _, mock = self._lex_data(input)
         mock.success.should.be.false
 
     def test_tokenize(self):
@@ -39,14 +39,16 @@ class TestLexer(unittest.TestCase):
         lexer.should.have.property("logger").being.equal(mock)
 
     def test_empty(self):
-        l, mock = self._lex_data("")
-        l.should.be.empty
+        tokens, mock = self._lex_data("")
+        tokens.should.be.empty
         mock.success.should.be.true
 
     def test_keywords(self):
         for input_program in lex.reserved_words:
             self._assert_individual_token(
-                input_program, input_program.upper(), input_program
+                input_program,
+                input_program.upper(),
+                input_program
             )
 
     def test_genid(self):
@@ -104,8 +106,8 @@ class TestLexer(unittest.TestCase):
 
     def test_cconst(self):
         single_chars = set(string.printable) - set(string.whitespace) | {' '}
-        for c in single_chars - {'"', "'", '\\'}:
-            self._assert_individual_token(r"'%s'" % c, "CCONST", c)
+        for char in single_chars - {'"', "'", '\\'}:
+            self._assert_individual_token(r"'%s'" % char, "CCONST", char)
 
         for escaped, literal in lex.escape_sequences.items():
             self._assert_individual_token(
@@ -113,6 +115,7 @@ class TestLexer(unittest.TestCase):
                 "CCONST",
                 literal
             )
+
         self._assert_individual_token(r"'\x61'", "CCONST", "a")
         self._assert_individual_token(r"'\x1d'", "CCONST", "\x1d")
 
