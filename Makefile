@@ -5,7 +5,7 @@ SOURCEFILES=main.py ./compiler/*.py
 BINPATH=./bin
 TESTPATH=./tests/
 
-.PHONY: beauty clean prepare static test
+.PHONY: beauty clean functionaltest prepare static test unittest
 
 all: test
 
