@@ -359,9 +359,8 @@ class TestParser(unittest.TestCase):
             ]
         )
 
-    @unittest.skip("Enable me after simple_api branch is merged")
+    @unittest.skip("Enable me after #25 is merged.")
     def test_typedef(self):
-
         self._parse("type color = Red", "typedef").should.equal(
             ast.TypeDefList(
                 [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
