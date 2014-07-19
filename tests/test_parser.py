@@ -214,9 +214,8 @@ class TestParser(unittest.TestCase):
     def test_simple_pattern_list(self):
         self._parse("", "simple_pattern_list").should.equal([])
 
+    @unittest.skip("Enable me after bug #33 is fixed.")
     def test_regression_pattern_constructor_without_parens(self):
-        raise unittest.SkipTest("re-enable me after bug #33 is fixed")
-
         pattern = ast.Pattern("Red", [])
         self._parse("Red Red", "simple_pattern_list").should.equal(
             [pattern, pattern]
@@ -379,10 +378,8 @@ class TestParser(unittest.TestCase):
             ]
         )
 
+    @unittest.skip("Enable me after simple_api branch is merged")
     def test_typedef(self):
-        raise unittest.SkipTest(
-            "re-enable me after simple_api branch gets merged"
-        )
 
         self._parse("type color = Red", "typedef").should.equal(
             ast.TypeDefList(
