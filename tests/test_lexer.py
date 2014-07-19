@@ -69,6 +69,7 @@ class TestLexer(unittest.TestCase):
     @unittest.skip("Enable me after bug #8 is fixed.")
     def test_nocolliding_ints_and_names(self):
         self._assert_lex_failure("42koko")
+        self._assert_lex_failure("42Koko")
 
     def test_conid(self):
         self._assert_individual_token("Koko", "CONID", "Koko")
