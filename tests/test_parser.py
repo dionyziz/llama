@@ -37,42 +37,42 @@ class TestParser(unittest.TestCase):
         return tree
 
     def test_parse(self):
-        parse.parse("").should.be.equal(ast.Program([]))
+        parse.parse("").should.equal(ast.Program([]))
         mock = error.LoggerMock()
-        parse.parse("", logger=mock).should.be.equal(ast.Program([]))
+        parse.parse("", logger=mock).should.equal(ast.Program([]))
 
     def test_empty_program(self):
-        self._parse("").should.be.equal(ast.Program([]))
+        self._parse("").should.equal(ast.Program([]))
 
     def test_def_list(self):
-        self._parse("", "def_list").should.be.equal([])
+        self._parse("", "def_list").should.equal([])
 
-        self._parse("let x = 1", "def_list").should.be.equal(
+        self._parse("let x = 1", "def_list").should.equal(
             [TestParser.xfunc]
         )
 
-        self._parse("let x = 1 let y = 2", "def_list").should.be.equal(
+        self._parse("let x = 1 let y = 2", "def_list").should.equal(
             [TestParser.xfunc, TestParser.yfunc]
         )
 
     def test_letdef(self):
-        self._parse("let x = 1", "letdef").should.be.equal(
+        self._parse("let x = 1", "letdef").should.equal(
             ast.LetDef(
                 [ast.FunctionDef("x", [], TestParser.one)]
             )
         )
-        self._parse("let rec x = 1", "letdef").should.be.equal(
+        self._parse("let rec x = 1", "letdef").should.equal(
             ast.LetDef(
                 [ast.FunctionDef("x", [], TestParser.one)], True
             )
         )
 
     def test_function_def(self):
-        self._parse("let x = 1", "def").should.be.equal(
+        self._parse("let x = 1", "def").should.equal(
             ast.FunctionDef("x", [], TestParser.one)
         )
 
-        self._parse("let x y (z:int) = 1", "def").should.be.equal(
+        self._parse("let x y (z:int) = 1", "def").should.equal(
             ast.FunctionDef(
                 "x",
                 [ast.Param("y"), ast.Param("z", ast.Int())],
@@ -80,7 +80,7 @@ class TestParser(unittest.TestCase):
             )
         )
 
-        self._parse("let x y z:int = 1", "def").should.be.equal(
+        self._parse("let x y z:int = 1", "def").should.equal(
             ast.FunctionDef(
                 "x",
                 [ast.Param("y"), ast.Param("z")], TestParser.one, ast.Int()
@@ -88,164 +88,164 @@ class TestParser(unittest.TestCase):
         )
 
     def test_param_list(self):
-        self._parse("", "param_list").should.be.equal([])
+        self._parse("", "param_list").should.equal([])
 
-        self._parse("my_param", "param_list").should.be.equal(
+        self._parse("my_param", "param_list").should.equal(
             [ast.Param("my_param")]
         )
 
-        self._parse("a b", "param_list").should.be.equal(
+        self._parse("a b", "param_list").should.equal(
             [ast.Param("a"), ast.Param("b")]
         )
 
     def test_param(self):
-        self._parse("my_parameter", "param").should.be.equal(
+        self._parse("my_parameter", "param").should.equal(
             ast.Param("my_parameter")
         )
-        self._parse("(my_parameter: int)", "param").should.be.equal(
+        self._parse("(my_parameter: int)", "param").should.equal(
             ast.Param("my_parameter", ast.Int())
         )
-        self._parse("my_parameter: int", "param").should.be.equal(None)
+        self._parse("my_parameter: int", "param").should.be(None)
 
     def test_builtin_type(self):
         for type_name, type_node in ast.builtin_types_map.items():
-            self._parse(type_name, "type").should.be.equal(type_node())
+            self._parse(type_name, "type").should.equal(type_node())
 
     def test_star_comma_seq(self):
-        self._parse("*", "star_comma_seq").should.be.equal(1)
-        self._parse("*, *, *", "star_comma_seq").should.be.equal(3)
+        self._parse("*", "star_comma_seq").should.equal(1)
+        self._parse("*, *, *", "star_comma_seq").should.equal(3)
 
     def test_array_type(self):
         array_node = ast.Array(ast.Int())
-        self._parse("array of int", "type").should.be.equal(array_node)
-        self._parse("array [*, *] of int", "type").should.be.equal(
+        self._parse("array of int", "type").should.equal(array_node)
+        self._parse("array [*, *] of int", "type").should.equal(
             ast.Array(ast.Int(), 2)
         )
 
     def test_function_type(self):
         func_node = ast.Function(ast.Int(), ast.Float())
-        self._parse("int -> float", "type").should.be.equal(func_node)
+        self._parse("int -> float", "type").should.equal(func_node)
 
     def test_ref_type(self):
         ref_node = ast.Ref(ast.Int())
-        self._parse("int ref", "type").should.be.equal(ref_node)
+        self._parse("int ref", "type").should.equal(ref_node)
 
     def test_user_type(self):
         user_node = ast.User("mytype")
-        self._parse("mytype", "type").should.be.equal(user_node)
+        self._parse("mytype", "type").should.equal(user_node)
 
     def test_type_paren(self):
-        self._parse("(int)", "type").should.be.equal(ast.Int())
+        self._parse("(int)", "type").should.equal(ast.Int())
 
     def test_const(self):
-        self._parse("5", "expr").should.be.equal(
+        self._parse("5", "expr").should.equal(
             ast.ConstExpression(ast.Int(), 5)
         )
-        self._parse("5.7", "expr").should.be.equal(
+        self._parse("5.7", "expr").should.equal(
             ast.ConstExpression(ast.Float(), 5.7)
         )
-        self._parse("'z'", "expr").should.be.equal(
+        self._parse("'z'", "expr").should.equal(
             ast.ConstExpression(ast.Char(), 'z')
         )
-        self._parse('"z"', "expr").should.be.equal(
+        self._parse('"z"', "expr").should.equal(
             ast.ConstExpression(ast.String(), ['z', '\0'])
         )
-        self._parse("true", "expr").should.be.equal(
+        self._parse("true", "expr").should.equal(
             ast.ConstExpression(ast.Bool(), True)
         )
-        self._parse("()", "expr").should.be.equal(
+        self._parse("()", "expr").should.equal(
             ast.ConstExpression(ast.Unit(), None)
         )
 
     def test_constr(self):
-        self._parse("Node", "constr").should.be.equal(
+        self._parse("Node", "constr").should.equal(
             ast.Constructor("Node", [])
         )
-        self._parse("Node of int", "constr").should.be.equal(
+        self._parse("Node of int", "constr").should.equal(
             ast.Constructor("Node", [ast.Int()])
         )
 
     def test_simple_variable_def(self):
         foo_var = ast.VariableDef("foo")
-        self._parse("mutable foo : int", "def").should.be.equal(
+        self._parse("mutable foo : int", "def").should.equal(
             ast.VariableDef("foo", ast.Ref(ast.Int()))
         )
 
-        self._parse("mutable foo", "def").should.be.equal(foo_var)
+        self._parse("mutable foo", "def").should.equal(foo_var)
 
     def test_array_variable_def(self):
         array_var = ast.ArrayVariableDef("foo", [TestParser.two])
-        self._parse("mutable foo [2]", "def").should.be.equal(array_var)
-        self._parse("mutable foo [2] : int", "def").should.be.equal(
+        self._parse("mutable foo [2]", "def").should.equal(array_var)
+        self._parse("mutable foo [2] : int", "def").should.equal(
             ast.ArrayVariableDef("foo", [TestParser.two], ast.Array(ast.Int()))
         )
 
     def test_while_expr(self):
-        self._parse("while true do true done", "expr").should.be.equal(
+        self._parse("while true do true done", "expr").should.equal(
             ast.WhileExpression(self.true, self.true)
         )
 
     def test_if_expr(self):
-        self._parse("if true then true else true", "expr").should.be.equal(
+        self._parse("if true then true else true", "expr").should.equal(
             ast.IfExpression(self.true, self.true, self.true)
         )
-        self._parse("if true then true", "expr").should.be.equal(
+        self._parse("if true then true", "expr").should.equal(
             ast.IfExpression(self.true, self.true)
         )
 
     def test_for_expr(self):
-        self._parse("for i = 1 to 1 do true done", "expr").should.be.equal(
+        self._parse("for i = 1 to 1 do true done", "expr").should.equal(
             ast.ForExpression(
                 "i", TestParser.one, TestParser.one, self.true
             )
         )
-        self._parse("for i = 1 downto 1 do true done", "expr").should.be.equal(
+        self._parse("for i = 1 downto 1 do true done", "expr").should.equal(
             ast.ForExpression(
                 "i", TestParser.one, TestParser.one, self.true, True
             )
         )
 
     def test_pattern(self):
-        self._parse("true", "pattern").should.be.equal(self.true)
-        self._parse("Red true", "pattern").should.be.equal(
+        self._parse("true", "pattern").should.equal(self.true)
+        self._parse("Red true", "pattern").should.equal(
             ast.Pattern("Red", [self.true])
         )
 
     def test_simple_pattern_list(self):
-        self._parse("", "simple_pattern_list").should.be.equal([])
+        self._parse("", "simple_pattern_list").should.equal([])
 
     def test_regression_pattern_constructor_without_parens(self):
         raise unittest.SkipTest("re-enable me after bug #33 is fixed")
 
         pattern = ast.Pattern("Red", [])
-        self._parse("Red Red", "simple_pattern_list").should.be.equal(
+        self._parse("Red Red", "simple_pattern_list").should.equal(
             [pattern, pattern]
         )
 
     def test_match_expr(self):
         self._parse(
             "match true with true -> true end", "expr"
-        ).should.be.equal(
+        ).should.equal(
             ast.MatchExpression(self.true, [ast.Clause(self.true, self.true)])
         )
 
     def test_clause(self):
-        self._parse("true -> true", "clause").should.be.equal(
+        self._parse("true -> true", "clause").should.equal(
             ast.Clause(self.true, self.true)
         )
 
     def test_clause_seq(self):
         clause = ast.Clause(self.true, self.true)
 
-        self._parse("", "clause_seq").should.be.equal(None)
+        self._parse("", "clause_seq").should.be(None)
         self._parse(
             "true -> true | true -> true", "clause_seq"
-        ).should.be.equal(
+        ).should.equal(
             [clause, clause]
         )
 
     def test_delete(self):
-        self._parse("delete true", "expr").should.be.equal(
+        self._parse("delete true", "expr").should.equal(
             ast.DeleteExpression(self.true)
         )
 
@@ -290,22 +290,22 @@ class TestParser(unittest.TestCase):
             self._check_unary_operator(operator)
 
     def test_begin_end_expr(self):
-        self._parse("begin 1 end", "expr").should.be.equal(TestParser.one)
+        self._parse("begin 1 end", "expr").should.equal(TestParser.one)
 
     def test_function_call_expr(self):
-        self._parse("f 1", "expr").should.be.equal(
+        self._parse("f 1", "expr").should.equal(
             ast.FunctionCallExpression("f", [TestParser.one])
         )
 
     def test_constructor_call_expr(self):
-        self._parse("Red 1", "expr").should.be.equal(
+        self._parse("Red 1", "expr").should.equal(
             ast.ConstructorCallExpression("Red", [TestParser.one])
         )
 
     def test_simple_expr_seq(self):
-        self._parse("", "simple_expr_seq").should.be.equal(None)
-        self._parse("1", "simple_expr_seq").should.be.equal([TestParser.one])
-        self._parse("1 2", "simple_expr_seq").should.be.equal(
+        self._parse("", "simple_expr_seq").should.be(None)
+        self._parse("1", "simple_expr_seq").should.equal([TestParser.one])
+        self._parse("1 2", "simple_expr_seq").should.equal(
             [TestParser.one, TestParser.two]
         )
 
@@ -323,56 +323,56 @@ class TestParser(unittest.TestCase):
 
     def test_in_expr(self):
         in_expr = ast.LetInExpression(TestParser.xfunc, TestParser.one)
-        self._parse("let x = 1 in 1", "expr").should.be.equal(in_expr)
+        self._parse("let x = 1 in 1", "expr").should.equal(in_expr)
 
     def test_new(self):
-        self._parse("new int", "expr").should.be.equal(
+        self._parse("new int", "expr").should.equal(
             ast.NewExpression(ast.Int())
         )
 
     def test_expr_comma_seq(self):
-        self._parse("", "expr_comma_seq").should.be.equal(None)
-        self._parse("1", "expr_comma_seq").should.be.equal([TestParser.one])
-        self._parse("1, 2", "expr_comma_seq").should.be.equal(
+        self._parse("", "expr_comma_seq").should.be(None)
+        self._parse("1", "expr_comma_seq").should.equal([TestParser.one])
+        self._parse("1, 2", "expr_comma_seq").should.equal(
             [TestParser.one, TestParser.two]
         )
 
     def test_array_expr(self):
-        self._parse("a[1]", "expr").should.be.equal(
+        self._parse("a[1]", "expr").should.equal(
             ast.ArrayExpression("a", [TestParser.one])
         )
 
     def test_paren_expr(self):
-        self._parse("(1)", "expr").should.be.equal(TestParser.one)
+        self._parse("(1)", "expr").should.equal(TestParser.one)
 
     def test_conid_expr(self):
-        self._parse("Red", "expr").should.be.equal(ast.ConidExpression("Red"))
+        self._parse("Red", "expr").should.equal(ast.ConidExpression("Red"))
 
     def test_genid_expr(self):
-        self._parse("f", "expr").should.be.equal(ast.GenidExpression("f"))
+        self._parse("f", "expr").should.equal(ast.GenidExpression("f"))
 
     def test_constr_pipe_seq(self):
-        self._parse("", "constr_pipe_seq").should.be.equal(None)
-        self._parse("Red | Green | Blue", "constr_pipe_seq").should.be.equal(
+        self._parse("", "constr_pipe_seq").should.be(None)
+        self._parse("Red | Green | Blue", "constr_pipe_seq").should.equal(
             [ast.Constructor("Red"),
              ast.Constructor("Green"),
              ast.Constructor("Blue")]
         )
 
     def test_tdef(self):
-        self._parse("color = Red", "tdef").should.be.equal(
+        self._parse("color = Red", "tdef").should.equal(
             ast.TDef(ast.User("color"), [ast.Constructor("Red")])
         )
 
-        self._parse("int = Red", "tdef").should.be.equal(
+        self._parse("int = Red", "tdef").should.equal(
             ast.TDef(ast.Int(), [ast.Constructor("Red")])
         )
 
     def test_tdef_and_seq(self):
-        self._parse("", "tdef_and_seq").should.be.equal(None)
+        self._parse("", "tdef_and_seq").should.be(None)
         self._parse(
             "color = Red and shoes = Slacks", "tdef_and_seq"
-        ).should.be.equal(
+        ).should.equal(
             [
                 ast.TDef(ast.User("color"), [ast.Constructor("Red")]),
                 ast.TDef(ast.User("shoes"), [ast.Constructor("Slacks")])
@@ -384,7 +384,7 @@ class TestParser(unittest.TestCase):
             "re-enable me after simple_api branch gets merged"
         )
 
-        self._parse("type color = Red", "typedef").should.be.equal(
+        self._parse("type color = Red", "typedef").should.equal(
             ast.TypeDefList(
                 [
                     ast.TDef(
@@ -396,8 +396,8 @@ class TestParser(unittest.TestCase):
         )
 
     def test_type_seq(self):
-        self._parse("", "type_seq").should.be.equal(None)
-        self._parse("int int", "type_seq").should.be.equal(
+        self._parse("", "type_seq").should.be(None)
+        self._parse("int int", "type_seq").should.equal(
             [ast.Int(), ast.Int()]
         )
 
@@ -425,7 +425,7 @@ class TestParser(unittest.TestCase):
             for expr1, expr2 in exprs:
                 self._assert_non_equivalent(expr1, expr2, start)
         else:
-            self._parse(expr1, start).shouldnt.be.equal(self._parse(expr2, start))
+            self._parse(expr1, start).shouldnt.equal(self._parse(expr2, start))
 
     def test_regression_new(self):
         self._assert_equivalent((
