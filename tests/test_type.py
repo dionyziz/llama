@@ -10,10 +10,10 @@ class TestType(unittest.TestCase):
 
     def test_builtin_type_equality(self):
         for t in self.builtin_builders:
-            (t()).should.be.equal(t())
+            (t()).should.equal(t())
 
         for t1, t2 in itertools.combinations(self.builtin_builders, 2):
-            (t1()).shouldnt.be.equal(t2())
+            (t1()).shouldnt.equal(t2())
 
     def test_builtin_type_set(self):
         typeset = {t() for t in self.builtin_builders}
@@ -21,45 +21,45 @@ class TestType(unittest.TestCase):
             (typeset).should.contain(t())
 
     def test_user_defined_types(self):
-        (ast.User("foo")).should.be.equal(ast.User("foo"))
+        (ast.User("foo")).should.equal(ast.User("foo"))
 
-        (ast.User("foo")).shouldnt.be.equal(ast.User("bar"))
-        (ast.User("foo")).shouldnt.be.equal(ast.Int())
+        (ast.User("foo")).shouldnt.equal(ast.User("bar"))
+        (ast.User("foo")).shouldnt.equal(ast.Int())
 
     def test_ref_types(self):
         footype = ast.User("foo")
         bartype = ast.User("bar")
         reffootype = ast.Ref(footype)
 
-        (reffootype).should.be.equal(ast.Ref(footype))
+        (reffootype).should.equal(ast.Ref(footype))
 
-        (reffootype).shouldnt.be.equal(footype)
-        (reffootype).shouldnt.be.equal(ast.Ref(bartype))
+        (reffootype).shouldnt.equal(footype)
+        (reffootype).shouldnt.equal(ast.Ref(bartype))
 
     def test_array_types(self):
         inttype = ast.Int()
-        (ast.Array(inttype)).should.be.equal(ast.Array(inttype))
-        (ast.Array(inttype, 2)).should.be.equal(ast.Array(inttype, 2))
+        (ast.Array(inttype)).should.equal(ast.Array(inttype))
+        (ast.Array(inttype, 2)).should.equal(ast.Array(inttype, 2))
 
-        (ast.Array(ast.Int())).shouldnt.be.equal(ast.Array(ast.Float()))
-        (ast.Array(inttype, 1)).shouldnt.be.equal(ast.Array(inttype, 2))
+        (ast.Array(ast.Int())).shouldnt.equal(ast.Array(ast.Float()))
+        (ast.Array(inttype, 1)).shouldnt.equal(ast.Array(inttype, 2))
 
         arrintType = ast.Array(inttype)
-        (arrintType).shouldnt.be.equal(inttype)
-        (arrintType).shouldnt.be.equal(ast.User("foo"))
-        (arrintType).shouldnt.be.equal(ast.Ref(inttype))
+        (arrintType).shouldnt.equal(inttype)
+        (arrintType).shouldnt.equal(ast.User("foo"))
+        (arrintType).shouldnt.equal(ast.Ref(inttype))
 
     def test_function_types(self):
         intt = ast.Int()
-        (ast.Function(intt, intt)).should.be.equal(ast.Function(intt, intt))
+        (ast.Function(intt, intt)).should.equal(ast.Function(intt, intt))
 
         i2float = ast.Function(ast.Int(), ast.Float())
-        (i2float).shouldnt.be.equal(ast.Function(ast.Float(), ast.Int()))
+        (i2float).shouldnt.equal(ast.Function(ast.Float(), ast.Int()))
 
-        (i2float).shouldnt.be.equal(intt)
-        (i2float).shouldnt.be.equal(ast.User("foo"))
-        (i2float).shouldnt.be.equal(ast.Ref(ast.Int()))
-        (i2float).shouldnt.be.equal(ast.Array(ast.Int()))
+        (i2float).shouldnt.equal(intt)
+        (i2float).shouldnt.equal(ast.User("foo"))
+        (i2float).shouldnt.equal(ast.Ref(ast.Int()))
+        (i2float).shouldnt.equal(ast.Array(ast.Int()))
 
     @classmethod
     def setUpClass(cls):
