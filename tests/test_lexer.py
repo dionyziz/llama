@@ -1,8 +1,6 @@
 import string
 import unittest
 
-import sure
-
 from compiler import error, lex
 
 
