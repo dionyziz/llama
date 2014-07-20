@@ -6,19 +6,19 @@ from compiler import ast, error, parse
 
 class TestType(unittest.TestCase):
 
-    builtin_builders = ast.builtin_types_map.values()
-
     def test_builtin_type_equality(self):
-        for t in self.builtin_builders:
-            (t()).should.equal(t())
+        for typecon in ast.builtin_types_map.values():
+            (typecon()).should.equal(typecon())
 
-        for t1, t2 in itertools.combinations(self.builtin_builders, 2):
-            (t1()).shouldnt.equal(t2())
+        for typecon1, typecon2 in itertools.combinations(
+                ast.builtin_types_map.values(), 2
+            ):
+            (typecon1()).shouldnt.equal(typecon2())
 
     def test_builtin_type_set(self):
-        typeset = {t() for t in self.builtin_builders}
-        for t in self.builtin_builders:
-            (typeset).should.contain(t())
+        typeset = {typecon() for typecon in ast.builtin_types_map.values()}
+        for typecon in ast.builtin_types_map.values():
+            (typeset).should.contain(typecon())
 
     def test_user_defined_types(self):
         (ast.User("foo")).should.equal(ast.User("foo"))
@@ -44,10 +44,10 @@ class TestType(unittest.TestCase):
         (ast.Array(ast.Int())).shouldnt.equal(ast.Array(ast.Float()))
         (ast.Array(inttype, 1)).shouldnt.equal(ast.Array(inttype, 2))
 
-        arrintType = ast.Array(inttype)
-        (arrintType).shouldnt.equal(inttype)
-        (arrintType).shouldnt.equal(ast.User("foo"))
-        (arrintType).shouldnt.equal(ast.Ref(inttype))
+        arr_int_type = ast.Array(inttype)
+        (arr_int_type).shouldnt.equal(inttype)
+        (arr_int_type).shouldnt.equal(ast.User("foo"))
+        (arr_int_type).shouldnt.equal(ast.Ref(inttype))
 
     def test_function_types(self):
         intt = ast.Int()
@@ -67,8 +67,8 @@ class TestType(unittest.TestCase):
         cls.parser = parse.Parser(logger=mock, optimize=False)
 
     @classmethod
-    def _process_typedef(cls, typeDefListList):
-        cls.parser.parse(data=typeDefListList)
+    def _process_typedef(cls, typedef_list_list):
+        cls.parser.parse(typedef_list_list)
         return cls.parser.logger.success
 
     def tearDown(self):
@@ -88,10 +88,10 @@ class TestType(unittest.TestCase):
             """
         )
 
-        for t in right_testcases:
+        for typedef in right_testcases:
             self.assertTrue(
-                self._process_typedef(t),
-                "'%s' type processing should be OK" % t
+                self._process_typedef(typedef),
+                "'%s' type processing should be OK" % typedef
             )
 
         wrong_testcases = (
@@ -123,8 +123,8 @@ class TestType(unittest.TestCase):
             """
         )
 
-        for t in wrong_testcases:
+        for typedef in wrong_testcases:
             self.assertFalse(
-                self._process_typedef(t),
-                "'%s' type processing should not be OK" % t
+                self._process_typedef(typedef),
+                "'%s' type processing should not be OK" % typedef
             )
