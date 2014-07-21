@@ -5,7 +5,7 @@ SOURCEFILES=main.py ./compiler/*.py
 BINPATH=./bin
 TESTPATH=./tests/
 
-.PHONY: beauty clean prepare static test
+.PHONY: beauty clean functionaltest prepare static test unittest
 
 all: test
 
@@ -13,17 +13,13 @@ beauty:
 	pep8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
 
 test:
-	make clean
-	make prepare
-	make unittest
-	make clean
-	make prepare
-	make functionaltest
+	make -B unittest
+	make -B functionaltest
 
-unittest:
+unittest: clean prepare
 	for i in `find tests -iname 'test_*.py'`; do echo "\n\nRunning $$i"; nosetests $$i || exit 2; done
 
-functionaltest: $(BINPATH)/ptest.sh
+functionaltest: clean prepare $(BINPATH)/ptest.sh
 	$(BINPATH)/ptest.sh
 
 static:

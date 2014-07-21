@@ -396,3 +396,130 @@ class TestParser(unittest.TestCase):
         self._parse("int int", "type_seq").should.be.equal(
             [ast.Int(), ast.Int()]
         )
+
+    def _assert_equivalent(self, expr1, expr2=None, start="expr"):
+        """Assert that two expressions are parsed two equivalent ASTs.
+           You can pass either two expressions (expr1, expr2) or a list
+           of expression tuples as expr1, leaving expr2 to None."""
+
+        if expr2 is None:
+            # list of expressions
+            exprs = expr1
+            for expr1, expr2 in exprs:
+                self._assert_equivalent(expr1, expr2, start)
+        else:
+            # self.assertEqual(self._parse(expr1, "expr"), self._parse(expr2, "expr"), "'%s' must equal '%s'" % (expr1, expr2))
+            self._parse(expr1, start).should.be.equal(self._parse(expr2, start))
+
+    def _assert_non_equivalent(self, expr1, expr2=None, start="expr"):
+        """Assert that two expressions are not parsed as equivalent ASTs.
+           The API is similar to _assert_equivalent."""
+
+        if expr2 is None:
+            # list of expressions
+            exprs = expr1
+            for expr1, expr2 in exprs:
+                self._assert_non_equivalent(expr1, expr2, start)
+        else:
+            self._parse(expr1, start).shouldnt.be.equal(self._parse(expr2, start))
+
+    def test_regression_new(self):
+        self._assert_equivalent((
+            ("!new int", "!(new int)"),
+            ("f new int", "f (new int)"),
+        ))
+
+    def test_precedence_int(self):
+        self._assert_equivalent((
+            ("1 + 2 * 3", "1 + (2 * 3)"),
+            ("1 - 2 / 3", "1 - (2 / 3)"),
+            ("1 + 2 + 3", "(1 + 2) + 3"),
+            ("1 - 2 - 3", "(1 - 2) - 3"),
+            ("1 - 2 + 3", "(1 - 2) + 3"),
+            ("1 * 2 * 3", "(1 * 2) * 3"),
+            ("1 / 2 / 3", "(1 / 2) / 3"),
+            ("1 / 2 * 3", "(1 / 2) * 3"),
+
+            ("1 - 2 mod 3", "1 - (2 mod 3)"),
+            ("1 mod 2 mod 3", "(1 mod 2) mod 3"),
+        ))
+
+    def test_precedence_float(self):
+        self._assert_equivalent((
+            ("1.0 +. 2.0 *. 3.0", "1.0 +. (2.0 *. 3.0)"),
+            ("1.0 -. 2.0 *. 3.0", "1.0 -. (2.0 *. 3.0)"),
+            ("1.0 +. 2.0 /. 3.0", "1.0 +. (2.0 /. 3.0)"),
+            ("1.0 -. 2.0 /. 3.0", "1.0 -. (2.0 /. 3.0)"),
+            ("1.0 +. 2.0 +. 3.0", "(1.0 +. 2.0) +. 3.0"),
+            ("1.0 -. 2.0 -. 3.0", "(1.0 -. 2.0) -. 3.0"),
+            ("1.0 -. 2.0 +. 3.0", "(1.0 -. 2.0) +. 3.0"),
+            ("1.0 *. 2.0 *. 3.0", "(1.0 *. 2.0) *. 3.0"),
+            ("1.0 /. 2.0 /. 3.0", "(1.0 /. 2.0) /. 3.0"),
+            ("1.0 /. 2.0 *. 3.0", "(1.0 /. 2.0) *. 3.0"),
+
+            ("-2 ** 4", "(-2) ** 4"),
+            ("1 ** 2 ** 3", "1 ** (2 ** 3)"),
+            ("1 ** 2 * 3", "(1 ** 2) * 3"),
+            ("1 ** 2 / 3", "(1 ** 2) / 3"),
+            ("1.0 ** 2.0 *. 3.0", "(1.0 ** 2.0) *. 3.0"),
+            ("1.0 ** 2.0 /. 3.0", "(1.0 ** 2.0) /. 3.0"),
+        ))
+
+    def test_precedence_bool(self):
+        self._assert_equivalent((
+            ("a || b && c", "a || (b && c)"),
+            ("not a || b", "(not a) || b"),
+            ("not a && b", "(not a) && b"),
+            ("a || b || c", "(a || b) || c"),
+            ("a && b && c", "(a && b) && c"),
+
+            ("a == b && c == d", "(a == b) && (c == d)"),
+            ("a != b && c != d", "(a != b) && (c != d)"),
+            ("a = b && c = d", "(a = b) && (c = d)"),
+            ("a < b || c < d", "(a < b) || (c < d)"),
+            ("a > b || c > d", "(a > b) || (c > d)"),
+            ("a <= b && c <> d", "(a <= b) && (c <> d)"),
+            ("a >= b && c <> d", "(a >= b) && (c <> d)"),
+        ))
+
+    def test_precedence_rest(self):
+        self._assert_equivalent((
+            # function and constructor calls
+            ("f 1 + 2", "(f 1) + 2"),
+            ("F 1 + 2", "(F 1) + 2"),
+
+            ("x + y[1]", "x + (y[1])"),
+            ("!a[1]", "!(a[1])"),
+            ("!f x", "(!f) x"),
+            ("not f x", "not (f x)"),
+            ("delete f x", "delete (f x)"),
+            ("not F x", "not (F x)"),
+            ("delete F x", "delete (F x)"),
+
+            ("1 + 1 = 2", "(1 + 1) = 2"),
+            ("x := a && b", "x := (a && b)"),
+            ("x := 1 + 1", "x := (1 + 1)"),
+
+            ("if p then if q then a else b", "if p then (if q then a else b)"),
+            ("if p then 1 else 1 + 1", "if p then 1 else (1 + 1)"),
+            ("if p then 1 else 2; if q then 1 else 2", "(if p then 1 else 2); (if q then 1 else 2)"),
+            ("let x = 5 in x; let y = 5 in y", "let x = 5 in (x; let y = 5 in y)"),
+
+            ("x; y; z", "(x; y); z"),
+        ))
+
+    def test_precedence_non_equiv(self):
+        self._assert_non_equivalent("f -2", "f (-2)")
+
+    def test_precedence_type(self):
+        self._assert_equivalent((
+            ("int -> int -> int", "int -> (int -> int)"),
+            ("int ref ref", "(int ref) ref"),
+            ("array of int -> int", "(array of int) -> int"),
+        ), None, "type")
+
+    def test_regression_precedence_func_ref(self):
+        self._assert_equivalent("int -> int ref", "int -> (int ref)", "type")
+
+    def test_regression_precedence_type_array_ref(self):
+        self._assert_equivalent("array of int ref", "array of (int ref)", 'type')

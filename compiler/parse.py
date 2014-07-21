@@ -31,6 +31,7 @@ class Parser:
         # Type operator precedence
         ('right', 'ARROW'),
         ('nonassoc', 'OF'),
+        ('nonassoc', 'REF'),
 
         # Normal operator precedence
         ('nonassoc', 'IN'),
@@ -209,7 +210,6 @@ class Parser:
                 | in_expr
                 | if_expr
                 | match_expr
-                | new_expr
                 | simple_expr
                 | while_expr"""
         if len(p) == 4:
@@ -239,6 +239,7 @@ class Parser:
         """simple_expr : array_simple_expr
                        | paren_simple_expr
                        | bang_simple_expr
+                       | new_expr
                        | bconst_simple_expr
                        | cconst_simple_expr
                        | conid_simple_expr
