@@ -1,8 +1,6 @@
 import string
 import unittest
 
-import sure
-
 from compiler import error, lex
 
 
@@ -13,40 +11,42 @@ class TestLexer(unittest.TestCase):
         return list(tokens), mock
 
     def _assert_individual_token(self, input, expected_type, expected_value):
-        l, mock = self._lex_data(input)
-        len(l).should.be.equal(1)
-        tok = l[0]
-        tok.type.should.be.equal(expected_type)
-        tok.value.should.be.equal(expected_value)
-        mock.success.should.be.ok
+        tokens, mock = self._lex_data(input)
+        tokens.should.have.length_of(1)
+        tok = tokens[0]
+        tok.type.shouldnt.be.different_of(expected_type)
+        tok.value.should.equal(expected_value)
+        mock.success.should.be.true
 
     def _assert_lex_success(self, input):
-        l, mock = self._lex_data(input)
-        mock.success.should.be.ok
+        _, mock = self._lex_data(input)
+        mock.success.should.be.true
 
     def _assert_lex_failure(self, input):
-        l, mock = self._lex_data(input)
-        mock.success.shouldnt.be.ok
+        _, mock = self._lex_data(input)
+        mock.success.should.be.false
 
     def test_tokenize(self):
-        list(lex.tokenize("")).should.be.equal([])
+        list(lex.tokenize("")).should.equal([])
         mock = error.LoggerMock()
-        list(lex.tokenize("", mock)).should.be.equal([])
+        list(lex.tokenize("", mock)).should.equal([])
 
     def test_init(self):
         mock = error.LoggerMock()
         lexer = lex.Lexer(logger=mock)
-        mock.should.be.equal(lexer.logger)
+        lexer.should.have.property("logger").being.equal(mock)
 
     def test_empty(self):
-        l, mock = self._lex_data("")
-        l.should.be.empty
-        mock.success.should.be.ok
+        tokens, mock = self._lex_data("")
+        tokens.should.be.empty
+        mock.success.should.be.true
 
     def test_keywords(self):
         for input_program in lex.reserved_words:
             self._assert_individual_token(
-                input_program, input_program.upper(), input_program
+                input_program,
+                input_program.upper(),
+                input_program
             )
 
     def test_genid(self):
@@ -58,8 +58,6 @@ class TestLexer(unittest.TestCase):
         self._assert_individual_token("notakeyword", "GENID", "notakeyword")
         self._assert_individual_token("dimdim", "GENID", "dimdim")
 
-#        self._assert_lex_failure("42koko")
-
         self._assert_lex_failure("_koko")
         self._assert_lex_failure("@koko")
         self._assert_lex_failure("\\koko")
@@ -67,6 +65,11 @@ class TestLexer(unittest.TestCase):
 
         self._assert_individual_token("true", "TRUE", True)
         self._assert_individual_token("false", "FALSE", False)
+
+    @unittest.skip("Enable me after bug #8 is fixed.")
+    def test_nocolliding_ints_and_names(self):
+        self._assert_lex_failure("42koko")
+        self._assert_lex_failure("42Koko")
 
     def test_conid(self):
         self._assert_individual_token("Koko", "CONID", "Koko")
@@ -97,12 +100,12 @@ class TestLexer(unittest.TestCase):
         self._assert_lex_failure("4.2e1.0")
 
     def test_unescape(self):
-        lex.unescape('\\n').should.be.equal('\n')
+        lex.unescape('\\n').should.equal('\n')
 
     def test_cconst(self):
         single_chars = set(string.printable) - set(string.whitespace) | {' '}
-        for c in single_chars - {'"', "'", '\\'}:
-            self._assert_individual_token(r"'%s'" % c, "CCONST", c)
+        for char in single_chars - {'"', "'", '\\'}:
+            self._assert_individual_token(r"'%s'" % char, "CCONST", char)
 
         for escaped, literal in lex.escape_sequences.items():
             self._assert_individual_token(
@@ -110,6 +113,7 @@ class TestLexer(unittest.TestCase):
                 "CCONST",
                 literal
             )
+
         self._assert_individual_token(r"'\x61'", "CCONST", "a")
         self._assert_individual_token(r"'\x1d'", "CCONST", "\x1d")
 

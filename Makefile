@@ -5,7 +5,7 @@ SOURCEFILES=main.py ./compiler/*.py
 BINPATH=./bin
 TESTPATH=./tests/
 
-.PHONY: beauty clean functionaltest prepare static test unittest
+.PHONY: beauty clean cleanaux functionaltest prepare static test unittest
 
 all: test
 
@@ -16,11 +16,11 @@ test:
 	make -B unittest
 	make -B functionaltest
 
-unittest: clean prepare
-	for i in `find tests -iname 'test_*.py'`; do echo "\n\nRunning $$i"; nosetests $$i || exit 2; done
+unittest: cleanmain prepare $(BINPATH)/utest.sh
+	$(BINPATH)/utest.sh
 
-functionaltest: clean prepare $(BINPATH)/ptest.sh
-	$(BINPATH)/ptest.sh
+functionaltest: cleanmain prepare $(BINPATH)/ftest.sh
+	$(BINPATH)/ftest.sh
 
 static:
 	pylint -E $(SOURCEFILES)
@@ -28,5 +28,10 @@ static:
 prepare:
 	$(PYTHON) main.py $(PREPARE_FLAG)
 
-clean:
+cleanaux:
+	$(RM) aux*.py
+
+cleanmain:
 	$(RM) lextab.py parsetab.py parser.out
+
+clean: cleanaux cleanmain
