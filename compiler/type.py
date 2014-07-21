@@ -11,7 +11,7 @@
 # ----------------------------------------------------------------------
 """
 
-from compiler import ast, error
+from compiler import ast, error, smartdict
 
 
 class Validator:
@@ -109,25 +109,6 @@ class Table:
     of user defined types and more.
     """
 
-    class smartdict(dict):
-        """A dict which can return its keys for inspection.
-
-        Useful when keys contain information overlooked by equality."""
-        keydict = {}
-
-        def __delitem__(self, key):
-            super().__delitem__(key)
-            self.keydict.__delitem__(key)
-
-        def __setitem__(self, key, value):
-            super().__setitem__(key, value)
-            self.keydict.__setitem__(key, key)
-
-        def getKey(self, key, default=None):
-            """Return the key for inspection."""
-            return self.keydict.get(key, None)
-
-
     def __init__(self, logger):
         """Initialize a new Table."""
         self.logger = logger
@@ -135,14 +116,14 @@ class Table:
         # Dictionary of types seen so far. Builtin types always available.
         # Values : list of constructors which the type defines
         # This is a smartdict, so keys can be retrieved.
-        self.knownTypes = Table.smartdict()
+        self.knownTypes = smartdict.Smartdict()
         for t in ast.builtin_types_map.values():
             self.knownTypes[t()] = None
 
         # Dictionary of constructors encountered so far.
         # Value: Type which the constructor produces.
         # This is a smartdict, so keys can be retrieved.
-        self.knownConstructors = Table.smartdict()
+        self.knownConstructors = smartdict.Smartdict()
 
     # Logger used for logging events. Possibly shared with other modules.
     logger = None
