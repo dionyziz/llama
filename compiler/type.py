@@ -130,8 +130,8 @@ class Table:
         # Values : list of constructors which the type defines
         # This is a smartdict, so keys can be retrieved.
         self.knownTypes = smartdict.Smartdict()
-        for t in ast.builtin_types_map.values():
-            self.knownTypes[t()] = None
+        for typecon in ast.builtin_types_map.values():
+            self.knownTypes[typecon()] = None
 
         # Dictionary of constructors encountered so far.
         # Value: Type which the constructor produces.
