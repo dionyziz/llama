@@ -39,16 +39,22 @@ class Validator:
         """Check if a type is an array type."""
         return isinstance(t, ast.Array)
 
+    def _signal_error(self, msg, *args):
+        """
+        Record invalid type and throw exception to semantic analyzer.
+        """
+        self.logger.error(msg, *args)
+        raise LlamaInvalidTypeError
+
     def _validate_array(self, t):
         """An 'array of T' type is valid iff T is a valid, non-array type."""
         basetype = t.type
         if self.is_array(basetype):
-            self.logger.error(
+            self._signal_error(
                 "%d:%d: error: Invalid type: Array of array",
                 t.lineno,
                 t.lexpos
             )
-            raise LlamaInvalidTypeError
         self.validate(basetype)
 
     def _validate_builtin(self, t):
@@ -62,12 +68,11 @@ class Validator:
         """
         t1, t2 = t.fromType, t.toType
         if self.is_array(t2):
-            self.logger.error(
+            self._signal_error(
                 "%d:%d: error: Invalid type: Function returning array",
                 t.lineno,
                 t.lexpos
             )
-            raise LlamaInvalidTypeError
         self.validate(t1)
         self.validate(t2)
 
@@ -75,12 +80,11 @@ class Validator:
         """A 'ref T' type is valid iff T is a valid, non-array type."""
         basetype = t.type
         if self.is_array(basetype):
-            self.logger.error(
+            self._signal_error(
                 "%d:%d: error: Invalid type: Reference of array",
                 t.lineno,
                 t.lexpos
             )
-            raise LlamaInvalidTypeError
         self.validate(basetype)
 
     def _validate_user(self, t):
