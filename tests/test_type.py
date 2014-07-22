@@ -2,39 +2,10 @@ import itertools
 import unittest
 
 from compiler import ast, error, parse, type
+from tests import parser_db
 
 
-class TestType(unittest.TestCase):
-
-    parsers = {}
-
-    @classmethod
-    def setUpClass(cls):
-        mock = error.LoggerMock()
-        cls.parser = parse.Parser(
-            logger=mock,
-            optimize=False,
-            debug=False
-        )
-
-    @classmethod
-    def _parse(cls, data, start='program'):
-        mock = error.LoggerMock()
-
-        # memoization
-        try:
-            parser = TestType.parsers[start]
-        except:
-            parser = TestType.parsers[start] = parse.Parser(
-                logger=mock,
-                optimize=False,
-                start=start,
-                debug=False
-            )
-
-        tree = parser.parse(data=data)
-
-        return tree
+class TestType(unittest.TestCase, parser_db.ParserDB):
 
     @classmethod
     def _process_typedef(cls, typedefListList):
@@ -43,10 +14,6 @@ class TestType(unittest.TestCase):
         for typedefList in typedefListList:
             typeTable.process(typedefList)
         return typeTable.logger.success
-
-    def tearDown(self):
-        # FIXME: This shouldn't be useful anymore.
-        TestType.parser.logger.clear()
 
     def test_type_process(self):
         right_testcases = (
