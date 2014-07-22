@@ -15,7 +15,9 @@ from ply import yacc
 
 from compiler import ast, error, lex
 
+
 def _track(p):
+    """Add position to root of reduced grammar rule."""
     if isinstance(p[1], ast.Node):
         if p[0] is not p[1]:
             p[0].copy_pos(p[1])
@@ -169,7 +171,7 @@ class Parser:
         p[0] = ast.User(p[1])
         _track(p)
 
-    def p_empty(self, p):
+    def p_empty(self, _):
         """empty :"""
         return None
 
