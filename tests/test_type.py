@@ -73,14 +73,15 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
         return type.Validator.is_array(t)
 
     def test_isarray(self):
+        for typecon in ast.builtin_types_map.values():
+            self._is_array(typecon()).should.be.false
+
         right_testcases = (
             "array of int",
             "array of foo",
             "array [*, *] of int"
         )
 
-        for builtin_type in ast.builtin_types_map.values():
-            self._is_array(builtin_type()).shouldnt.be.ok
         for type in right_testcases:
             tree = self._parse(type, 'type')
             self._is_array(tree).should.be.true
@@ -99,16 +100,14 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
         mock = error.LoggerMock()
         validator = type.Validator(logger=mock)
         validator.validate(t)
-        return mock.success
+        return validator.logger.success
 
     def test_validate(self):
-        for name, builtin_type in ast.builtin_types_map.items():
-            try:
-                self._validate(builtin_type()).should.be.ok
-            except type.LlamaInvalidTypeError:
-                self.fail("Failed to validate type '%s'." % name)
         proc = self._validate
         error = type.LlamaInvalidTypeError
+
+        for typecon in ast.builtin_types_map.values():
+            proc.when.called_with(typecon()).shouldnt.throw(error)
 
         right_testcases = (
             "foo",
