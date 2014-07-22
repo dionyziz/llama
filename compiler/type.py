@@ -139,10 +139,16 @@ class Table:
         self.knownConstructors = smartdict.Smartdict()
 
     def _signal_error(self, msg, *args):
+        """
+        Record malformed type and throw exception to semantic analyzer.
+        """
         self.logger.error(msg, *args)
-        raise LlamaBadTypeError  # Notify semantic analyzer.
+        raise LlamaBadTypeError
 
     def _insert_new_type(self, newType):
+        """
+        Insert newly defined type in Table. Signal error on redefinition.
+        """
         existingType = self.knownTypes.getKey(newType)
         if existingType is None:
             self.knownTypes[newType] = []
@@ -167,6 +173,7 @@ class Table:
             )
 
     def _insert_new_constructor(self, newType, constructor):
+        """Insert new constructor in Table. Signal error on reuse."""
         existingConstructor = self.knownConstructors.getKey(constructor)
         if existingConstructor is None:
             self.knownTypes[newType].append(constructor)
