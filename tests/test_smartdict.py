@@ -1,7 +1,5 @@
 import unittest
 
-import sure
-
 from compiler import ast, smartdict
 
 

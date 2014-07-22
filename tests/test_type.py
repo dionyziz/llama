@@ -1,7 +1,6 @@
-import itertools
 import unittest
 
-from compiler import ast, error, parse, type
+from compiler import ast, error, type
 from tests import parser_db
 
 
