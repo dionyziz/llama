@@ -12,7 +12,6 @@ class TestAST(unittest.TestCase, parser_db.ParserDB):
         ast.Constructor("foo", []).should.equal(foocon)
         ast.Constructor("bar", []).shouldnt.equal(foocon)
 
-    @unittest.skip("Enable me after #25 is merged.")
     def test_regression_constructor_attr_equality(self):
         tdef1 = self._parse("type color = Red", "typedef")
         tdef2 = ast.TypeDefList(
