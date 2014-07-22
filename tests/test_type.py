@@ -16,6 +16,9 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
         return typeTable.logger.success
 
     def test_type_process(self):
+        proc = self._process_typedef
+        error = type.LlamaBadTypeError
+
         right_testcases = (
             "type color = Red | Green | Blue",
             "type list = Nil | Cons of int list",
@@ -31,10 +34,7 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
 
         for typedef in right_testcases:
             tree = self._parse(typedef)
-            try:
-                self._process_typedef(tree)
-            except type.LlamaBadTypeError:
-                self.fail("'%s' type processing should be OK" % typedef)
+            proc.when.called_with(tree).shouldnt.throw(error)
 
         wrong_testcases = (
             """
@@ -65,13 +65,9 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             """
         )
 
-        for t in wrong_testcases:
-            tree = self._parse(t)
-            self.assertRaises(
-                type.LlamaBadTypeError,
-                self._process_typedef,
-                tree
-            )
+        for typedef in wrong_testcases:
+            tree = self._parse(typedef)
+            proc.when.called_with(tree).should.throw(error)
 
     def _is_array(self, t):
         return type.Validator.is_array(t)
@@ -83,12 +79,11 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "array [*, *] of int"
         )
 
-        for t in right_testcases:
-            tree = self._parse(t, 'type')
-            self._is_array(tree).should.be.ok
-
         for builtin_type in ast.builtin_types_map.values():
             self._is_array(builtin_type()).shouldnt.be.ok
+        for type in right_testcases:
+            tree = self._parse(type, 'type')
+            self._is_array(tree).should.be.true
 
         wrong_testcases = (
             "foo",
@@ -96,9 +91,9 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "int -> int",
         )
 
-        for t in wrong_testcases:
-            tree = self._parse(t, 'type')
-            self._is_array(tree).shouldnt.be.ok
+        for type in wrong_testcases:
+            tree = self._parse(type, 'type')
+            self._is_array(tree).should.be.false
 
     def _validate(self, t):
         mock = error.LoggerMock()
@@ -112,6 +107,8 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
                 self._validate(builtin_type()).should.be.ok
             except type.LlamaInvalidTypeError:
                 self.fail("Failed to validate type '%s'." % name)
+        proc = self._validate
+        error = type.LlamaInvalidTypeError
 
         right_testcases = (
             "foo",
@@ -136,12 +133,9 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "int -> (array of int -> int)"
         )
 
-        for t in right_testcases:
-            tree = self._parse(t, 'type')
-            try:
-                self._validate(tree).should.be.ok
-            except type.LlamaInvalidTypeError:
-                self.fail("Failed to validate type '%s'." % t)
+        for typedef in right_testcases:
+            tree = self._parse(typedef, 'type')
+            proc.when.called_with(tree).shouldnt.throw(error)
 
         wrong_testcases = (
             "(array of int) ref",
@@ -156,8 +150,4 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
 
         for typedef in wrong_testcases:
             tree = self._parse(typedef, 'type')
-            self.assertRaises(
-                type.LlamaInvalidTypeError,
-                self._validate,
-                tree,
-            )
+            proc.when.called_with(tree).should.throw(error)
