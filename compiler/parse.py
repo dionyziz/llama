@@ -567,15 +567,24 @@ class Parser:
         else:
             self.logger = logger
 
-        # Explicitly silence warnings about unused rules when
-        # starting from a state other than the default.
-        errorlog = None if start == 'program' else yacc.NullLogger()
+        if start == 'program':
+            errorlog = None
+            yaccfile = 'parsetab'
+        else:
+            # Explicitly silence warnings about unused rules when
+            # starting from a state other than the default. In addition,
+            # send parser cache to a special file, to avoid conflicts and
+            # make cleaning easy
+            errorlog = yacc.NullLogger()
+            yaccfile = ("%s_%s") % ('aux', start)
+
         self.parser = yacc.yacc(
             module=self,
             errorlog=errorlog,
             debug=debug,
             optimize=optimize,
-            start=start
+            start=start,
+            tabmodule=yaccfile
         )
 
         if verbose:

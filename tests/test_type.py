@@ -1,8 +1,6 @@
 import itertools
 import unittest
 
-import sure
-
 from compiler import ast, error, parse, type
 
 
@@ -39,11 +37,11 @@ class TestType(unittest.TestCase):
         return tree
 
     @classmethod
-    def _process_typedef(cls, typeDefListList):
+    def _process_typedef(cls, typedefListList):
         mock = error.LoggerMock()
         typeTable = type.Table(logger=mock)
-        for typeDefList in typeDefListList:
-            typeTable.process(typeDefList)
+        for typedefList in typedefListList:
+            typeTable.process(typedefList)
         return typeTable.logger.success
 
     def tearDown(self):
@@ -64,12 +62,12 @@ class TestType(unittest.TestCase):
             """
         )
 
-        for t in right_testcases:
-            tree = self._parse(t)
+        for typedef in right_testcases:
+            tree = self._parse(typedef)
             try:
                 self._process_typedef(tree)
             except type.LlamaBadTypeError:
-                self.fail("'%s' type processing should be OK" % t)
+                self.fail("'%s' type processing should be OK" % typedef)
 
         wrong_testcases = (
             """
@@ -189,10 +187,10 @@ class TestType(unittest.TestCase):
             "int -> (int -> array of int)"
         )
 
-        for t in wrong_testcases:
-            tree = self._parse(t, 'type')
+        for typedef in wrong_testcases:
+            tree = self._parse(typedef, 'type')
             self.assertRaises(
                 type.LlamaInvalidTypeError,
                 self._validate,
-                tree
+                tree,
             )
