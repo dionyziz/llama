@@ -150,11 +150,11 @@ def main():
     # Get some input.
     data = read_program(OPTS['input'])
 
-    # Parse and construct the AST.
+    # Lex, parse and construct the AST.
     ast = parser.parse(data=data, lexer=lexer)
 
-    # On bad program, terminate with error.
-    if not logger.success:
+    # On lexing/parsing error, abort further compilation.
+    if not (lexer.logger.success or parser.logger.success):
         sys.exit(1)
 
 if __name__ == '__main__':
