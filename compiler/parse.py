@@ -626,10 +626,11 @@ class Parser:
         return self.parser.parse(data, lexer, debug=self.verbose)
 
 
-def parse(data, logger=None):
+def parse(data, start='program', logger=None):
     """
-    Parse the given string using the default Parser.
-    Returns the AST.
+    Parse the given string using the default Parser. Return the AST.
+    For parsing using a specific subgrammar, set 'start' appropriately.
+    For customised error reporting, provide a 'logger'.
     """
-    parser = Parser(logger=logger)
+    parser = Parser(logger=logger, start=start)
     return parser.parse(data)
