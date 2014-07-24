@@ -1,5 +1,5 @@
 PYTHON=python3
-PREPARE_FLAG=--prepare
+PREPARE_FLAGS=--prepare -pd
 OPT=-OO
 SOURCEFILES=main.py ./compiler/*.py
 BINPATH=./bin
@@ -26,7 +26,7 @@ static:
 	pylint -E $(SOURCEFILES)
 
 prepare:
-	$(PYTHON) main.py $(PREPARE_FLAG)
+	$(PYTHON) main.py $(PREPARE_FLAGS)
 
 cleanaux:
 	$(RM) aux*.py
