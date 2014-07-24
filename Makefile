@@ -27,6 +27,7 @@ static:
 
 prepare:
 	$(PYTHON) main.py $(PREPARE_FLAGS)
+	$(BINPATH)/ctest.sh
 
 cleanaux:
 	$(RM) aux*.py
