@@ -12,9 +12,7 @@ all: clean prepare test
 beauty:
 	pep8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
 
-test:
-	make -B unittest
-	make -B functionaltest
+test: unittest functionaltest
 
 unittest: $(BINPATH)/utest.sh
 	$(BINPATH)/utest.sh
