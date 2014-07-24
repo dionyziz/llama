@@ -196,14 +196,12 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ast.Pattern("Red", [self.true])
         )
 
-    def test_simple_pattern_list(self):
-        self._parse("", "simple_pattern_list").should.equal([])
+    def test_simple_pattern_seq(self):
+        self._parse("", "simple_pattern_seq").should.equal(None)
 
-    def test_regression_pattern_constructor_without_parens(self):
-        pattern = ast.ConidPattern("Red")
-        self._parse("Red Red", "simple_pattern_list").should.equal(
-            [pattern, pattern]
-        )
+        red, blue = ast.Pattern("Red"), ast.Pattern("Blue")
+        self._parse("Red", "simple_pattern_seq").should.equal([red])
+        self._parse("Red Blue", "simple_pattern_seq").should.equal([red, blue])
 
     def test_match_expr(self):
         self._parse(
