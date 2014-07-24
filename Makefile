@@ -16,10 +16,10 @@ test:
 	make -B unittest
 	make -B functionaltest
 
-unittest: cleanmain prepare $(BINPATH)/utest.sh
+unittest: $(BINPATH)/utest.sh
 	$(BINPATH)/utest.sh
 
-functionaltest: cleanmain prepare $(BINPATH)/ftest.sh
+functionaltest: $(BINPATH)/ftest.sh
 	$(BINPATH)/ftest.sh
 
 static:
