@@ -375,12 +375,14 @@ class Parser:
         _track(p)
 
     def p_pattern(self, p):
-        """pattern : CONID simple_pattern_seq
+        """pattern : complex_pattern
                    | simple_pattern"""
-        if len(p) == 3:
-            p[0] = ast.Pattern(p[1], p[2])
-        else:
-            p[0] = p[1]
+        p[0] = p[1]
+        _track(p)
+
+    def p_complex_pattern(self, p):
+        """complex_pattern : CONID simple_pattern_seq"""
+        p[0] = ast.Pattern(p[1], p[2])
         _track(p)
 
     def p_simple_pattern_seq(self, p):
