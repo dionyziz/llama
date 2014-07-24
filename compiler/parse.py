@@ -412,9 +412,8 @@ class Parser:
 
     def p_conid_simple_pattern(self, p):
         """conid_simple_pattern : CONID"""
-        p[0] = ast.ConidPattern(p[1])
+        p[0] = ast.Pattern(p[1])
         _track(p)
-
 
     def p_cconst_simple_pattern(self, p):
         """cconst_simple_pattern : CCONST"""

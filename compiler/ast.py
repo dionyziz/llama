@@ -226,9 +226,9 @@ class Clause(Node):
 
 
 class Pattern(ListNode):
-    def __init__(self, name, list):
+    def __init__(self, name, list=None):
         self.name = name
-        self.list = list
+        self.list = list or []
 
 
 class GenidPattern(Node):
