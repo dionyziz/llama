@@ -7,7 +7,7 @@ TESTPATH=./tests/
 
 .PHONY: beauty clean cleanaux functionaltest prepare static test unittest
 
-all: test
+all: clean prepare test
 
 beauty:
 	pep8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
