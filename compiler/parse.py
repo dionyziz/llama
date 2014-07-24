@@ -392,6 +392,7 @@ class Parser:
         """simple_pattern : LPAREN pattern RPAREN
                           | bconst_simple_pattern
                           | cconst_simple_pattern
+                          | conid_simple_pattern
                           | fconst_simple_pattern
                           | genid_simple_pattern
                           | iconst_simple_pattern
@@ -408,6 +409,12 @@ class Parser:
                                  | FALSE"""
         p[0] = ast.ConstExpression(ast.Bool(), p[1])
         _track(p)
+
+    def p_conid_simple_pattern(self, p):
+        """conid_simple_pattern : CONID"""
+        p[0] = ast.ConidPattern(p[1])
+        _track(p)
+
 
     def p_cconst_simple_pattern(self, p):
         """cconst_simple_pattern : CCONST"""

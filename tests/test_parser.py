@@ -199,9 +199,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
     def test_simple_pattern_list(self):
         self._parse("", "simple_pattern_list").should.equal([])
 
-    @unittest.skip("Enable me after bug #33 is fixed.")
     def test_regression_pattern_constructor_without_parens(self):
-        pattern = ast.Pattern("Red", [])
+        pattern = ast.ConidPattern("Red")
         self._parse("Red Red", "simple_pattern_list").should.equal(
             [pattern, pattern]
         )

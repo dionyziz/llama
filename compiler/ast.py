@@ -236,6 +236,11 @@ class GenidPattern(Node):
         self.name = name
 
 
+class ConidPattern(Node):
+    def __init__(self, name):
+        self.name = name
+
+
 class NewExpression(Expression):
     def __init__(self, type):
         self.type = type
