@@ -131,13 +131,14 @@ def main():
     OPTS['parser_verbose'] = args.parser_verbose
     OPTS['parser_debug'] = args.parser_debug
 
-    logger = error.Logger(inputfile=OPTS['input'], level=logging.DEBUG)
-
-    lexer = lex.Lexer(logger=logger, verbose=OPTS['lexer_verbose'])
+    lexer = lex.Lexer(
+        logger=error.Logger(inputfile=OPTS['input'], level=logging.DEBUG),
+        verbose=OPTS['lexer_verbose']
+    )
 
     parser = parse.Parser(
         debug=OPTS['parser_debug'],
-        logger=logger,
+        logger=error.Logger(inputfile=OPTS['input'], level=logging.DEBUG),
         verbose=OPTS['parser_verbose']
     )
 
