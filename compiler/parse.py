@@ -499,9 +499,8 @@ class Parser:
 
     def p_typedef(self, p):
         """typedef : TYPE tdef_and_seq"""
-        p[0] = ast.TypeDefList(p[2])
+        p[0] = p[2]
         self.typeTable.process(p[0])
-        _track(p)
 
     def p_tdef_and_seq(self, p):
         """tdef_and_seq : tdef AND tdef_and_seq

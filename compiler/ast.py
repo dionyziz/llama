@@ -260,11 +260,6 @@ class ArrayVariableDef(VariableDef):
         self.type = type
 
 
-class TypeDefList(ListNode):
-    def __init__(self, list):
-        self.list = list
-
-
 class TDef(ListNode):
     def __init__(self, type, list):
         self.type = type

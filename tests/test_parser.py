@@ -347,12 +347,10 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ]
         )
 
-    @unittest.skip("Enable me after #25 is merged.")
+    @unittest.skip("Enable me after #55 is merged.")
     def test_typedef(self):
         self._parse("type color = Red", "typedef").should.equal(
-            ast.TypeDefList(
-                [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
-            )
+            [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
         )
 
     def test_type_seq(self):
