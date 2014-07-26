@@ -4,7 +4,22 @@ import unittest
 from compiler import error, lex
 
 
+class TestModuleAPI(unittest.TestCase):
+    """Test the API of the lex module."""
+
+    def test_tokenize(self):
+        list(lex.tokenize("")).should.equal([])
+
+        mock = error.LoggerMock()
+        list(lex.tokenize("", mock)).should.equal([])
+
+    def test_quiet_tokenize(self):
+        list(lex.quiet_tokenize("")).should.equal([])
+
+
 class TestLexer(unittest.TestCase):
+    """Test the API of the Lexer class."""
+
     def _lex_data(self, input):
         mock = error.LoggerMock()
         tokens = lex.tokenize(input, logger=mock)
@@ -25,14 +40,6 @@ class TestLexer(unittest.TestCase):
     def _assert_lex_failure(self, input):
         _, mock = self._lex_data(input)
         mock.success.should.be.false
-
-    def test_tokenize(self):
-        list(lex.tokenize("")).should.equal([])
-        mock = error.LoggerMock()
-        list(lex.tokenize("", mock)).should.equal([])
-
-    def test_quiet_tokenize(self):
-        list(lex.quiet_tokenize("")).should.equal([])
 
     def test_iterator(self):
         mock = error.LoggerMock()
