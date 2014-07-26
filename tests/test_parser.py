@@ -28,6 +28,14 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         p3 = parse.Parser(start="type")
         parse.parse("int", start="type").should.equal(p3.parse("int"))
 
+    def test_quiet_parse(self):
+        mock = error.LoggerMock()
+        p1 = parse.Parser(logger=mock)
+        (parse.quiet_parse("")).should.equal(p1.parse(""))
+
+        p2 = parse.Parser(start='type')
+        (parse.quiet_parse("int", start='type')).should.equal(p2.parse("int"))
+
     def test_empty_program(self):
         self._parse("").should.equal(ast.Program([]))
 
