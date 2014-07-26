@@ -28,7 +28,7 @@ class TestModuleAPI(unittest.TestCase):
         tokens1.should.equal(tokens2)
 
 
-class TestLexer(unittest.TestCase):
+class TestLexerAPI(unittest.TestCase):
     """Test the API of the Lexer class."""
 
     @staticmethod
@@ -45,6 +45,10 @@ class TestLexer(unittest.TestCase):
         tokens3 = list(l2.tokenize(""))
         tokens3.should.equal([])
         l2.logger.success.should.be.true
+
+
+class TestLexerRules(unittest.TestCase):
+    """Test the Lexer's coverage of Llama vocabulary."""
 
     @staticmethod
     def _lex_data(input):
