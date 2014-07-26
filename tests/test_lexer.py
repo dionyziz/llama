@@ -21,42 +21,41 @@ class TestLexer(unittest.TestCase):
     """Test the API of the Lexer class."""
 
     def _lex_data(self, input):
-        mock = error.LoggerMock()
-        tokens = lex.tokenize(input, logger=mock)
-        return list(tokens), mock
+        logger = error.LoggerMock()
+        tokens = lex.tokenize(input, logger=logger)
+        return list(tokens), logger
 
     def _assert_individual_token(self, input, expected_type, expected_value):
-        tokens, mock = self._lex_data(input)
+        tokens, logger = self._lex_data(input)
         tokens.should.have.length_of(1)
         tok = tokens[0]
         tok.type.shouldnt.be.different_of(expected_type)
         tok.value.should.equal(expected_value)
-        mock.success.should.be.true
+        logger.success.should.be.true
 
     def _assert_lex_success(self, input):
-        _, mock = self._lex_data(input)
-        mock.success.should.be.true
+        _, logger = self._lex_data(input)
+        logger.success.should.be.true
 
     def _assert_lex_failure(self, input):
-        _, mock = self._lex_data(input)
-        mock.success.should.be.false
+        _, logger = self._lex_data(input)
+        logger.success.should.be.false
 
     def test_iterator(self):
-        mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock)
+        lexer = lex.Lexer(logger=error.LoggerMock())
         lexer.input("foo")
         i = iter(lexer)
         next(lexer)
 
     def test_init(self):
-        mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock)
-        lexer.should.have.property("logger").being.equal(mock)
+        logger = error.LoggerMock()
+        lexer = lex.Lexer(logger=logger)
+        lexer.should.have.property("logger").being.equal(logger)
 
     def test_empty(self):
-        tokens, mock = self._lex_data("")
+        tokens, logger = self._lex_data("")
         tokens.should.be.empty
-        mock.success.should.be.true
+        logger.success.should.be.true
 
     def test_keywords(self):
         for input_program in lex.reserved_words:
