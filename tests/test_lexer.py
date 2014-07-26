@@ -36,16 +36,15 @@ class TestLexer(unittest.TestCase):
         l1 = lex.Lexer()
         tokens1 = list(l1.tokenize(""))
         tokens1.should.equal([])
-        l1.logger.success.should.equal.true
+        l1.logger.success.should.be.true
 
-        logger = error.LoggerMock()
-        l2 = lex.Lexer(logger=logger)
+        l2 = lex.Lexer(logger=error.LoggerMock())
         tokens2 = list(l2.tokenize("(*"))
         tokens2.should.equal([])
-        l2.logger.success.should.equal.false
-        tokens3 = list(lex.tokenize(""))
+        l2.logger.success.should.be.false
+        tokens3 = list(l2.tokenize(""))
         tokens3.should.equal([])
-        l2.logger.success.should.equal.true
+        l2.logger.success.should.be.true
 
     @staticmethod
     def _lex_data(input):

@@ -521,14 +521,15 @@ class Lexer:
         self._lexer.build(debug=debug, optimize=optimize, reflags=re.ASCII)
 
         # Bind methods of interface to _LexerFactory object methods.
-        self.token = self._lexer.token
         self.input = self._lexer.input
         self.skip  = self._lexer.skip
+        self.token = self._lexer.token
 
     def tokenize(self, data):
-        """Lex the given string, Return an iterator over the string tokens."""
+        """
+        Lex the given string. Return an iterator over the string tokens.
+        """
         self.input(data)
-        self.logger.clear()
         return iter(self)
 
     # == EXPORT POSITION ATTRIBUTES ==
