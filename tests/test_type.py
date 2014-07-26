@@ -127,8 +127,9 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "int -> foo",
             "int ref -> int",
             "int -> (int ref)",
-            "(array of int) -> int"
-            "int -> (array of int -> int)"
+            "(array of int) -> int",
+            "int -> (array of int -> int)",
+            "(int -> int) -> int"
         )
 
         for typedef in right_testcases:
@@ -142,7 +143,7 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "array of (array of int)",
             "array of ((array of int) ref)",
 
-            "int -> array of int"
+            "int -> array of int",
             "int -> (int -> array of int)"
         )
 
