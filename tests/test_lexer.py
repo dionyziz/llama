@@ -40,8 +40,11 @@ class TestLexer(unittest.TestCase):
 
         logger = error.LoggerMock()
         l2 = lex.Lexer(logger=logger)
-        tokens2 = list(l2.tokenize(""))
+        tokens2 = list(l2.tokenize("(*"))
         tokens2.should.equal([])
+        l2.logger.success.should.equal.false
+        tokens3 = list(lex.tokenize(""))
+        tokens3.should.equal([])
         l2.logger.success.should.equal.true
 
     @staticmethod

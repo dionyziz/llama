@@ -528,6 +528,7 @@ class Lexer:
     def tokenize(self, data):
         """Lex the given string, Return an iterator over the string tokens."""
         self.input(data)
+        self.logger.clear()
         return iter(self)
 
     # == EXPORT POSITION ATTRIBUTES ==
