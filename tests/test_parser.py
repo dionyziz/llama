@@ -29,6 +29,17 @@ class TestModuleAPI(unittest.TestCase):
 class TestParserAPI(unittest.TestCase):
     """Test the API of the Parser class."""
 
+    def test_init(self):
+        logger = error.LoggerMock()
+        p1 = parse.Parser(
+            debug=True,
+            logger=logger,
+            optimize=True,
+            start="type",
+            verbose=True
+        )
+        p1.should.have.property("logger").being.equal(logger)
+
     @classmethod
     def setUpClass(cls):
         cls.one = parse.quiet_parse("1", "expr")
