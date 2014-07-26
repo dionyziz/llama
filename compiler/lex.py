@@ -527,7 +527,7 @@ class Lexer:
         else:
             self.logger = logger
 
-        self._lexer = _LexerFactory(logger=logger, verbose=verbose)
+        self._lexer = _LexerFactory(logger=self.logger, verbose=verbose)
         self._lexer.build(debug=debug, optimize=optimize, reflags=re.ASCII)
 
         # Bind methods of interface to _LexerFactory object methods.
