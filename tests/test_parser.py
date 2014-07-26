@@ -3,18 +3,8 @@ import unittest
 from compiler import ast, error, lex, parse
 
 
-class TestParser(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.one = parse.quiet_parse("1", "expr")
-        cls.two = parse.quiet_parse("2", "expr")
-        cls.true = parse.quiet_parse("true", "expr")
-        cls.false = parse.quiet_parse("false", "expr")
-        cls.unit = parse.quiet_parse("()", "expr")
-
-        cls.xfunc = parse.quiet_parse("let x = 1", "letdef")
-        cls.yfunc = parse.quiet_parse("let y = 2", "letdef")
+class TestModuleAPI(unittest.TestCase):
+    """Test the API of the parse module."""
 
     def test_parse(self):
         p1 = parse.Parser()
@@ -34,6 +24,21 @@ class TestParser(unittest.TestCase):
 
         p2 = parse.Parser(start='type')
         (parse.quiet_parse("int", start='type')).should.equal(p2.parse("int"))
+
+
+class TestParserAPI(unittest.TestCase):
+    """Test the API of the Parser class."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.one = parse.quiet_parse("1", "expr")
+        cls.two = parse.quiet_parse("2", "expr")
+        cls.true = parse.quiet_parse("true", "expr")
+        cls.false = parse.quiet_parse("false", "expr")
+        cls.unit = parse.quiet_parse("()", "expr")
+
+        cls.xfunc = parse.quiet_parse("let x = 1", "letdef")
+        cls.yfunc = parse.quiet_parse("let y = 2", "letdef")
 
     def test_empty_program(self):
         parse.quiet_parse("").should.equal(ast.Program([]))
