@@ -525,6 +525,11 @@ class Lexer:
         self.input = self._lexer.input
         self.skip  = self._lexer.skip
 
+    def tokenize(self, data):
+        """Lex the given string, Return an iterator over the string tokens."""
+        self.input(data)
+        return iter(self)
+
     # == EXPORT POSITION ATTRIBUTES ==
 
     @property
@@ -555,8 +560,7 @@ def tokenize(data, logger=None):
     Return an iterator over the string tokens.
     """
     lexer = Lexer(logger=logger)
-    lexer.input(data)
-    return lexer
+    return lexer.tokenize(data)
 
 
 def quiet_tokenize(data):
