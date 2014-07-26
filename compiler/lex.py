@@ -557,3 +557,12 @@ def tokenize(data, logger=None):
     lexer = Lexer(logger=logger)
     lexer.input(data)
     return lexer
+
+
+def quiet_tokenize(data):
+    """
+    Lex the given string using the default Lexer.
+    Return an iterator over the string tokens.
+    Explicitly silence errors/warnings.
+    """
+    return tokenize(data, logger=error.LoggerMock())
