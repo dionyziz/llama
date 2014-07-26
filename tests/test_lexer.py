@@ -46,9 +46,9 @@ class TestLexer(unittest.TestCase):
 
     @staticmethod
     def _lex_data(input):
-        logger = error.LoggerMock()
-        tokens = lex.tokenize(input, logger=logger)
-        return list(tokens), logger
+        lexer = lex.Lexer(logger=error.LoggerMock())
+        tokens = list(lexer.tokenize(input))
+        return tokens, lexer.logger
 
     def _assert_individual_token(self, input, expected_type, expected_value):
         tokens, logger = self._lex_data(input)
