@@ -616,9 +616,18 @@ class Parser:
 
 def parse(data, start='program', logger=None):
     """
-    Parse the given string using the default Parser. Return the AST.
+    Parse the given string using the default Parser and return the AST.
     For parsing using a specific subgrammar, set 'start' appropriately.
     For customised error reporting, provide a 'logger'.
     """
     parser = Parser(logger=logger, start=start)
     return parser.parse(data)
+
+
+def quiet_parse(data, start='program'):
+    """
+    Parse the given string using the default Parser and return the AST.
+    For parsing using a specific subgrammar, set 'start' appropriately.
+    Explicitly silence errors/warnings.
+    """
+    return parse(data, start=start, logger=error.LoggerMock())
