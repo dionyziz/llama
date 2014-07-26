@@ -7,20 +7,45 @@ from compiler import error, lex
 class TestModuleAPI(unittest.TestCase):
     """Test the API of the lex module."""
 
-    def test_tokenize(self):
-        list(lex.tokenize("")).should.equal([])
+    @staticmethod
+    def test_tokenize():
+        l1 = lex.Lexer()
+        tokens1 = list(lex.tokenize(""))
+        tokens2 = list(l1.tokenize(""))
+        tokens1.should.equal(tokens2)
 
         mock = error.LoggerMock()
-        list(lex.tokenize("", mock)).should.equal([])
+        l2 = lex.Lexer(logger=mock)
+        tokens3 = list(lex.tokenize(""))
+        tokens4 = list(l2.tokenize(""))
+        tokens3.should.equal(tokens4)
 
-    def test_quiet_tokenize(self):
-        list(lex.quiet_tokenize("")).should.equal([])
+    @staticmethod
+    def test_quiet_tokenize():
+        l1 = lex.Lexer(logger=error.LoggerMock())
+        tokens1 = list(lex.quiet_tokenize(""))
+        tokens2 = list(l1.tokenize(""))
+        tokens1.should.equal(tokens2)
 
 
 class TestLexer(unittest.TestCase):
     """Test the API of the Lexer class."""
 
-    def _lex_data(self, input):
+    @staticmethod
+    def test_tokenize():
+        l1 = lex.Lexer()
+        tokens1 = list(l1.tokenize(""))
+        tokens1.should.equal([])
+        l1.logger.success.should.equal.true
+
+        logger = error.LoggerMock()
+        l2 = lex.Lexer(logger=logger)
+        tokens2 = list(l2.tokenize(""))
+        tokens2.should.equal([])
+        l2.logger.success.should.equal.true
+
+    @staticmethod
+    def _lex_data(input):
         logger = error.LoggerMock()
         tokens = lex.tokenize(input, logger=logger)
         return list(tokens), logger
