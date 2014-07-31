@@ -14,11 +14,9 @@ class TestAST(unittest.TestCase, parser_db.ParserDB):
 
     def test_regression_constructor_attr_equality(self):
         tdef1 = self._parse("type color = Red", "typedef")
-        tdef2 = ast.TypeDefList(
-            [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
-        )
+        tdef2 = [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
 
-        node_eq = ast.Node.__eq__
+        node_eq = lambda a, b: a == b
         node_eq.when.called_with(tdef1, tdef2).shouldnt.throw(AttributeError)
 
     def test_builtin_type_equality(self):
