@@ -32,8 +32,11 @@ class TestAST(unittest.TestCase, parser_db.ParserDB):
 
     def test_builtin_type_set(self):
         typeset = {typecon() for typecon in ast.builtin_types_map.values()}
+        typeset.add(ast.User("foo"))
         for typecon in ast.builtin_types_map.values():
             typeset.should.contain(typecon())
+        typeset.should.contain(ast.User("foo"))
+        typeset.shouldnt.contain(ast.User("bar"))
 
     def test_user_defined_types(self):
         ast.User("foo").should.equal(ast.User("foo"))
