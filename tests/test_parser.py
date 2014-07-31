@@ -185,9 +185,34 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
 
     def test_pattern(self):
-        self._parse("true", "pattern").should.equal(self.true)
         self._parse("Red true", "pattern").should.equal(
             ast.Pattern("Red", [self.true])
+        )
+        self._parse("(true)", "pattern").should.equal(self.true)
+
+        self._parse('foo', "pattern").should.equal(ast.GenidPattern("foo"))
+        self._parse("true", "pattern").should.equal(self.true)
+        self._parse("false", "pattern").should.equal(self.false)
+        self._parse("'c'", "pattern").should.equal(
+            ast.ConstExpression(ast.Char(), 'c')
+        )
+        self._parse("42.0", "pattern").should.equal(
+            ast.ConstExpression(ast.Float(), 42.0)
+        )
+        self._parse("+.42.0", "pattern").should.equal(
+            ast.ConstExpression(ast.Float(), 42.0)
+        )
+        self._parse("-.42.0", "pattern").should.equal(
+            ast.ConstExpression(ast.Float(), -42.0)
+        )
+        self._parse("42", "pattern").should.equal(
+            ast.ConstExpression(ast.Int(), 42)
+        )
+        self._parse("+42", "pattern").should.equal(
+            ast.ConstExpression(ast.Int(), 42)
+        )
+        self._parse("-42", "pattern").should.equal(
+            ast.ConstExpression(ast.Int(), -42)
         )
 
     def test_simple_pattern_list(self):
