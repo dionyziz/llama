@@ -483,8 +483,7 @@ class Parser:
 
     def p_typedef(self, p):
         """typedef : TYPE tdef_and_seq"""
-        p[0] = ast.TypeDefList(p[2])
-        _track(p)
+        p[0] = p[2]
 
     def p_tdef_and_seq(self, p):
         """tdef_and_seq : tdef AND tdef_and_seq
@@ -607,10 +606,11 @@ class Parser:
         return self.parser.parse(data, lexer, debug=self.verbose)
 
 
-def parse(data, logger=None):
+def parse(data, start='program', logger=None):
     """
-    Parse the given string using the default Parser.
-    Returns the AST.
+    Parse the given string using the default Parser. Return the AST.
+    For parsing using a specific subgrammar, set 'start' appropriately.
+    For customised error reporting, provide a 'logger'.
     """
-    parser = Parser(logger=logger)
+    parser = Parser(logger=logger, start=start)
     return parser.parse(data)

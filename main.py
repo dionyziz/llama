@@ -81,6 +81,16 @@ def mk_cli_parser():
         action='store_true',
         default=False
     )
+
+    cli_parser.add_argument(
+        '-pd',
+        '--parser_debug',
+        help='''
+            Force dumping grammar processing to file 'parser.out'.
+            ''',
+        action='store_true',
+        default=False
+    )
     return cli_parser
 
 
@@ -119,12 +129,17 @@ def main():
     OPTS['prepare'] = args.prepare
     OPTS['lexer_verbose'] = args.lexer_verbose
     OPTS['parser_verbose'] = args.parser_verbose
+    OPTS['parser_debug'] = args.parser_debug
 
     logger = error.Logger(inputfile=OPTS['input'], level=logging.DEBUG)
 
     lexer = lex.Lexer(logger=logger, verbose=OPTS['lexer_verbose'])
 
-    parser = parse.Parser(logger=logger, verbose=OPTS['parser_verbose'])
+    parser = parse.Parser(
+        debug=OPTS['parser_debug'],
+        logger=logger,
+        verbose=OPTS['parser_verbose']
+    )
 
     # Stop here if this a dry run.
     if OPTS['prepare']:

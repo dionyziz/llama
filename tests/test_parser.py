@@ -18,9 +18,15 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         cls.yfunc = cls._parse("let y = 2", "letdef")
 
     def test_parse(self):
-        parse.parse("").should.equal(ast.Program([]))
+        p1 = parse.Parser()
+        (parse.parse("")).should.equal(p1.parse(""))
+
         mock = error.LoggerMock()
-        parse.parse("", logger=mock).should.equal(ast.Program([]))
+        p2 = parse.Parser(logger=mock)
+        parse.parse("", logger=mock).should.equal(p2.parse(""))
+
+        p3 = parse.Parser(start='type')
+        (parse.parse("int", start='type')).should.equal(p3.parse("int"))
 
     def test_empty_program(self):
         self._parse("").should.equal(ast.Program([]))
@@ -368,9 +374,7 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
 
     def test_typedef(self):
         self._parse("type color = Red", "typedef").should.equal(
-            ast.TypeDefList(
-                [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
-            )
+            [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
         )
 
     def test_type_seq(self):
