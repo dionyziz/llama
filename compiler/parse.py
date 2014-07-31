@@ -577,7 +577,7 @@ class Parser:
             # send parser cache to a special file, to avoid conflicts and
             # make cleaning easy
             errorlog = yacc.NullLogger()
-            yaccfile = ("%s_%s") % ('aux', start)
+            yaccfile = "%s_%s" % ('aux', start)
 
         self.parser = yacc.yacc(
             module=self,
