@@ -475,6 +475,24 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ("1 ** delete p", "1 ** (delete p)"),
         ))
 
+    def test_precedence_pow_multiplicative(self):
+        self._assert_equivalent((
+            ("1 ** 2 * 3", "(1 ** 2) * 3"),
+            ("1 * 2 ** 3", "1 * (2 ** 3)"),
+
+            ("1 ** 2 / 3", "(1 ** 2) / 3"),
+            ("1 / 2 ** 3", "1 / (2 ** 3)"),
+
+            ("1 ** 2 *. 3", "(1 ** 2) *. 3"),
+            ("1 *. 2 ** 3", "1 *. (2 ** 3)"),
+
+            ("1 ** 2 /. 3", "(1 ** 2) /. 3"),
+            ("1 /. 2 ** 3", "1 /. (2 ** 3)"),
+
+            ("1 ** 2 mod 3", "(1 ** 2) mod 3"),
+            ("1 mod 2 ** 3", "1 mod (2 ** 3)"),
+        ))
+
     def test_precedence_int(self):
         self._assert_equivalent((
             ("1 + 2 * 3", "1 + (2 * 3)"),
