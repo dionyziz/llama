@@ -421,10 +421,16 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             parsed2 = self._parse(expr2, start)
             parsed1.shouldnt.equal(parsed2)
 
-    def test_regression_new(self):
+    def test_precedence_new_bang(self):
+        self._assert_equivalent("!new int", "!(new int)")
+
+    def test_precedence_array_bang(self):
+        self._assert_equivalent("!a[0]", "!(a[0])")
+
+    def test_precedence_bang_juxtaposition(self):
         self._assert_equivalent((
-            ("!new int", "!(new int)"),
-            ("f new int", "f (new int)"),
+            ("!f x", "(!f) x"),
+            ("!F x", "(!F) x")
         ))
 
     def test_precedence_int(self):
@@ -482,18 +488,6 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
 
     def test_precedence_rest(self):
         self._assert_equivalent((
-            # function and constructor calls
-            ("f 1 + 2", "(f 1) + 2"),
-            ("F 1 + 2", "(F 1) + 2"),
-
-            ("x + y[1]", "x + (y[1])"),
-            ("!a[1]", "!(a[1])"),
-            ("!f x", "(!f) x"),
-            ("not f x", "not (f x)"),
-            ("delete f x", "delete (f x)"),
-            ("not F x", "not (F x)"),
-            ("delete F x", "delete (F x)"),
-
             ("1 + 1 = 2", "(1 + 1) = 2"),
             ("x := a && b", "x := (a && b)"),
             ("x := 1 + 1", "x := (1 + 1)"),
