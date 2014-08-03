@@ -433,6 +433,27 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ("!F x", "(!F) x")
         ))
 
+    def test_precedence_juxtaposition_sign(self):
+        self._assert_equivalent((
+            ("+ f x", "+ (f x)"),
+            ("+ F x", "+ (F x)"),
+
+            ("- f x", "- (f x)"),
+            ("- F x", "- (F x)"),
+
+            ("+. f x", "+. (f x)"),
+            ("+. F x", "+. (F x)"),
+
+            ("-. f x", "-. (f x)"),
+            ("-. F x", "-. (F x)"),
+
+            ("not f x", "not (f x)"),
+            ("not F x", "not (F x)"),
+
+            ("delete f x", "delete (f x)"),
+            ("delete F x", "delete (F x)")
+        ))
+
     def test_precedence_int(self):
         self._assert_equivalent((
             ("1 + 2 * 3", "1 + (2 * 3)"),
