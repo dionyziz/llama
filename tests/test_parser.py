@@ -660,6 +660,18 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ("if p then a := b", "if p then (a := b)"),
         ))
 
+    def test_precedence_ifthenelse_semicolon(self):
+        self._assert_equivalent((
+            ("if p then 1 else 2; 3", "(if p then 1 else 2); 3"),
+            ("if p then 2; 3", "(if p then 2); 3"),
+        ))
+
+    def test_precedence_assign_semicolon(self):
+        self._assert_equivalent((
+            ("a := b; c", "(a := b); c"),
+            ("a; b := c", "a; (b := c)"),
+        ))
+
     def test_associativity_pow(self):
         self._assert_equivalent("1 ** 2 ** 3", "1 ** (2 ** 3)")
 
@@ -731,10 +743,6 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
 
     def test_precedence_rest(self):
         self._assert_equivalent((
-            (
-                "if p then 1 else 2; if q then 1 else 2",
-                "(if p then 1 else 2); (if q then 1 else 2)"
-            ),
             (
                 "let x = 5 in x; let y = 5 in y",
                 "let x = 5 in (x; let y = 5 in y)"
