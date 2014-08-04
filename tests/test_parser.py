@@ -708,11 +708,11 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ("1 -. 2 -. 3", "(1 -. 2) -. 3")
         ))
 
-    def test_precedence_bool(self):
-        self._assert_equivalent((
-            ("a || b || c", "(a || b) || c"),
-            ("a && b && c", "(a && b) && c"),
-        ))
+    def test_associativity_band(self):
+        self._assert_equivalent("a && b && c", "(a && b) && c")
+
+    def test_associativity_bor(self):
+        self._assert_equivalent("a || b || c", "(a || b) || c")
 
     def test_precedence_rest(self):
         self._assert_equivalent((
