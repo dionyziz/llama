@@ -672,6 +672,9 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ("a; b := c", "a; (b := c)"),
         ))
 
+    def test_precedence_semicolon_letin(self):
+        self._assert_equivalent("let x = 0 in y; z", "let x = 0 in (y; z)")
+
     def test_associativity_pow(self):
         self._assert_equivalent("1 ** 2 ** 3", "1 ** (2 ** 3)")
 
@@ -740,14 +743,6 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
 
     def test_associativity_semicolon(self):
         self._assert_equivalent("x; y; z", "(x; y); z")
-
-    def test_precedence_rest(self):
-        self._assert_equivalent((
-            (
-                "let x = 5 in x; let y = 5 in y",
-                "let x = 5 in (x; let y = 5 in y)"
-            ),
-        ))
 
     def test_precedence_non_equiv(self):
         self._assert_non_equivalent("f -2", "f (-2)")
