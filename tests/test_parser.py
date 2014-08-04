@@ -714,12 +714,17 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
     def test_associativity_bor(self):
         self._assert_equivalent("a || b || c", "(a || b) || c")
 
+    def test_associativity_ifthenelse(self):
+        self._assert_equivalent(
+            "if p then if q then a else b",
+            "if p then (if q then a else b)"
+        )
+
     def test_associativity_semicolon(self):
         self._assert_equivalent("x; y; z", "(x; y); z")
 
     def test_precedence_rest(self):
         self._assert_equivalent((
-            ("if p then if q then a else b", "if p then (if q then a else b)"),
             ("if p then 1 else 1 + 1", "if p then 1 else (1 + 1)"),
             (
                 "if p then 1 else 2; if q then 1 else 2",
