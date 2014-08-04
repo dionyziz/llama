@@ -25,8 +25,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         p2 = parse.Parser(logger=mock)
         parse.parse("", logger=mock).should.equal(p2.parse(""))
 
-        p3 = parse.Parser(start='type')
-        parse.parse("int", start='type').should.equal(p3.parse("int"))
+        p3 = parse.Parser(start="type")
+        parse.parse("int", start="type").should.equal(p3.parse("int"))
 
     def test_empty_program(self):
         self._parse("").should.equal(ast.Program([]))
@@ -130,10 +130,10 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ast.ConstExpression(ast.Float(), 5.7)
         )
         self._parse("'z'", "expr").should.equal(
-            ast.ConstExpression(ast.Char(), 'z')
+            ast.ConstExpression(ast.Char(), "z")
         )
         self._parse('"z"', "expr").should.equal(
-            ast.ConstExpression(ast.String(), ['z', '\0'])
+            ast.ConstExpression(ast.String(), ["z", "\0"])
         )
         self._parse("true", "expr").should.equal(
             ast.ConstExpression(ast.Bool(), True)
@@ -196,11 +196,11 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
         self._parse("(true)", "pattern").should.equal(self.true)
 
-        self._parse('foo', "pattern").should.equal(ast.GenidPattern("foo"))
+        self._parse("foo", "pattern").should.equal(ast.GenidPattern("foo"))
         self._parse("true", "pattern").should.equal(self.true)
         self._parse("false", "pattern").should.equal(self.false)
         self._parse("'c'", "pattern").should.equal(
-            ast.ConstExpression(ast.Char(), 'c')
+            ast.ConstExpression(ast.Char(), "c")
         )
         self._parse("42.0", "pattern").should.equal(
             ast.ConstExpression(ast.Float(), 42.0)
@@ -529,5 +529,5 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         self._assert_equivalent(
             "array of int ref",
             "array of (int ref)",
-            'type'
+            "type"
         )
