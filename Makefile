@@ -7,19 +7,17 @@ TESTPATH=./tests/
 
 .PHONY: beauty clean cleanaux functionaltest prepare static test unittest
 
-all: test
+all: clean prepare test
 
 beauty:
 	pep8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
 
-test:
-	make -B unittest
-	make -B functionaltest
+test: unittest functionaltest
 
-unittest: cleanmain prepare $(BINPATH)/utest.sh
+unittest: $(BINPATH)/utest.sh
 	$(BINPATH)/utest.sh
 
-functionaltest: cleanmain prepare $(BINPATH)/ftest.sh
+functionaltest: $(BINPATH)/ftest.sh
 	$(BINPATH)/ftest.sh
 
 static:
