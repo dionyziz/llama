@@ -545,6 +545,81 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ("1 mod 2 -. 3", "(1 mod 2) -. 3")
         ))
 
+    def test_precedence_additive_commparison(self):
+        self._assert_equivalent((
+            ("a + b = c", "(a + b) = c"),
+            ("a = b + c", "a = (b + c)"),
+            ("a - b = c", "(a - b) = c"),
+            ("a = b - c", "a = (b - c)"),
+            ("a +. b = c", "(a +. b) = c"),
+            ("a = b +. c", "a = (b +. c)"),
+            ("a -. b = c", "(a -. b) = c"),
+            ("a = b -. c", "a = (b -. c)"),
+
+            ("a + b <> c", "(a + b) <> c"),
+            ("a <> b + c", "a <> (b + c)"),
+            ("a - b <> c", "(a - b) <> c"),
+            ("a <> b - c", "a <> (b - c)"),
+            ("a +. b <> c", "(a +. b) <> c"),
+            ("a <> b +. c", "a <> (b +. c)"),
+            ("a -. b <> c", "(a -. b) <> c"),
+            ("a <> b -. c", "a <> (b -. c)"),
+
+            ("a + b > c", "(a + b) > c"),
+            ("a > b + c", "a > (b + c)"),
+            ("a - b > c", "(a - b) > c"),
+            ("a > b - c", "a > (b - c)"),
+            ("a +. b > c", "(a +. b) > c"),
+            ("a > b +. c", "a > (b +. c)"),
+            ("a -. b > c", "(a -. b) > c"),
+            ("a > b -. c", "a > (b -. c)"),
+
+            ("a + b < c", "(a + b) < c"),
+            ("a < b + c", "a < (b + c)"),
+            ("a - b < c", "(a - b) < c"),
+            ("a < b - c", "a < (b - c)"),
+            ("a +. b < c", "(a +. b) < c"),
+            ("a < b +. c", "a < (b +. c)"),
+            ("a -. b < c", "(a -. b) < c"),
+            ("a < b -. c", "a < (b -. c)"),
+
+            ("a + b <= c", "(a + b) <= c"),
+            ("a <= b + c", "a <= (b + c)"),
+            ("a - b <= c", "(a - b) <= c"),
+            ("a <= b - c", "a <= (b - c)"),
+            ("a +. b <= c", "(a +. b) <= c"),
+            ("a <= b +. c", "a <= (b +. c)"),
+            ("a -. b <= c", "(a -. b) <= c"),
+            ("a <= b -. c", "a <= (b -. c)"),
+
+            ("a + b >= c", "(a + b) >= c"),
+            ("a >= b + c", "a >= (b + c)"),
+            ("a - b >= c", "(a - b) >= c"),
+            ("a >= b - c", "a >= (b - c)"),
+            ("a +. b >= c", "(a +. b) >= c"),
+            ("a >= b +. c", "a >= (b +. c)"),
+            ("a -. b >= c", "(a -. b) >= c"),
+            ("a >= b -. c", "a >= (b -. c)"),
+
+            ("a + b == c", "(a + b) == c"),
+            ("a == b + c", "a == (b + c)"),
+            ("a - b == c", "(a - b) == c"),
+            ("a == b - c", "a == (b - c)"),
+            ("a +. b == c", "(a +. b) == c"),
+            ("a == b +. c", "a == (b +. c)"),
+            ("a -. b == c", "(a -. b) == c"),
+            ("a == b -. c", "a == (b -. c)"),
+
+            ("a + b != c", "(a + b) != c"),
+            ("a != b + c", "a != (b + c)"),
+            ("a - b != c", "(a - b) != c"),
+            ("a != b - c", "a != (b - c)"),
+            ("a +. b != c", "(a +. b) != c"),
+            ("a != b +. c", "a != (b +. c)"),
+            ("a -. b != c", "(a -. b) != c"),
+            ("a != b -. c", "a != (b -. c)"),
+        ))
+
     def test_associativity_pow(self):
         self._assert_equivalent("1 ** 2 ** 3", "1 ** (2 ** 3)")
 
@@ -598,7 +673,6 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
 
     def test_precedence_rest(self):
         self._assert_equivalent((
-            ("1 + 1 = 2", "(1 + 1) = 2"),
             ("x := a && b", "x := (a && b)"),
             ("x := 1 + 1", "x := (1 + 1)"),
 
