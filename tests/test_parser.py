@@ -545,13 +545,15 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ("1 mod 2 -. 3", "(1 mod 2) -. 3")
         ))
 
+    def test_associativity_pow(self):
+        self._assert_equivalent("1 ** 2 ** 3", "1 ** (2 ** 3)")
+
     def test_precedence_float(self):
         self._assert_equivalent((
             ("1.0 *. 2.0 *. 3.0", "(1.0 *. 2.0) *. 3.0"),
             ("1.0 /. 2.0 /. 3.0", "(1.0 /. 2.0) /. 3.0"),
             ("1.0 /. 2.0 *. 3.0", "(1.0 /. 2.0) *. 3.0"),
 
-            ("1 ** 2 ** 3", "1 ** (2 ** 3)"),
         ))
 
     def test_associativity_additive(self):
