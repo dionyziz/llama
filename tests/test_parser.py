@@ -654,6 +654,12 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ("a || b := c", "(a || b) := c"),
         ))
 
+    def test_precedence_assign_ifthenelse(self):
+        self._assert_equivalent((
+            ("if p then () else a := b", "if p then () else (a := b)"),
+            ("if p then a := b", "if p then (a := b)"),
+        ))
+
     def test_associativity_pow(self):
         self._assert_equivalent("1 ** 2 ** 3", "1 ** (2 ** 3)")
 
@@ -725,7 +731,6 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
 
     def test_precedence_rest(self):
         self._assert_equivalent((
-            ("if p then 1 else 1 + 1", "if p then 1 else (1 + 1)"),
             (
                 "if p then 1 else 2; if q then 1 else 2",
                 "(if p then 1 else 2); (if q then 1 else 2)"
