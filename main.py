@@ -136,9 +136,9 @@ def main():
     lexer = lex.Lexer(logger=logger, verbose=OPTS['lexer_verbose'])
 
     parser = parse.Parser(
-            debug=OPTS['parser_debug'],
-            logger=logger,
-            verbose=OPTS['parser_verbose']
+        debug=OPTS['parser_debug'],
+        logger=logger,
+        verbose=OPTS['parser_verbose']
     )
 
     # Stop here if this a dry run.

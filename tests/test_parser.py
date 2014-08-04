@@ -19,14 +19,14 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
 
     def test_parse(self):
         p1 = parse.Parser()
-        (parse.parse("")).should.equal(p1.parse(""))
+        parse.parse("").should.equal(p1.parse(""))
 
         mock = error.LoggerMock()
         p2 = parse.Parser(logger=mock)
         parse.parse("", logger=mock).should.equal(p2.parse(""))
 
-        p3 = parse.Parser(start='type')
-        (parse.parse("int", start='type')).should.equal(p3.parse("int"))
+        p3 = parse.Parser(start="type")
+        parse.parse("int", start="type").should.equal(p3.parse("int"))
 
     def test_empty_program(self):
         self._parse("").should.equal(ast.Program([]))
@@ -93,8 +93,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         self._parse("my_parameter: int", "param").should.be(None)
 
     def test_builtin_type(self):
-        for type_name, type_node in ast.builtin_types_map.items():
-            self._parse(type_name, "type").should.equal(type_node())
+        for name, typecon in ast.builtin_types_map.items():
+            self._parse(name, "type").should.equal(typecon())
 
     def test_star_comma_seq(self):
         self._parse("*", "star_comma_seq").should.equal(1)
@@ -130,10 +130,10 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ast.ConstExpression(ast.Float(), 5.7)
         )
         self._parse("'z'", "expr").should.equal(
-            ast.ConstExpression(ast.Char(), 'z')
+            ast.ConstExpression(ast.Char(), "z")
         )
         self._parse('"z"', "expr").should.equal(
-            ast.ConstExpression(ast.String(), ['z', '\0'])
+            ast.ConstExpression(ast.String(), ["z", "\0"])
         )
         self._parse("true", "expr").should.equal(
             ast.ConstExpression(ast.Bool(), True)
@@ -191,9 +191,34 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
 
     def test_pattern(self):
-        self._parse("true", "pattern").should.equal(self.true)
         self._parse("Red true", "pattern").should.equal(
             ast.Pattern("Red", [self.true])
+        )
+        self._parse("(true)", "pattern").should.equal(self.true)
+
+        self._parse("foo", "pattern").should.equal(ast.GenidPattern("foo"))
+        self._parse("true", "pattern").should.equal(self.true)
+        self._parse("false", "pattern").should.equal(self.false)
+        self._parse("'c'", "pattern").should.equal(
+            ast.ConstExpression(ast.Char(), "c")
+        )
+        self._parse("42.0", "pattern").should.equal(
+            ast.ConstExpression(ast.Float(), 42.0)
+        )
+        self._parse("+.42.0", "pattern").should.equal(
+            ast.ConstExpression(ast.Float(), 42.0)
+        )
+        self._parse("-.42.0", "pattern").should.equal(
+            ast.ConstExpression(ast.Float(), -42.0)
+        )
+        self._parse("42", "pattern").should.equal(
+            ast.ConstExpression(ast.Int(), 42)
+        )
+        self._parse("+42", "pattern").should.equal(
+            ast.ConstExpression(ast.Int(), 42)
+        )
+        self._parse("-42", "pattern").should.equal(
+            ast.ConstExpression(ast.Int(), -42)
         )
 
     def test_simple_pattern_list(self):
@@ -240,16 +265,16 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         expr = "1 %s 2" % operator
         parsed = self._parse(expr, "expr")
         parsed.should.be.an(ast.BinaryExpression)
-        (parsed.operator).should.equal(operator)
-        (parsed.leftOperand).should.equal(self.one)
-        (parsed.rightOperand).should.equal(self.two)
+        parsed.operator.should.equal(operator)
+        parsed.leftOperand.should.equal(self.one)
+        parsed.rightOperand.should.equal(self.two)
 
     def _check_unary_operator(self, operator):
         expr = "%s 1" % operator
         parsed = self._parse(expr, "expr")
         parsed.should.be.an(ast.UnaryExpression)
-        (parsed.operator).should.equal(operator)
-        (parsed.operand).should.equal(self.one)
+        parsed.operator.should.equal(operator)
+        parsed.operand.should.equal(self.one)
 
     def test_binary_expr(self):
         for operator in list(lex.binary_operators.keys()) + ["mod"]:
@@ -282,12 +307,12 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
     def test_dim_expr(self):
         parsed = self._parse("dim name", "expr")
         parsed.should.be.an(ast.DimExpression)
-        (parsed.name).should.equal("name")
+        parsed.name.should.equal("name")
 
         parsed = self._parse("dim 2 name", "expr")
         parsed.should.be.an(ast.DimExpression)
-        (parsed.name).should.equal("name")
-        (parsed.dimension).should.equal(2)
+        parsed.name.should.equal("name")
+        parsed.dimension.should.equal(2)
 
     def test_in_expr(self):
         in_expr = ast.LetInExpression(self.xfunc, self.one)
@@ -347,7 +372,6 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ]
         )
 
-    @unittest.skip("Enable me after #55 is merged.")
     def test_typedef(self):
         self._parse("type color = Red", "typedef").should.equal(
             [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
@@ -505,5 +529,5 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         self._assert_equivalent(
             "array of int ref",
             "array of (int ref)",
-            'type'
+            "type"
         )

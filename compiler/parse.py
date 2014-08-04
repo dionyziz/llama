@@ -13,10 +13,11 @@
 
 from ply import yacc
 
-from compiler import ast, error, lex, type
+from compiler import ast, error, lex
 
 
 def _track(p):
+    """Add position to root of reduced grammar rule."""
     if isinstance(p[1], ast.Node):
         if p[0] is not p[1]:
             p[0].copy_pos(p[1])
@@ -170,7 +171,7 @@ class Parser:
         p[0] = ast.User(p[1])
         _track(p)
 
-    def p_empty(self, p):
+    def p_empty(self, _):
         """empty :"""
         return None
 
@@ -390,42 +391,19 @@ class Parser:
 
     def p_simple_pattern(self, p):
         """simple_pattern : LPAREN pattern RPAREN
-                          | bconst_simple_pattern
-                          | cconst_simple_pattern
-                          | fconst_simple_pattern
+                          | bconst_simple_expr
+                          | cconst_simple_expr
+                          | fconst_simple_expr
+                          | iconst_simple_expr
                           | genid_simple_pattern
-                          | iconst_simple_pattern
                           | mfconst_simple_pattern
-                          | miconst_simple_pattern"""
+                          | miconst_simple_pattern
+                          | pfconst_simple_pattern
+                          | piconst_simple_pattern"""
         if len(p) == 4:
             p[0] = p[2]
         else:
             p[0] = p[1]
-        _track(p)
-
-    def p_bconst_simple_pattern(self, p):
-        """bconst_simple_pattern : TRUE
-                                 | FALSE"""
-        p[0] = ast.ConstExpression(ast.Bool(), p[1])
-        _track(p)
-
-    def p_cconst_simple_pattern(self, p):
-        """cconst_simple_pattern : CCONST"""
-        p[0] = ast.ConstExpression(ast.Char(), p[1])
-        _track(p)
-
-    def p_fconst_simple_pattern(self, p):
-        """fconst_simple_pattern : FPLUS FCONST
-                                 | FCONST"""
-        if len(p) == 3:
-            p[0] = ast.ConstExpression(ast.Float(), p[2])
-        else:
-            p[0] = ast.ConstExpression(ast.Float(), p[1])
-        _track(p)
-
-    def p_mfconst_simple_pattern(self, p):
-        """mfconst_simple_pattern : FMINUS FCONST"""
-        p[0] = ast.ConstExpression(ast.Float(), -p[2])
         _track(p)
 
     def p_genid_simple_pattern(self, p):
@@ -433,18 +411,24 @@ class Parser:
         p[0] = ast.GenidPattern(p[1])
         _track(p)
 
-    def p_iconst_simple_pattern(self, p):
-        """iconst_simple_pattern : PLUS ICONST
-                                 | ICONST"""
-        if len(p) == 3:
-            p[0] = ast.ConstExpression(ast.Int(), p[2])
-        else:
-            p[0] = ast.ConstExpression(ast.Int(), p[1])
+    def p_mfconst_simple_pattern(self, p):
+        """mfconst_simple_pattern : FMINUS FCONST"""
+        p[0] = ast.ConstExpression(ast.Float(), -p[2])
+        _track(p)
+
+    def p_pfconst_simple_pattern(self, p):
+        """pfconst_simple_pattern : FPLUS FCONST"""
+        p[0] = ast.ConstExpression(ast.Float(), p[2])
         _track(p)
 
     def p_miconst_simple_pattern(self, p):
         """miconst_simple_pattern : MINUS ICONST"""
         p[0] = ast.ConstExpression(ast.Int(), -p[2])
+        _track(p)
+
+    def p_piconst_simple_pattern(self, p):
+        """piconst_simple_pattern : PLUS ICONST"""
+        p[0] = ast.ConstExpression(ast.Int(), p[2])
         _track(p)
 
     def p_new_expr(self, p):
@@ -500,7 +484,6 @@ class Parser:
     def p_typedef(self, p):
         """typedef : TYPE tdef_and_seq"""
         p[0] = p[2]
-        self.typeTable.process(p[0])
 
     def p_tdef_and_seq(self, p):
         """tdef_and_seq : tdef AND tdef_and_seq
@@ -510,7 +493,7 @@ class Parser:
     def p_tdef(self, p):
         """tdef : user_type EQ constr_pipe_seq
                 | builtin_type EQ constr_pipe_seq"""
-        # Flagging redefinition of builtin_types delegated to type module.
+        # NOTE: Flag redefinition of builtin_types during semantic analysis.
         p[0] = ast.TDef(p[1], p[3])
         _track(p)
 
@@ -564,7 +547,6 @@ class Parser:
     parser = None
     tokens = lex.tokens
     logger = None
-    typeTable = None
     verbose = False
 
     def __init__(self, debug=False, logger=None, optimize=True,
@@ -595,7 +577,7 @@ class Parser:
             # send parser cache to a special file, to avoid conflicts and
             # make cleaning easy
             errorlog = yacc.NullLogger()
-            yaccfile = ("%s_%s") % ('aux', start)
+            yaccfile = "%s_%s" % ('aux', start)
 
         self.parser = yacc.yacc(
             module=self,
@@ -613,7 +595,6 @@ class Parser:
                 self.__class__.__name__,
                 'parser ready'
             )
-        self.typeTable = type.Table(logger=self.logger)
 
     def parse(self, data, lexer=None):
         """

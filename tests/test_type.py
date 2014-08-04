@@ -1,80 +1,23 @@
-import itertools
 import unittest
 
-from compiler import ast, error, parse
+from compiler import ast, error, type
+from tests import parser_db
 
 
-class TestType(unittest.TestCase):
-
-    def test_builtin_type_equality(self):
-        for typecon in ast.builtin_types_map.values():
-            (typecon()).should.equal(typecon())
-
-        for typecon1, typecon2 in itertools.combinations(
-                ast.builtin_types_map.values(), 2
-            ):
-            (typecon1()).shouldnt.equal(typecon2())
-
-    def test_builtin_type_set(self):
-        typeset = {typecon() for typecon in ast.builtin_types_map.values()}
-        for typecon in ast.builtin_types_map.values():
-            (typeset).should.contain(typecon())
-
-    def test_user_defined_types(self):
-        (ast.User("foo")).should.equal(ast.User("foo"))
-
-        (ast.User("foo")).shouldnt.equal(ast.User("bar"))
-        (ast.User("foo")).shouldnt.equal(ast.Int())
-
-    def test_ref_types(self):
-        footype = ast.User("foo")
-        bartype = ast.User("bar")
-        reffootype = ast.Ref(footype)
-
-        (reffootype).should.equal(ast.Ref(footype))
-
-        (reffootype).shouldnt.equal(footype)
-        (reffootype).shouldnt.equal(ast.Ref(bartype))
-
-    def test_array_types(self):
-        inttype = ast.Int()
-        (ast.Array(inttype)).should.equal(ast.Array(inttype))
-        (ast.Array(inttype, 2)).should.equal(ast.Array(inttype, 2))
-
-        (ast.Array(ast.Int())).shouldnt.equal(ast.Array(ast.Float()))
-        (ast.Array(inttype, 1)).shouldnt.equal(ast.Array(inttype, 2))
-
-        arr_int_type = ast.Array(inttype)
-        (arr_int_type).shouldnt.equal(inttype)
-        (arr_int_type).shouldnt.equal(ast.User("foo"))
-        (arr_int_type).shouldnt.equal(ast.Ref(inttype))
-
-    def test_function_types(self):
-        intt = ast.Int()
-        (ast.Function(intt, intt)).should.equal(ast.Function(intt, intt))
-
-        i2float = ast.Function(ast.Int(), ast.Float())
-        (i2float).shouldnt.equal(ast.Function(ast.Float(), ast.Int()))
-
-        (i2float).shouldnt.equal(intt)
-        (i2float).shouldnt.equal(ast.User("foo"))
-        (i2float).shouldnt.equal(ast.Ref(ast.Int()))
-        (i2float).shouldnt.equal(ast.Array(ast.Int()))
+class TestType(unittest.TestCase, parser_db.ParserDB):
 
     @classmethod
-    def setUpClass(cls):
+    def _process_typedef(cls, typedefListList):
         mock = error.LoggerMock()
-        cls.parser = parse.Parser(logger=mock, optimize=False)
-
-    @classmethod
-    def _process_typedef(cls, typedef_list_list):
-        cls.parser.parse(typedef_list_list)
-        return cls.parser.logger.success
-
-    def tearDown(self):
-        TestType.parser.logger.clear()
+        typeTable = type.Table(logger=mock)
+        for typedefList in typedefListList:
+            typeTable.process(typedefList)
+        return typeTable.logger.success
 
     def test_type_process(self):
+        proc = self._process_typedef
+        error = type.LlamaBadTypeError
+
         right_testcases = (
             "type color = Red | Green | Blue",
             "type list = Nil | Cons of int list",
@@ -89,10 +32,8 @@ class TestType(unittest.TestCase):
         )
 
         for typedef in right_testcases:
-            self.assertTrue(
-                self._process_typedef(typedef),
-                "'%s' type processing should be OK" % typedef
-            )
+            tree = self._parse(typedef)
+            proc.when.called_with(tree).shouldnt.throw(error)
 
         wrong_testcases = (
             """
@@ -124,7 +65,88 @@ class TestType(unittest.TestCase):
         )
 
         for typedef in wrong_testcases:
-            self.assertFalse(
-                self._process_typedef(typedef),
-                "'%s' type processing should not be OK" % typedef
-            )
+            tree = self._parse(typedef)
+            proc.when.called_with(tree).should.throw(error)
+
+    def _is_array(self, t):
+        return type.Validator.is_array(t)
+
+    def test_isarray(self):
+        for typecon in ast.builtin_types_map.values():
+            self._is_array(typecon()).should.be.false
+
+        right_testcases = (
+            "array of int",
+            "array of foo",
+            "array [*, *] of int"
+        )
+
+        for type in right_testcases:
+            tree = self._parse(type, 'type')
+            self._is_array(tree).should.be.true
+
+        wrong_testcases = (
+            "foo",
+            "int ref",
+            "int -> int",
+        )
+
+        for type in wrong_testcases:
+            tree = self._parse(type, 'type')
+            self._is_array(tree).should.be.false
+
+    def _validate(self, t):
+        mock = error.LoggerMock()
+        validator = type.Validator(logger=mock)
+        validator.validate(t)
+        return validator.logger.success
+
+    def test_validate(self):
+        proc = self._validate
+        error = type.LlamaInvalidTypeError
+
+        for typecon in ast.builtin_types_map.values():
+            proc.when.called_with(typecon()).shouldnt.throw(error)
+
+        right_testcases = (
+            "foo",
+
+            "int ref",
+            "foo ref",
+            "(int -> int) ref",
+            "(int ref) ref",
+
+            "array of int",
+            "array of foo",
+            "array of (int ref)",
+            "array of (foo ref)",
+            "array [*, *] of int",
+
+            "int -> int",
+            "foo -> int",
+            "int -> foo",
+            "int ref -> int",
+            "int -> (int ref)",
+            "(array of int) -> int",
+            "int -> (array of int -> int)",
+            "(int -> int) -> int"
+        )
+
+        for typedef in right_testcases:
+            tree = self._parse(typedef, 'type')
+            proc.when.called_with(tree).shouldnt.throw(error)
+
+        wrong_testcases = (
+            "(array of int) ref",
+            "(int -> array of int) ref",
+
+            "array of (array of int)",
+            "array of ((array of int) ref)",
+
+            "int -> array of int",
+            "int -> (int -> array of int)"
+        )
+
+        for typedef in wrong_testcases:
+            tree = self._parse(typedef, 'type')
+            proc.when.called_with(tree).should.throw(error)
