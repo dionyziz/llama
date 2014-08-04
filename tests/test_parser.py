@@ -647,6 +647,12 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ("a != b && c", "(a != b) && c"),
         ))
 
+    def test_precedence_band_bor(self):
+        self._assert_equivalent((
+            ("a || b && c", "a || (b && c)"),
+            ("a && b || c", "(a && b) || c"),
+        ))
+
     def test_associativity_pow(self):
         self._assert_equivalent("1 ** 2 ** 3", "1 ** (2 ** 3)")
 
@@ -683,12 +689,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
 
     def test_precedence_bool(self):
         self._assert_equivalent((
-            ("a || b && c", "a || (b && c)"),
-            ("not a || b", "(not a) || b"),
             ("a || b || c", "(a || b) || c"),
             ("a && b && c", "(a && b) && c"),
-            ("a < b || c < d", "(a < b) || (c < d)"),
-            ("a > b || c > d", "(a > b) || (c > d)"),
         ))
 
     def test_precedence_rest(self):
