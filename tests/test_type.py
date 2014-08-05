@@ -31,8 +31,8 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             """
         )
 
-        for typedef in right_testcases:
-            tree = self._parse(typedef)
+        for case in right_testcases:
+            tree = self._parse(case)
             proc.when.called_with(tree).shouldnt.throw(error)
 
         wrong_testcases = (
@@ -64,8 +64,8 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             """
         )
 
-        for typedef in wrong_testcases:
-            tree = self._parse(typedef)
+        for case in wrong_testcases:
+            tree = self._parse(case)
             proc.when.called_with(tree).should.throw(error)
 
     def _is_array(self, t):
@@ -81,8 +81,8 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "array [*, *] of int"
         )
 
-        for type in right_testcases:
-            tree = self._parse(type, 'type')
+        for case in right_testcases:
+            tree = self._parse(case, 'type')
             self._is_array(tree).should.be.true
 
         wrong_testcases = (
@@ -91,8 +91,8 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "int -> int",
         )
 
-        for type in wrong_testcases:
-            tree = self._parse(type, 'type')
+        for case in wrong_testcases:
+            tree = self._parse(case, 'type')
             self._is_array(tree).should.be.false
 
     def _validate(self, t):
@@ -132,8 +132,8 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "(int -> int) -> int"
         )
 
-        for typedef in right_testcases:
-            tree = self._parse(typedef, 'type')
+        for case in right_testcases:
+            tree = self._parse(case, 'type')
             proc.when.called_with(tree).shouldnt.throw(error)
 
         wrong_testcases = (
@@ -147,6 +147,6 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "int -> (int -> array of int)"
         )
 
-        for typedef in wrong_testcases:
-            tree = self._parse(typedef, 'type')
+        for case in wrong_testcases:
+            tree = self._parse(case, 'type')
             proc.when.called_with(tree).should.throw(error)
