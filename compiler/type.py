@@ -94,7 +94,7 @@ class Validator:
     def __init__(self, logger=None):
         """Create a new Validator."""
         if logger is None:
-            self.logger = error.Logger(inputfile='<stdin>')
+            self.logger = error.Logger()
         else:
             self.logger = logger
 
@@ -129,7 +129,7 @@ class Table:
     def __init__(self, logger=None):
         """Initialize a new Table."""
         if logger is None:
-            self.logger = error.Logger(inputfile="<stdin>")
+            self.logger = error.Logger()
         else:
             self.logger = logger
 

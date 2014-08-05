@@ -564,7 +564,7 @@ class Parser:
         """
         self.verbose = verbose
         if logger is None:
-            self.logger = error.Logger(inputfile='<stdin>')
+            self.logger = error.Logger()
         else:
             self.logger = logger
 
