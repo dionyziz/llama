@@ -4,7 +4,8 @@ from compiler import ast, error, type
 from tests import parser_db
 
 
-class TestType(unittest.TestCase, parser_db.ParserDB):
+class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
+    """Test the API of the type module."""
 
     def test_bad_type_error(self):
         try:
@@ -33,6 +34,10 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
 
         logger = error.LoggerMock()
         t2 = type.Validator(logger=logger)
+
+
+class TestTable(unittest.TestCase, parser_db.ParserDB):
+    """Test the Table's processing of type definitions."""
 
     @classmethod
     def _process_typedef(cls, typedefListList):
@@ -95,6 +100,10 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
         for case in wrong_testcases:
             tree = self._parse(case)
             proc.when.called_with(tree).should.throw(error)
+
+
+class TestValidator(unittest.TestCase, parser_db.ParserDB):
+    """Test the Validator's functionality."""
 
     @staticmethod
     def _is_array(t):
