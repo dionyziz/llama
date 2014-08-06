@@ -6,6 +6,20 @@ from tests import parser_db
 
 class TestType(unittest.TestCase, parser_db.ParserDB):
 
+    def test_bad_type_error(self):
+        try:
+            raise type.LlamaBadTypeError()
+            self.fail()
+        except type.LlamaBadTypeError:
+            pass
+
+    def test_invalid_type_error(self):
+        try:
+            raise type.LlamaInvalidTypeError()
+            self.fail()
+        except type.LlamaInvalidTypeError:
+            pass
+
     @classmethod
     def _process_typedef(cls, typedefListList):
         mock = error.LoggerMock()
