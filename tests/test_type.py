@@ -96,7 +96,8 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             tree = self._parse(case)
             proc.when.called_with(tree).should.throw(error)
 
-    def _is_array(self, t):
+    @staticmethod
+    def _is_array(t):
         return type.Validator.is_array(t)
 
     def test_isarray(self):
