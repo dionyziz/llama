@@ -20,6 +20,20 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
         except type.LlamaInvalidTypeError:
             pass
 
+    @staticmethod
+    def test_table_init():
+        t1 = type.Table()
+
+        logger = error.LoggerMock()
+        t2 = type.Table(logger=logger)
+
+    @staticmethod
+    def test_validator_init():
+        t1 = type.Validator()
+
+        logger = error.LoggerMock()
+        t2 = type.Validator(logger=logger)
+
     @classmethod
     def _process_typedef(cls, typedefListList):
         mock = error.LoggerMock()
