@@ -340,142 +340,115 @@ class Function(Type):
         self.toType = toType
 
 def map(root, f=None):
-    def map_listnode(p):
-        map(p.list)
+    class Mapper():
+        @classmethod
+        def map_listnode(cls, p):
+            Mapper.map(p.list)
 
-    def map_list(l):
-        for item in l:
-            map(item)
+        @classmethod
+        def map_list(cls, l):
+            for item in l:
+                Mapper.map(item)
 
-    def map_program(p):
-        map_listnode(p)
+        @classmethod
+        def map_program(cls, p):
+            Mapper.map_listnode(p)
 
-    def map_letdef(p):
-        map_listnode(p)
+        @classmethod
+        def map_letdef(cls, p):
+            Mapper.map_listnode(p)
 
-    def map_functiondef(p):
-        map(p.params)
-        map(p.body)
-        map(p.type)
+        @classmethod
+        def map_functiondef(cls, p):
+            Mapper.map(p.params)
+            Mapper.map(p.body)
+            Mapper.map(p.type)
 
-    def map_param(p):
-        map(p.type)
+        @classmethod
+        def map_param(cls, p):
+            Mapper.map(p.type)
 
-    def map_unaryexpression(p):
-        map(p.operand)
+        @classmethod
+        def map_unaryexpression(cls, p):
+            Mapper.map(p.operand)
 
-    def map_binaryexpression(p):
-        map(p.leftOperand)
-        map(p.rightOperand)
+        @classmethod
+        def map_binaryexpression(cls, p):
+            Mapper.map(p.leftOperand)
+            Mapper.map(p.rightOperand)
 
-    def map_constructorcallexpression(p):
-        map_listnode(p)
+        @classmethod
+        def map_constexpression(cls, p):
+            Mapper.map(p.type)
 
-    def map_arrayexpression(p):
-        map_listnode(p)
+        @classmethod
+        def map_deleteexpression(cls, p):
+            Mapper.map(p.expr)
 
-    def map_constexpression(p):
-        map(p.type)
+        @classmethod
+        def map_forexpression(cls, p):
+            Mapper.map([
+                p.counter,
+                p.startExpr,
+                p.stopExpr,
+                p.body
+            ])
 
-    def map_conidexpression(p):
-        pass
+        @classmethod
+        def map_letinexpression(cls, p):
+            Mapper.map(p.letdef)
+            Mapper.map(p.expr)
 
-    def map_genidexpression(p):
-        pass
+        @classmethod
+        def map_ifexpression(cls, p):
+            Mapper.map(p.condition)
+            Mapper.map(p.thenExpr)
+            Mapper.map(p.elseExpr)
 
-    def map_deleteexpression(p):
-        map(p.expr)
+        @classmethod
+        def map_matchexpression(cls, p):
+            Mapper.map(p.expr)
 
-    def map_dimexpression(p):
-        pass
+        @classmethod
+        def map_clause(cls, p):
+            Mapper.map(p.pattern)
+            Mapper.map(p.expr)
 
-    def map_forexpression(p):
-        map([
-            p.counter,
-            p.startExpr,
-            p.stopExpr,
-            p.body
-        ])
+        @classmethod
+        def map_newexpression(cls, p):
+            Mapper.map(p.type)
 
-    def map_functioncallexpression(p):
-        map_list(p)
+        @classmethod
+        def map_whileexpression(cls, p):
+            Mapper.map(p.condition)
+            Mapper.map(p.body)
 
-    def map_letinexpression(p):
-        map(p.letdef)
-        map(p.expr)
+        @classmethod
+        def map_arrayvariabledef(cls, p):
+            Mapper.map(p.dimensions)
+            Mapper.map(p.type)
 
-    def map_ifexpression(p):
-        map(p.condition)
-        map(p.thenExpr)
-        map(p.elseExpr)
+        @classmethod
+        def map_variabledef(cls, p):
+            Mapper.map(p.type)
 
-    def map_matchexpression(p):
-        map(p.expr)
-        map_listnode(p)
+        @classmethod
+        def map_tdef(cls, p):
+            Mapper.map(p.type)
 
-    def map_clause(p):
-        map(p.pattern)
-        map(p.expr)
-
-    def map_pattern(p):
-        map_listnode(p)
-
-    def map_genidpattern(p):
-        pass
-
-    def map_newexpression(p):
-        map(p.type)
-
-    def map_whileexpression(p):
-        map(p.condition)
-        map(p.body)
-
-    def map_arrayvariabledef(p):
-        map(p.dimensions)
-        map(p.type)
-
-    def map_variabledef(p):
-        map(p.type)
-
-    def map_typedeflist(p):
-        # TODO: remove this once typedeflist is turned into a list
-        map_listnode(p)
-
-    def map_tdef(p):
-        map(p.type)
-        map_listnode(p)
-
-    def map_constructor(p):
-        map_listnode(p)
-
-    def map_nonetype(p):
-        pass
-
-    def map_builtin(p):
-        pass
-
-    def map_array(p):
-        pass
-
-    def map_function(p):
-        pass
-
-    def map_ref(p):
-        pass
-
-    def map_user(p):
-        pass
-
-    def map_node(p):
-        if f is not None:
-            f(p)
-        if isinstance(p, ast.Builtin):
-            map_builtin(p)
-        else:
-            for cls in inspect.getmro(p):
+        @classmethod
+        def map(cls, p):
+            if callable(f):
+                print('f is callable')
+                f(p)
+            for c in inspect.getmro(p.__class__):
                 try:
-                    getattr('map_' + cls.__name__.lower())(p)
+                    if not callable(f):
+                        print('f is not callable')
+                        getattr(f, 'map_' + c.__name__.lower())(p)
+                    print('recursing into %s' % ('map_' + c.__name__.lower()))
+                    getattr(Mapper, 'map_' + c.__name__.lower())(p)
                 except AttributeError:
                     pass
 
-    map_node(root, f)
+    Mapper.map(root)
