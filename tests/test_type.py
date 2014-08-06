@@ -27,6 +27,7 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
 
         logger = error.LoggerMock()
         t2 = type.Table(logger=logger)
+        t2.should.have.property("logger").being(logger)
 
     @staticmethod
     def test_validator_init():
@@ -34,6 +35,7 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
 
         logger = error.LoggerMock()
         t2 = type.Validator(logger=logger)
+        t2.should.have.property("logger").being(logger)
 
 
 class TestTable(unittest.TestCase, parser_db.ParserDB):
