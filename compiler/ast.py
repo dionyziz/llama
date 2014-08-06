@@ -439,14 +439,11 @@ def map(root, f=None):
         @classmethod
         def map(cls, p):
             if callable(f):
-                print('f is callable')
                 f(p)
             for c in inspect.getmro(p.__class__):
                 try:
                     if not callable(f):
-                        print('f is not callable')
                         getattr(f, 'map_' + c.__name__.lower())(p)
-                    print('recursing into %s' % ('map_' + c.__name__.lower()))
                     getattr(Mapper, 'map_' + c.__name__.lower())(p)
                 except AttributeError:
                     pass
