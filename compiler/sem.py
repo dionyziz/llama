@@ -1,4 +1,4 @@
-from compiler import map
+from compiler import ast
 
 
 def sem(root):
