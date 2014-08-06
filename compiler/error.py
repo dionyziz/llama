@@ -87,7 +87,7 @@ class Logger(LoggerInterface):
     # The logger instance, as constructed by the logging module
     _logger = None
 
-    def __init__(self, inputfile, level=logging.WARNING):
+    def __init__(self, inputfile="<stdin>", level=logging.WARNING):
         """Create a new logger for the llama compiler."""
         self._logger = logging.getLogger('llama%d' % Logger._instances)
         Logger._instances += 1

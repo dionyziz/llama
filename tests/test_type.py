@@ -4,7 +4,42 @@ from compiler import ast, error, type
 from tests import parser_db
 
 
-class TestType(unittest.TestCase, parser_db.ParserDB):
+class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
+    """Test the API of the type module."""
+
+    def test_bad_type_error(self):
+        try:
+            raise type.LlamaBadTypeError()
+            self.fail()
+        except type.LlamaBadTypeError:
+            pass
+
+    def test_invalid_type_error(self):
+        try:
+            raise type.LlamaInvalidTypeError()
+            self.fail()
+        except type.LlamaInvalidTypeError:
+            pass
+
+    @staticmethod
+    def test_table_init():
+        t1 = type.Table()
+
+        logger = error.LoggerMock()
+        t2 = type.Table(logger=logger)
+        t2.should.have.property("logger").being(logger)
+
+    @staticmethod
+    def test_validator_init():
+        t1 = type.Validator()
+
+        logger = error.LoggerMock()
+        t2 = type.Validator(logger=logger)
+        t2.should.have.property("logger").being(logger)
+
+
+class TestTable(unittest.TestCase, parser_db.ParserDB):
+    """Test the Table's processing of type definitions."""
 
     @classmethod
     def _process_typedef(cls, typedefListList):
@@ -31,8 +66,8 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             """
         )
 
-        for typedef in right_testcases:
-            tree = self._parse(typedef)
+        for case in right_testcases:
+            tree = self._parse(case)
             proc.when.called_with(tree).shouldnt.throw(error)
 
         wrong_testcases = (
@@ -64,11 +99,16 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             """
         )
 
-        for typedef in wrong_testcases:
-            tree = self._parse(typedef)
+        for case in wrong_testcases:
+            tree = self._parse(case)
             proc.when.called_with(tree).should.throw(error)
 
-    def _is_array(self, t):
+
+class TestValidator(unittest.TestCase, parser_db.ParserDB):
+    """Test the Validator's functionality."""
+
+    @staticmethod
+    def _is_array(t):
         return type.Validator.is_array(t)
 
     def test_isarray(self):
@@ -81,8 +121,8 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "array [*, *] of int"
         )
 
-        for type in right_testcases:
-            tree = self._parse(type, 'type')
+        for case in right_testcases:
+            tree = self._parse(case, 'type')
             self._is_array(tree).should.be.true
 
         wrong_testcases = (
@@ -91,8 +131,8 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "int -> int",
         )
 
-        for type in wrong_testcases:
-            tree = self._parse(type, 'type')
+        for case in wrong_testcases:
+            tree = self._parse(case, 'type')
             self._is_array(tree).should.be.false
 
     def _validate(self, t):
@@ -132,8 +172,8 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "(int -> int) -> int"
         )
 
-        for typedef in right_testcases:
-            tree = self._parse(typedef, 'type')
+        for case in right_testcases:
+            tree = self._parse(case, 'type')
             proc.when.called_with(tree).shouldnt.throw(error)
 
         wrong_testcases = (
@@ -147,6 +187,6 @@ class TestType(unittest.TestCase, parser_db.ParserDB):
             "int -> (int -> array of int)"
         )
 
-        for typedef in wrong_testcases:
-            tree = self._parse(typedef, 'type')
+        for case in wrong_testcases:
+            tree = self._parse(case, 'type')
             proc.when.called_with(tree).should.throw(error)

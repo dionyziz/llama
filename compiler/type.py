@@ -94,7 +94,7 @@ class Validator:
     def __init__(self, logger=None):
         """Create a new Validator."""
         if logger is None:
-            self.logger = error.Logger(inputfile='<stdin>')
+            self.logger = error.Logger()
         else:
             self.logger = logger
 
@@ -126,9 +126,12 @@ class Table:
     # Logger used for logging events. Possibly shared with other modules.
     logger = None
 
-    def __init__(self, logger):
+    def __init__(self, logger=None):
         """Initialize a new Table."""
-        self.logger = logger
+        if logger is None:
+            self.logger = error.Logger()
+        else:
+            self.logger = logger
 
         # Dictionary of types seen so far. Builtin types always available.
         # Values : list of constructors which the type defines

@@ -25,70 +25,70 @@ def mk_cli_parser():
     """Generate a cli parser for the llama compiler."""
 
     cli_parser = argparse.ArgumentParser(
-        description='Llama compiler.',
-        epilog='Use at your own RISC.'
+        description="Llama compiler.",
+        epilog="Use at your own RISC."
     )
 
     cli_parser.add_argument(
-        '-i',
-        '--input',
-        help='''
-            The input file. If ommitted, input is read from stdin.
-            ''',
-        nargs='?',
+        "-i",
+        "--input",
+        help="""\
+            The input file. If ommitted, input is read from stdin.\
+            """,
+        nargs="?",
         const=None,
-        default='<stdin>'
+        default="<stdin>"
     )
 
     cli_parser.add_argument(
-        '-o',
-        '--output',
-        help='''
-            The output file. If ommitted, it defaults to a.out.
-            ''',
-        nargs='?',
-        default='a.out'
+        "-o",
+        "--output",
+        help="""\
+            The output file. If ommitted, it defaults to a.out.\
+            """,
+        nargs="?",
+        default="a.out"
     )
 
     cli_parser.add_argument(
-        '-pp',
-        '--prepare',
-        help='''
-            Build the lexing and parsing tables and exit.
-            ''',
-        action='store_true',
+        "-pp",
+        "--prepare",
+        help="""\
+            Build the lexing and parsing tables and exit.\
+            """,
+        action="store_true",
         default=False
     )
 
     cli_parser.add_argument(
-        '-lv',
-        '--lexer_verbose',
-        help='''
-            Output the lexed tokens along with their file position to stdout.
-            Report any lexing errors to stderr.
-            ''',
-        action='store_true',
+        "-lv",
+        "--lexer_verbose",
+        help="""\
+            Output the lexed tokens along with their file position to stdout.\
+            Report any lexing errors to stderr.\
+            """,
+        action="store_true",
         default=False
     )
 
     cli_parser.add_argument(
-        '-pv',
-        '--parser_verbose',
-        help='''
-            Output the parser state during parsing (token, item, etc).
-            Report any parsing errors to stderr.
-            ''',
-        action='store_true',
+        "-pv",
+        "--parser_verbose",
+        help="""\
+            Output the parser state during parsing (token, item, etc).\
+            Report any parsing errors to stderr.\
+            """,
+        action="store_true",
         default=False
     )
 
     cli_parser.add_argument(
-        '-pd',
-        '--parser_debug',
-        help='''
-            Force dumping grammar processing to file 'parser.out'.
-            ''',
-        action='store_true',
+        "-pd",
+        "--parser_debug",
+        help="""\
+            Force dumping grammar processing to file 'parser.out'.\
+            """,
+        action="store_true",
         default=False
     )
     return cli_parser
@@ -99,7 +99,7 @@ def read_program(input_file):
     Read input from file or stdin (if a file is not provided).
     Return read program as a single string.
     """
-    if input_file == '<stdin>':
+    if input_file == "<stdin>":
         sys.stdout.write("Reading from stdin (type <EOF> to end):\n")
         sys.stdout.flush()
         data = sys.stdin.read()
@@ -110,7 +110,7 @@ def read_program(input_file):
             file.close()
         except IOError:
             sys.exit(
-                'Could not open file %s for reading. Aborting.'
+                "Could not open file %s for reading. Aborting."
                 % input_file
             )
     return data
@@ -124,37 +124,38 @@ def main():
     args = parser.parse_args()
 
     # Store options & switches in global dict.
-    OPTS['input'] = args.input
-    OPTS['output'] = args.output
-    OPTS['prepare'] = args.prepare
-    OPTS['lexer_verbose'] = args.lexer_verbose
-    OPTS['parser_verbose'] = args.parser_verbose
-    OPTS['parser_debug'] = args.parser_debug
+    OPTS["input"] = args.input
+    OPTS["output"] = args.output
+    OPTS["prepare"] = args.prepare
+    OPTS["lexer_verbose"] = args.lexer_verbose
+    OPTS["parser_verbose"] = args.parser_verbose
+    OPTS["parser_debug"] = args.parser_debug
 
-    logger = error.Logger(inputfile=OPTS['input'], level=logging.DEBUG)
-
-    lexer = lex.Lexer(logger=logger, verbose=OPTS['lexer_verbose'])
+    lexer = lex.Lexer(
+        logger=error.Logger(inputfile=OPTS["input"], level=logging.DEBUG),
+        verbose=OPTS["lexer_verbose"]
+    )
 
     parser = parse.Parser(
-        debug=OPTS['parser_debug'],
-        logger=logger,
-        verbose=OPTS['parser_verbose']
+        debug=OPTS["parser_debug"],
+        logger=error.Logger(inputfile=OPTS["input"], level=logging.DEBUG),
+        verbose=OPTS["parser_verbose"]
     )
 
     # Stop here if this a dry run.
-    if OPTS['prepare']:
-        print('Finished generating lexer and parser tables. Exiting...')
+    if OPTS["prepare"]:
+        print("Finished generating lexer and parser tables. Exiting...")
         return
 
     # Get some input.
-    data = read_program(OPTS['input'])
+    data = read_program(OPTS["input"])
 
-    # Parse and construct the AST.
+    # Lex, parse and construct the AST.
     ast = parser.parse(data=data, lexer=lexer)
 
-    # On bad program, terminate with error.
-    if not logger.success:
+    # On lexing/parsing error, abort further compilation.
+    if not (lexer.logger.success or parser.logger.success):
         sys.exit(1)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
