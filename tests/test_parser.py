@@ -778,11 +778,6 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
     def test_precedence_non_equiv(self):
         self._assert_non_equivalent("f -2", "f (-2)")
 
-    def test_precedence_type(self):
-        self._assert_equivalent((
-            ("int -> int -> int", "int -> (int -> int)"),
-        ), None, "type")
-
     def test_precedence_array_ref(self):
         self._assert_equivalent(
             "array of int ref",
@@ -808,5 +803,12 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         self._assert_equivalent(
             "int ref ref",
             "(int ref) ref",
+            start="type"
+        )
+
+    def test_associativity_func(self):
+        self._assert_equivalent(
+            "int -> int -> int",
+            "int -> (int -> int)",
             start="type"
         )
