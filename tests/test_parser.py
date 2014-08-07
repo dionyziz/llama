@@ -747,6 +747,16 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ("1 -. 2 -. 3", "(1 -. 2) -. 3")
         ))
 
+    def test_associativity_compariosn(self):
+        self._assert_parse_fails("a = b = c")
+        self._assert_parse_fails("a <> b <> c")
+        self._assert_parse_fails("a > b > c")
+        self._assert_parse_fails("a < b < c")
+        self._assert_parse_fails("a <= b <= c")
+        self._assert_parse_fails("a >= b >= c")
+        self._assert_parse_fails("a == b == c")
+        self._assert_parse_fails("a != b != c")
+
     def test_associativity_band(self):
         self._assert_equivalent("a && b && c", "(a && b) && c")
 
