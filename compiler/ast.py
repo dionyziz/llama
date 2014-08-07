@@ -45,7 +45,7 @@ class Node:
         values = [getattr(self, attr) for attr in attrs]
         safe_values = []
         for value in values:
-            displayable_types = (int, float, bool, str, list, Type)
+            displayable_types = (int, float, bool, str, list, Type, Expression)
             if isinstance(value, displayable_types) or value is None:
                 safe_values.append(str(value).replace("\n", "\n\t"))
             else:
@@ -263,11 +263,6 @@ class ArrayVariableDef(VariableDef):
         self.type = type
 
 
-class TypeDefList(ListNode):
-    def __init__(self, list):
-        self.list = list
-
-
 class TDef(ListNode):
     def __init__(self, type, list):
         self.type = type
@@ -414,11 +409,6 @@ def map(root, func=None, obj=None):
         def map_whileexpression(cls, p):
             Mapper.map(p.condition)
             Mapper.map(p.body)
-
-        @classmethod
-        def map_arrayvariabledef(cls, p):
-            Mapper.map(p.dimensions)
-            Mapper.map(p.type)
 
         @classmethod
         def map_variabledef(cls, p):

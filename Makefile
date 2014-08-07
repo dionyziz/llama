@@ -1,36 +1,36 @@
 PYTHON=python3
-PREPARE_FLAG=--prepare
+PREPARE_FLAGS=--prepare -pd
 OPT=-OO
 SOURCEFILES=main.py ./compiler/*.py
 BINPATH=./bin
 TESTPATH=./tests/
 
-.PHONY: beauty clean prepare static test
+.PHONY: beauty clean cleanaux functionaltest prepare static test unittest
 
-all: test
+all: clean prepare test
 
 beauty:
 	pep8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
 
-test:
-	make clean
-	make prepare
-	make unittest
-	make clean
-	make prepare
-	make functionaltest
+test: unittest functionaltest
 
-unittest:
-	for i in `find tests -iname 'test_*.py'`; do echo "\n\nRunning $$i"; nosetests $$i || exit 2; done
+unittest: $(BINPATH)/utest.sh
+	$(BINPATH)/utest.sh
 
-functionaltest: $(BINPATH)/ptest.sh
-	$(BINPATH)/ptest.sh
+functionaltest: $(BINPATH)/ftest.sh
+	$(BINPATH)/ftest.sh
 
 static:
 	pylint -E $(SOURCEFILES)
 
 prepare:
-	$(PYTHON) main.py $(PREPARE_FLAG)
+	$(PYTHON) main.py $(PREPARE_FLAGS)
+	$(BINPATH)/ctest.sh
 
-clean:
+cleanaux:
+	$(RM) aux*.py
+
+cleanmain:
 	$(RM) lextab.py parsetab.py parser.out
+
+clean: cleanaux cleanmain
