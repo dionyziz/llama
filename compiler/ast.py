@@ -351,14 +351,6 @@ def map(root, func=None, obj=None):
                 Mapper.map(item)
 
         @classmethod
-        def map_program(cls, p):
-            Mapper.map_listnode(p)
-
-        @classmethod
-        def map_letdef(cls, p):
-            Mapper.map_listnode(p)
-
-        @classmethod
         def map_functiondef(cls, p):
             Mapper.map(p.params)
             Mapper.map(p.body)
