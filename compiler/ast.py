@@ -339,7 +339,7 @@ class Function(Type):
         self.fromType = fromType
         self.toType = toType
 
-def map(root, f=None):
+def map(root, func=None, obj=None):
     class Mapper():
         @classmethod
         def map_listnode(cls, p):
@@ -438,14 +438,17 @@ def map(root, f=None):
 
         @classmethod
         def map(cls, p):
-            if callable(f):
-                f(p)
+            if func is not None:
+                func(p)
             for c in inspect.getmro(p.__class__):
                 try:
-                    if not callable(f):
-                        getattr(f, 'map_' + c.__name__.lower())(p)
+                    if obj is not None:
+                        getattr(obj, 'map_' + c.__name__.lower())(p)
                     getattr(Mapper, 'map_' + c.__name__.lower())(p)
                 except AttributeError:
                     pass
+
+    if root is None:
+        return
 
     Mapper.map(root)
