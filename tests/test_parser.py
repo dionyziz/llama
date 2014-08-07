@@ -784,11 +784,11 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ("int ref ref", "(int ref) ref"),
         ), None, "type")
 
-    def test_regression_precedence_type_array_ref(self):
+    def test_precedence_array_ref(self):
         self._assert_equivalent(
             "array of int ref",
             "array of (int ref)",
-            "type"
+            start="type"
         )
 
     def test_precedence_array_func(self):
