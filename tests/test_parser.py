@@ -90,7 +90,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         self._parse("(my_parameter: int)", "param").should.equal(
             ast.Param("my_parameter", ast.Int())
         )
-        self._parse("my_parameter: int", "param").should.be(None)
+
+        self._assert_parse_fails("my_parameter: int", "param")
 
     def test_builtin_type(self):
         for name, typecon in ast.builtin_types_map.items():
@@ -247,7 +248,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         clause1 = ast.Clause(self.one, self.two)
         clause2 = ast.Clause(self.true, self.false)
 
-        self._parse("", "clause_seq").should.be(None)
+        self._assert_parse_fails("", "clause_seq")
+
         self._parse(
             "1 -> 2 | true -> false", "clause_seq"
         ).should.equal(
@@ -298,7 +300,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
 
     def test_simple_expr_seq(self):
-        self._parse("", "simple_expr_seq").should.be(None)
+        self._assert_parse_fails("", "simple_expr_seq")
+
         self._parse("1", "simple_expr_seq").should.equal([self.one])
         self._parse("1 2", "simple_expr_seq").should.equal(
             [self.one, self.two]
@@ -324,7 +327,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
 
     def test_expr_comma_seq(self):
-        self._parse("", "expr_comma_seq").should.be(None)
+        self._assert_parse_fails("", "expr_comma_seq")
+
         self._parse("1", "expr_comma_seq").should.equal([self.one])
         self._parse("1, 2", "expr_comma_seq").should.equal(
             [self.one, self.two]
@@ -345,7 +349,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         self._parse("f", "expr").should.equal(ast.GenidExpression("f"))
 
     def test_constr_pipe_seq(self):
-        self._parse("", "constr_pipe_seq").should.be(None)
+        self._assert_parse_fails("", "constr_pipe_seq")
+
         self._parse("Red | Green | Blue", "constr_pipe_seq").should.equal(
             [ast.Constructor("Red"),
              ast.Constructor("Green"),
@@ -362,7 +367,7 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
 
     def test_tdef_and_seq(self):
-        self._parse("", "tdef_and_seq").should.be(None)
+        self._assert_parse_fails("", "tdef_and_seq")
         self._parse(
             "color = Red and shoes = Slacks", "tdef_and_seq"
         ).should.equal(
@@ -378,7 +383,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
 
     def test_type_seq(self):
-        self._parse("", "type_seq").should.be(None)
+        self._assert_parse_fails("", "type_seq")
+
         self._parse("int float", "type_seq").should.equal(
             [ast.Int(), ast.Float()]
         )
