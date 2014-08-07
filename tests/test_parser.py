@@ -799,6 +799,9 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             start="type"
         )
 
+    # NOTE: Test for array associativity deliberately ommitted,
+    # as an array of array is considered an error in semantics, not syntax.
+
     def test_associativity_ref(self):
         self._assert_equivalent(
             "int ref ref",
