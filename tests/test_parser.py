@@ -421,6 +421,15 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             parsed2 = self._parse(expr2, start)
             parsed1.shouldnt.equal(parsed2)
 
+    def _assert_parse_fails(self, expr, start="expr"):
+        """
+        Assert that attempting to parse the expression from the given
+        start will fail.
+        """
+        p = parse.Parser(logger=error.LoggerMock(), start=start)
+        _ = p.parse(expr)
+        p.logger.success.should.be.false
+
     def test_precedence_new_bang(self):
         self._assert_equivalent("!new int", "!(new int)")
 
