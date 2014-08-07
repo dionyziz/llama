@@ -33,18 +33,14 @@ class Scope:
     knows its nesting level and can be optionally hidden from lookup.
     """
     entries = []
-    hidden = False
+    visible = True
     nesting = None
 
-    def __init__(self, entries, hidden, nesting):
+    def __init__(self, entries, visible, nesting):
         """Make a new scope."""
         self.entries = entries
-        self.hidden = hidden
+        self.visible = visible
         self.nesting = nesting
-
-    def hide_scope(self, hidden=True):
-        """Hide visibility of scope."""
-        self.hidden = hidden
 
 
 class SymbolTable:
@@ -69,7 +65,7 @@ class SymbolTable:
 
         lib_scope = Scope(
             entries=[],
-            hidden=False,
+            visible=True,
             nesting=self.nesting
         )
 
@@ -100,7 +96,7 @@ class SymbolTable:
         """Open a new scope in the symbol table."""
         new_scope = Scope(
             entries=[],
-            hidden=False,
+            visible=True,
             nesting=self.nesting + 1
         )
 
@@ -134,7 +130,7 @@ class SymbolTable:
         """
         if lookup_all:
             for entry in reversed(self.hash_table[identifier]):
-                if not entry.scope.hidden:
+                if entry.scope.visible:
                     return entry
         else:
             entry = self._find_identifier_in_current_scope(identifier)
