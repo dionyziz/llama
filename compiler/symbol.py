@@ -12,19 +12,26 @@
 
 from collections import defaultdict
 
+from compiler import ast
 
 class Entry:
-    """An entry of the symbol table. It knows which scope it's in."""
-    identifier = None
+    """An entry of the symbol table."""
+    # Reference to the ast node that the entry represents.
+    # The node should contain the lineno and lexpos attributes.
+    node = None
+
+    # Reference to the symbol table scope containing the entry.
+    # Used for fast lookup and sanity-checking.
     scope = None
 
-    lexpos = None
-    lineno = None
+    @property
+    def identifier(self):
+        return self.node.name
 
-    def __init__(self, identifier, scope):
-        self.identifier = identifier
+    def __init__(self, node, scope):
+        """Create a new symbol table entry from a NameNode."""
+        self.node = node
         self.scope = scope
-        # TODO: Initialize lineno and lexpos
 
 
 class Scope:
@@ -61,7 +68,8 @@ class SymbolTable:
 
     def _insert_library_symbols(self):
         """Open a new scope populated with the library namespace."""
-        lib_namespace = []  # TODO: Dump library namespace here
+        # TODO: Dump library namespace here as a tuple of virtual AST nodes.
+        lib_namespace = tuple()
 
         lib_scope = Scope(
             entries=[],
@@ -69,8 +77,8 @@ class SymbolTable:
             nesting=self.nesting
         )
 
-        for identifier in lib_namespace:
-            entry = Entry(identifier, lib_scope)
+        for node in lib_namespace:
+            entry = Entry(node, lib_scope)
             lib_scope.entries.append(entry)
 
         self._push_scope(lib_scope)
