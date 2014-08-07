@@ -763,6 +763,9 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
     def test_associativity_bor(self):
         self._assert_equivalent("a || b || c", "(a || b) || c")
 
+    def test_associativity_assign(self):
+        self._assert_parse_fails("a := b := c")
+
     def test_associativity_ifthenelse(self):
         self._assert_equivalent(
             "if p then if q then a else b",
