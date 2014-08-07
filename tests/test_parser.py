@@ -90,7 +90,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         self._parse("(my_parameter: int)", "param").should.equal(
             ast.Param("my_parameter", ast.Int())
         )
-        self._parse("my_parameter: int", "param").should.be(None)
+
+        self._assert_parse_fails("my_parameter: int", "param")
 
     def test_builtin_type(self):
         for name, typecon in ast.builtin_types_map.items():
@@ -247,7 +248,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         clause1 = ast.Clause(self.one, self.two)
         clause2 = ast.Clause(self.true, self.false)
 
-        self._parse("", "clause_seq").should.be(None)
+        self._assert_parse_fails("", "clause_seq")
+
         self._parse(
             "1 -> 2 | true -> false", "clause_seq"
         ).should.equal(
@@ -298,7 +300,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
 
     def test_simple_expr_seq(self):
-        self._parse("", "simple_expr_seq").should.be(None)
+        self._assert_parse_fails("", "simple_expr_seq")
+
         self._parse("1", "simple_expr_seq").should.equal([self.one])
         self._parse("1 2", "simple_expr_seq").should.equal(
             [self.one, self.two]
@@ -324,7 +327,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
 
     def test_expr_comma_seq(self):
-        self._parse("", "expr_comma_seq").should.be(None)
+        self._assert_parse_fails("", "expr_comma_seq")
+
         self._parse("1", "expr_comma_seq").should.equal([self.one])
         self._parse("1, 2", "expr_comma_seq").should.equal(
             [self.one, self.two]
@@ -345,7 +349,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         self._parse("f", "expr").should.equal(ast.GenidExpression("f"))
 
     def test_constr_pipe_seq(self):
-        self._parse("", "constr_pipe_seq").should.be(None)
+        self._assert_parse_fails("", "constr_pipe_seq")
+
         self._parse("Red | Green | Blue", "constr_pipe_seq").should.equal(
             [ast.Constructor("Red"),
              ast.Constructor("Green"),
@@ -362,7 +367,7 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
 
     def test_tdef_and_seq(self):
-        self._parse("", "tdef_and_seq").should.be(None)
+        self._assert_parse_fails("", "tdef_and_seq")
         self._parse(
             "color = Red and shoes = Slacks", "tdef_and_seq"
         ).should.equal(
@@ -378,7 +383,8 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
 
     def test_type_seq(self):
-        self._parse("", "type_seq").should.be(None)
+        self._assert_parse_fails("", "type_seq")
+
         self._parse("int float", "type_seq").should.equal(
             [ast.Int(), ast.Float()]
         )
@@ -421,113 +427,391 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             parsed2 = self._parse(expr2, start)
             parsed1.shouldnt.equal(parsed2)
 
-    def test_regression_new(self):
+    def _assert_parse_fails(self, expr, start="expr"):
+        """
+        Assert that attempting to parse the expression from the given
+        start will fail.
+        """
+        p = parse.Parser(logger=error.LoggerMock(), start=start)
+        _ = p.parse(expr)
+        p.logger.success.should.be.false
+
+    def test_precedence_new_bang(self):
+        self._assert_equivalent("!new int", "!(new int)")
+
+    def test_precedence_arrayexpr_bang(self):
+        self._assert_equivalent("!a[0]", "!(a[0])")
+
+    def test_precedence_bang_juxtaposition(self):
         self._assert_equivalent((
-            ("!new int", "!(new int)"),
-            ("f new int", "f (new int)"),
+            ("!f x", "(!f) x"),
+            ("!F x", "(!F) x")
         ))
 
-    def test_precedence_int(self):
+    def test_precedence_juxtaposition_sign(self):
+        self._assert_equivalent((
+            ("+ f x", "+ (f x)"),
+            ("+ F x", "+ (F x)"),
+
+            ("- f x", "- (f x)"),
+            ("- F x", "- (F x)"),
+
+            ("+. f x", "+. (f x)"),
+            ("+. F x", "+. (F x)"),
+
+            ("-. f x", "-. (f x)"),
+            ("-. F x", "-. (F x)"),
+
+            ("not f x", "not (f x)"),
+            ("not F x", "not (F x)"),
+
+            ("delete f x", "delete (f x)"),
+            ("delete F x", "delete (F x)")
+        ))
+
+    def test_precedence_sign_pow(self):
+        self._assert_equivalent((
+            ("+1 ** 2", "(+1) ** 2"),
+            ("1 ** +2", "1 ** (+2)"),
+
+            ("-1 ** 2", "(-1) ** 2"),
+            ("1 ** -2", "1 ** (-2)"),
+
+            ("+.1 ** 2", "(+.1) ** 2"),
+            ("1 ** +.2", "1 ** (+.2)"),
+
+            ("-.1 ** 2", "(-.1) ** 2"),
+            ("1 ** -.2", "1 ** (-.2)"),
+
+            ("not true ** 2", "(not true) ** 2"),
+            ("1 ** not false", "1 ** (not false)"),
+
+            ("delete p ** 2", "(delete p) ** 2"),
+            ("1 ** delete p", "1 ** (delete p)"),
+        ))
+
+    def test_precedence_pow_multiplicative(self):
+        self._assert_equivalent((
+            ("1 ** 2 * 3", "(1 ** 2) * 3"),
+            ("1 * 2 ** 3", "1 * (2 ** 3)"),
+
+            ("1 ** 2 / 3", "(1 ** 2) / 3"),
+            ("1 / 2 ** 3", "1 / (2 ** 3)"),
+
+            ("1 ** 2 *. 3", "(1 ** 2) *. 3"),
+            ("1 *. 2 ** 3", "1 *. (2 ** 3)"),
+
+            ("1 ** 2 /. 3", "(1 ** 2) /. 3"),
+            ("1 /. 2 ** 3", "1 /. (2 ** 3)"),
+
+            ("1 ** 2 mod 3", "(1 ** 2) mod 3"),
+            ("1 mod 2 ** 3", "1 mod (2 ** 3)"),
+        ))
+
+    def test_precedence_multiplicative_additive(self):
         self._assert_equivalent((
             ("1 + 2 * 3", "1 + (2 * 3)"),
+            ("1 * 2 + 3", "(1 * 2) + 3"),
+            ("1 + 2 / 3", "1 + (2 / 3)"),
+            ("1 / 2 + 3", "(1 / 2) + 3"),
+            ("1 + 2 *. 3", "1 + (2 *. 3)"),
+            ("1 *. 2 + 3", "(1 *. 2) + 3"),
+            ("1 + 2 /. 3", "1 + (2 /. 3)"),
+            ("1 /. 2 + 3", "(1 /. 2) + 3"),
+            ("1 + 2 mod 3", "1 + (2 mod 3)"),
+            ("1 mod 2 + 3", "(1 mod 2) + 3"),
+
+            ("1 - 2 * 3", "1 - (2 * 3)"),
+            ("1 * 2 - 3", "(1 * 2) - 3"),
             ("1 - 2 / 3", "1 - (2 / 3)"),
-            ("1 + 2 + 3", "(1 + 2) + 3"),
-            ("1 - 2 - 3", "(1 - 2) - 3"),
-            ("1 - 2 + 3", "(1 - 2) + 3"),
-            ("1 * 2 * 3", "(1 * 2) * 3"),
-            ("1 / 2 / 3", "(1 / 2) / 3"),
-            ("1 / 2 * 3", "(1 / 2) * 3"),
-
+            ("1 / 2 - 3", "(1 / 2) - 3"),
+            ("1 - 2 *. 3", "1 - (2 *. 3)"),
+            ("1 *. 2 - 3", "(1 *. 2) - 3"),
+            ("1 - 2 /. 3", "1 - (2 /. 3)"),
+            ("1 /. 2 - 3", "(1 /. 2) - 3"),
             ("1 - 2 mod 3", "1 - (2 mod 3)"),
-            ("1 mod 2 mod 3", "(1 mod 2) mod 3"),
+            ("1 mod 2 - 3", "(1 mod 2) - 3"),
+
+            ("1 +. 2 * 3", "1 +. (2 * 3)"),
+            ("1 * 2 +. 3", "(1 * 2) +. 3"),
+            ("1 +. 2 / 3", "1 +. (2 / 3)"),
+            ("1 / 2 +. 3", "(1 / 2) +. 3"),
+            ("1 +. 2 *. 3", "1 +. (2 *. 3)"),
+            ("1 *. 2 +. 3", "(1 *. 2) +. 3"),
+            ("1 +. 2 /. 3", "1 +. (2 /. 3)"),
+            ("1 /. 2 +. 3", "(1 /. 2) +. 3"),
+            ("1 +. 2 mod 3", "1 +. (2 mod 3)"),
+            ("1 mod 2 +. 3", "(1 mod 2) +. 3"),
+
+            ("1 -. 2 * 3", "1 -. (2 * 3)"),
+            ("1 * 2 -. 3", "(1 * 2) -. 3"),
+            ("1 -. 2 / 3", "1 -. (2 / 3)"),
+            ("1 / 2 -. 3", "(1 / 2) -. 3"),
+            ("1 -. 2 *. 3", "1 -. (2 *. 3)"),
+            ("1 *. 2 -. 3", "(1 *. 2) -. 3"),
+            ("1 -. 2 /. 3", "1 -. (2 /. 3)"),
+            ("1 /. 2 -. 3", "(1 /. 2) -. 3"),
+            ("1 -. 2 mod 3", "1 -. (2 mod 3)"),
+            ("1 mod 2 -. 3", "(1 mod 2) -. 3")
         ))
 
-    def test_precedence_float(self):
+    def test_precedence_additive_commparison(self):
         self._assert_equivalent((
-            ("1.0 +. 2.0 *. 3.0", "1.0 +. (2.0 *. 3.0)"),
-            ("1.0 -. 2.0 *. 3.0", "1.0 -. (2.0 *. 3.0)"),
-            ("1.0 +. 2.0 /. 3.0", "1.0 +. (2.0 /. 3.0)"),
-            ("1.0 -. 2.0 /. 3.0", "1.0 -. (2.0 /. 3.0)"),
-            ("1.0 +. 2.0 +. 3.0", "(1.0 +. 2.0) +. 3.0"),
-            ("1.0 -. 2.0 -. 3.0", "(1.0 -. 2.0) -. 3.0"),
-            ("1.0 -. 2.0 +. 3.0", "(1.0 -. 2.0) +. 3.0"),
-            ("1.0 *. 2.0 *. 3.0", "(1.0 *. 2.0) *. 3.0"),
-            ("1.0 /. 2.0 /. 3.0", "(1.0 /. 2.0) /. 3.0"),
-            ("1.0 /. 2.0 *. 3.0", "(1.0 /. 2.0) *. 3.0"),
+            ("a + b = c", "(a + b) = c"),
+            ("a = b + c", "a = (b + c)"),
+            ("a - b = c", "(a - b) = c"),
+            ("a = b - c", "a = (b - c)"),
+            ("a +. b = c", "(a +. b) = c"),
+            ("a = b +. c", "a = (b +. c)"),
+            ("a -. b = c", "(a -. b) = c"),
+            ("a = b -. c", "a = (b -. c)"),
 
-            ("-2 ** 4", "(-2) ** 4"),
-            ("1 ** 2 ** 3", "1 ** (2 ** 3)"),
-            ("1 ** 2 * 3", "(1 ** 2) * 3"),
-            ("1 ** 2 / 3", "(1 ** 2) / 3"),
-            ("1.0 ** 2.0 *. 3.0", "(1.0 ** 2.0) *. 3.0"),
-            ("1.0 ** 2.0 /. 3.0", "(1.0 ** 2.0) /. 3.0"),
+            ("a + b <> c", "(a + b) <> c"),
+            ("a <> b + c", "a <> (b + c)"),
+            ("a - b <> c", "(a - b) <> c"),
+            ("a <> b - c", "a <> (b - c)"),
+            ("a +. b <> c", "(a +. b) <> c"),
+            ("a <> b +. c", "a <> (b +. c)"),
+            ("a -. b <> c", "(a -. b) <> c"),
+            ("a <> b -. c", "a <> (b -. c)"),
+
+            ("a + b > c", "(a + b) > c"),
+            ("a > b + c", "a > (b + c)"),
+            ("a - b > c", "(a - b) > c"),
+            ("a > b - c", "a > (b - c)"),
+            ("a +. b > c", "(a +. b) > c"),
+            ("a > b +. c", "a > (b +. c)"),
+            ("a -. b > c", "(a -. b) > c"),
+            ("a > b -. c", "a > (b -. c)"),
+
+            ("a + b < c", "(a + b) < c"),
+            ("a < b + c", "a < (b + c)"),
+            ("a - b < c", "(a - b) < c"),
+            ("a < b - c", "a < (b - c)"),
+            ("a +. b < c", "(a +. b) < c"),
+            ("a < b +. c", "a < (b +. c)"),
+            ("a -. b < c", "(a -. b) < c"),
+            ("a < b -. c", "a < (b -. c)"),
+
+            ("a + b <= c", "(a + b) <= c"),
+            ("a <= b + c", "a <= (b + c)"),
+            ("a - b <= c", "(a - b) <= c"),
+            ("a <= b - c", "a <= (b - c)"),
+            ("a +. b <= c", "(a +. b) <= c"),
+            ("a <= b +. c", "a <= (b +. c)"),
+            ("a -. b <= c", "(a -. b) <= c"),
+            ("a <= b -. c", "a <= (b -. c)"),
+
+            ("a + b >= c", "(a + b) >= c"),
+            ("a >= b + c", "a >= (b + c)"),
+            ("a - b >= c", "(a - b) >= c"),
+            ("a >= b - c", "a >= (b - c)"),
+            ("a +. b >= c", "(a +. b) >= c"),
+            ("a >= b +. c", "a >= (b +. c)"),
+            ("a -. b >= c", "(a -. b) >= c"),
+            ("a >= b -. c", "a >= (b -. c)"),
+
+            ("a + b == c", "(a + b) == c"),
+            ("a == b + c", "a == (b + c)"),
+            ("a - b == c", "(a - b) == c"),
+            ("a == b - c", "a == (b - c)"),
+            ("a +. b == c", "(a +. b) == c"),
+            ("a == b +. c", "a == (b +. c)"),
+            ("a -. b == c", "(a -. b) == c"),
+            ("a == b -. c", "a == (b -. c)"),
+
+            ("a + b != c", "(a + b) != c"),
+            ("a != b + c", "a != (b + c)"),
+            ("a - b != c", "(a - b) != c"),
+            ("a != b - c", "a != (b - c)"),
+            ("a +. b != c", "(a +. b) != c"),
+            ("a != b +. c", "a != (b +. c)"),
+            ("a -. b != c", "(a -. b) != c"),
+            ("a != b -. c", "a != (b -. c)"),
         ))
 
-    def test_precedence_bool(self):
+    def test_precedence_comparison_band(self):
+        self._assert_equivalent((
+            ("a && b = c", "a && (b = c)"),
+            ("a = b && c", "(a = b) && c"),
+
+            ("a && b <> c", "a && (b <> c)"),
+            ("a <> b && c", "(a <> b) && c"),
+
+            ("a && b > c", "a && (b > c)"),
+            ("a > b && c", "(a > b) && c"),
+
+            ("a && b < c", "a && (b < c)"),
+            ("a < b && c", "(a < b) && c"),
+
+            ("a && b <= c", "a && (b <= c)"),
+            ("a <= b && c", "(a <= b) && c"),
+
+            ("a && b >= c", "a && (b >= c)"),
+            ("a >= b && c", "(a >= b) && c"),
+
+            ("a && b == c", "a && (b == c)"),
+            ("a == b && c", "(a == b) && c"),
+
+            ("a && b != c", "a && (b != c)"),
+            ("a != b && c", "(a != b) && c"),
+        ))
+
+    def test_precedence_band_bor(self):
         self._assert_equivalent((
             ("a || b && c", "a || (b && c)"),
-            ("not a || b", "(not a) || b"),
-            ("not a && b", "(not a) && b"),
-            ("a || b || c", "(a || b) || c"),
-            ("a && b && c", "(a && b) && c"),
-
-            ("a == b && c == d", "(a == b) && (c == d)"),
-            ("a != b && c != d", "(a != b) && (c != d)"),
-            ("a = b && c = d", "(a = b) && (c = d)"),
-            ("a < b || c < d", "(a < b) || (c < d)"),
-            ("a > b || c > d", "(a > b) || (c > d)"),
-            ("a <= b && c <> d", "(a <= b) && (c <> d)"),
-            ("a >= b && c <> d", "(a >= b) && (c <> d)"),
+            ("a && b || c", "(a && b) || c"),
         ))
 
-    def test_precedence_rest(self):
+    def test_precedence_bor_assign(self):
         self._assert_equivalent((
-            # function and constructor calls
-            ("f 1 + 2", "(f 1) + 2"),
-            ("F 1 + 2", "(F 1) + 2"),
-
-            ("x + y[1]", "x + (y[1])"),
-            ("!a[1]", "!(a[1])"),
-            ("!f x", "(!f) x"),
-            ("not f x", "not (f x)"),
-            ("delete f x", "delete (f x)"),
-            ("not F x", "not (F x)"),
-            ("delete F x", "delete (F x)"),
-
-            ("1 + 1 = 2", "(1 + 1) = 2"),
-            ("x := a && b", "x := (a && b)"),
-            ("x := 1 + 1", "x := (1 + 1)"),
-
-            ("if p then if q then a else b", "if p then (if q then a else b)"),
-            ("if p then 1 else 1 + 1", "if p then 1 else (1 + 1)"),
-            (
-                "if p then 1 else 2; if q then 1 else 2",
-                "(if p then 1 else 2); (if q then 1 else 2)"
-            ),
-            (
-                "let x = 5 in x; let y = 5 in y",
-                "let x = 5 in (x; let y = 5 in y)"
-            ),
-
-            ("x; y; z", "(x; y); z"),
+            ("a := b || c", "a := (b || c)"),
+            ("a || b := c", "(a || b) := c"),
         ))
+
+    def test_precedence_assign_ifthenelse(self):
+        self._assert_equivalent((
+            ("if p then () else a := b", "if p then () else (a := b)"),
+            ("if p then a := b", "if p then (a := b)"),
+        ))
+
+    def test_precedence_ifthenelse_semicolon(self):
+        self._assert_equivalent((
+            ("if p then 1 else 2; 3", "(if p then 1 else 2); 3"),
+            ("if p then 2; 3", "(if p then 2); 3"),
+        ))
+
+    def test_precedence_assign_semicolon(self):
+        self._assert_equivalent((
+            ("a := b; c", "(a := b); c"),
+            ("a; b := c", "a; (b := c)"),
+        ))
+
+    def test_precedence_semicolon_letin(self):
+        self._assert_equivalent("let x = 0 in y; z", "let x = 0 in (y; z)")
+
+    def test_associativity_arrayexpr(self):
+        self._assert_parse_fails("a[0][0]")
+
+    def test_associativity_pow(self):
+        self._assert_equivalent("1 ** 2 ** 3", "1 ** (2 ** 3)")
+
+    def test_associativity_multiplicative(self):
+        self._assert_equivalent((
+            ("1 * 2 * 3", "(1 * 2) * 3"),
+            ("1 * 2 / 3", "(1 * 2) / 3"),
+            ("1 * 2 *. 3", "(1 * 2) *. 3"),
+            ("1 * 2 /. 3", "(1 * 2) /. 3"),
+
+            ("1 / 2 * 3", "(1 / 2) * 3"),
+            ("1 / 2 / 3", "(1 / 2) / 3"),
+            ("1 / 2 *. 3", "(1 / 2) *. 3"),
+            ("1 / 2 /. 3", "(1 / 2) /. 3"),
+
+            ("1 *. 2 * 3", "(1 *. 2) * 3"),
+            ("1 *. 2 / 3", "(1 *. 2) / 3"),
+            ("1 *. 2 *. 3", "(1 *. 2) *. 3"),
+            ("1 *. 2 /. 3", "(1 *. 2) /. 3"),
+
+            ("1 /. 2 * 3", "(1 /. 2) * 3"),
+            ("1 /. 2 / 3", "(1 /. 2) / 3"),
+            ("1 /. 2 *. 3", "(1 /. 2) *. 3"),
+            ("1 /. 2 /. 3", "(1 /. 2) /. 3"),
+
+            ("1 mod 2 * 3", "(1 mod 2) * 3"),
+            ("1 mod 2 / 3", "(1 mod 2) / 3"),
+            ("1 mod 2 *. 3", "(1 mod 2) *. 3"),
+            ("1 mod 2 /. 3", "(1 mod 2) /. 3")
+        ))
+
+    def test_associativity_additive(self):
+        self._assert_equivalent((
+            ("1 + 2 + 3", "(1 + 2) + 3"),
+            ("1 + 2 - 3", "(1 + 2) - 3"),
+            ("1 + 2 +. 3", "(1 + 2) +. 3"),
+            ("1 + 2 -. 3", "(1 + 2) -. 3"),
+
+            ("1 - 2 + 3", "(1 - 2) + 3"),
+            ("1 - 2 - 3", "(1 - 2) - 3"),
+            ("1 - 2 +. 3", "(1 - 2) +. 3"),
+            ("1 - 2 -. 3", "(1 - 2) -. 3"),
+
+            ("1 +. 2 + 3", "(1 +. 2) + 3"),
+            ("1 +. 2 - 3", "(1 +. 2) - 3"),
+            ("1 +. 2 +. 3", "(1 +. 2) +. 3"),
+            ("1 +. 2 -. 3", "(1 +. 2) -. 3"),
+
+            ("1 -. 2 + 3", "(1 -. 2) + 3"),
+            ("1 -. 2 - 3", "(1 -. 2) - 3"),
+            ("1 -. 2 +. 3", "(1 -. 2) +. 3"),
+            ("1 -. 2 -. 3", "(1 -. 2) -. 3")
+        ))
+
+    def test_associativity_compariosn(self):
+        self._assert_parse_fails("a = b = c")
+        self._assert_parse_fails("a <> b <> c")
+        self._assert_parse_fails("a > b > c")
+        self._assert_parse_fails("a < b < c")
+        self._assert_parse_fails("a <= b <= c")
+        self._assert_parse_fails("a >= b >= c")
+        self._assert_parse_fails("a == b == c")
+        self._assert_parse_fails("a != b != c")
+
+    def test_associativity_band(self):
+        self._assert_equivalent("a && b && c", "(a && b) && c")
+
+    def test_associativity_bor(self):
+        self._assert_equivalent("a || b || c", "(a || b) || c")
+
+    def test_associativity_assign(self):
+        self._assert_parse_fails("a := b := c")
+
+    def test_associativity_ifthenelse(self):
+        self._assert_equivalent(
+            "if p then if q then a else b",
+            "if p then (if q then a else b)"
+        )
+
+    def test_associativity_semicolon(self):
+        self._assert_equivalent("x; y; z", "(x; y); z")
 
     def test_precedence_non_equiv(self):
         self._assert_non_equivalent("f -2", "f (-2)")
 
-    def test_precedence_type(self):
-        self._assert_equivalent((
-            ("int -> int -> int", "int -> (int -> int)"),
-            ("int ref ref", "(int ref) ref"),
-            ("array of int -> int", "(array of int) -> int"),
-        ), None, "type")
-
-    def test_regression_precedence_func_ref(self):
-        self._assert_equivalent("int -> int ref", "int -> (int ref)", "type")
-
-    def test_regression_precedence_type_array_ref(self):
+    def test_precedence_array_ref(self):
         self._assert_equivalent(
             "array of int ref",
             "array of (int ref)",
-            "type"
+            start="type"
+        )
+
+    def test_precedence_array_func(self):
+        self._assert_equivalent(
+            "array of int -> int",
+            "(array of int) -> int",
+            start="type"
+        )
+
+    def test_precedence_func_ref(self):
+        self._assert_equivalent(
+            "int -> int ref",
+            "int -> (int ref)",
+            start="type"
+        )
+
+    # NOTE: Test for array associativity deliberately ommitted,
+    # as an array of array is considered an error in semantics, not syntax.
+
+    def test_associativity_ref(self):
+        self._assert_equivalent(
+            "int ref ref",
+            "(int ref) ref",
+            start="type"
+        )
+
+    def test_associativity_func(self):
+        self._assert_equivalent(
+            "int -> int -> int",
+            "int -> (int -> int)",
+            start="type"
         )
