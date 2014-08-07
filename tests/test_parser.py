@@ -439,7 +439,7 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
     def test_precedence_new_bang(self):
         self._assert_equivalent("!new int", "!(new int)")
 
-    def test_precedence_array_bang(self):
+    def test_precedence_arrayexpr_bang(self):
         self._assert_equivalent("!a[0]", "!(a[0])")
 
     def test_precedence_bang_juxtaposition(self):
@@ -689,6 +689,9 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
 
     def test_precedence_semicolon_letin(self):
         self._assert_equivalent("let x = 0 in y; z", "let x = 0 in (y; z)")
+
+    def test_associativity_arrayexpr(self):
+        self._assert_parse_fails("a[0][0]")
 
     def test_associativity_pow(self):
         self._assert_equivalent("1 ** 2 ** 3", "1 ** (2 ** 3)")
