@@ -154,12 +154,8 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
             tree = self._parse(case, 'type')
             self._is_array(tree).should.be.false
 
-    def _validate(self, t):
-        validator = type.Validator()
-        validator.validate(t)
-
     def test_validate(self):
-        proc = self._validate
+        proc = type.Validator().validate
         error = type.LlamaInvalidTypeError
 
         for typecon in ast.builtin_types_map.values():
