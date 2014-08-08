@@ -56,8 +56,6 @@ class Validator:
     language spec.
     """
 
-    # Logger used for logging events. Possibly shared with other modules.
-    logger = None
     _dispatcher = None
 
     @staticmethod
@@ -98,12 +96,8 @@ class Validator:
         """A user-defined type is always valid."""
         pass
 
-    def __init__(self, logger=None):
+    def __init__(self):
         """Create a new Validator."""
-        if logger is None:
-            self.logger = error.Logger()
-        else:
-            self.logger = logger
 
         # Bulk-add dispatching for builtin types.
         self._dispatcher = {

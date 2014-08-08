@@ -56,10 +56,6 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
     def test_validator_init():
         t1 = type.Validator()
 
-        logger = error.LoggerMock()
-        t2 = type.Validator(logger=logger)
-        t2.should.have.property("logger").being(logger)
-
 
 class TestTable(unittest.TestCase, parser_db.ParserDB):
     """Test the Table's processing of type definitions."""
@@ -159,10 +155,8 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
             self._is_array(tree).should.be.false
 
     def _validate(self, t):
-        mock = error.LoggerMock()
-        validator = type.Validator(logger=mock)
+        validator = type.Validator()
         validator.validate(t)
-        return validator.logger.success
 
     def test_validate(self):
         proc = self._validate
