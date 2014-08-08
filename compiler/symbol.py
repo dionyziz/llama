@@ -28,9 +28,7 @@ class SymbolTable:
         # Used for fast lookup and sanity-checking.
         scope = None
 
-        @property
-        def identifier(self):
-            return self.node.name
+        # Entry has an implicit identifier: node.name
 
         def __init__(self, node, scope):
             """Create a new symbol table entry from a NameNode."""
@@ -116,9 +114,9 @@ class SymbolTable:
         """Close current scope in symbol table. Cleanup scope entries."""
         old_scope = self._pop_scope()
         for entry in old_scope.entries:
-            eid = entry.identifier
-            assert self.hash_table[eid], 'Identifier %s not found' % eid
-            self.hash_table[entry.identifier].pop()
+            ename = entry.node.name
+            assert self.hash_table[ename], 'Identifier %s not found' % ename
+            self.hash_table[ename].pop()
         return old_scope
 
 #     def insert_scope(self, scope):
@@ -126,7 +124,7 @@ class SymbolTable:
 #         assert self.cur_scope, 'No scope to merge into.'
 #         for entry in scope.entries:
 #             entry.scope = self.cur_scope
-#             self.hash_table[entry.identifier].append(entry)
+#             self.hash_table[entry.node.name].append(entry)
 #             self.cur_scope.entries.append(entry)
 #
 
@@ -154,15 +152,17 @@ class SymbolTable:
             )
         return None
 
-    def _find_identifier_in_current_scope(self, identifier):
-        """Find an identifier in the current scope."""
+    def _find_name_in_current_scope(self, name):
+        """
+        Lookup a name in the current scope.
+        If lookup succeeds, return the entry, None otherwise.
+        """
         assert self.cur_scope, 'No scope to search.'
 
-        entry = self.hash_table[identifier][-1]
+        entry = self.hash_table[name][-1]
 
         if entry.scope.nesting != self.nesting:
             return None
-
         return entry
 
     def insert_symbol(self, node, guard=False):
