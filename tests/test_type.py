@@ -21,6 +21,36 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         except type.LlamaInvalidTypeError:
             pass
 
+    def test_array_of_array_error(self):
+        try:
+            node = ast.Array(ast.Array(ast.Int()))
+            node.lineno, node.lexpos = 1, 2
+            raise type.LlamaArrayofArrayError(node)
+            self.fail()
+        except type.LlamaArrayofArrayError as e:
+            e.should.be.a(type.LlamaInvalidTypeError)
+            e.should.have.property("node").being(node)
+
+    def test_array_return_error(self):
+        try:
+            node = ast.Function(ast.Int(), ast.Array(ast.Int()))
+            node.lineno, node.lexpos = 1, 2
+            raise type.LlamaArrayReturnError(node)
+            self.fail()
+        except type.LlamaArrayReturnError as e:
+            e.should.be.a(type.LlamaInvalidTypeError)
+            e.should.have.property("node").being(node)
+
+    def test_ref_of_array_error(self):
+        try:
+            node = ast.Ref(ast.Array(ast.Int()))
+            node.lineno, node.lexpos = 1, 2
+            raise type.LlamaRefofArrayError(node)
+            self.fail()
+        except type.LlamaRefofArrayError as e:
+            e.should.be.a(type.LlamaInvalidTypeError)
+            e.should.have.property("node").being(node)
+
     @staticmethod
     def test_table_init():
         t1 = type.Table()
