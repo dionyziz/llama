@@ -74,11 +74,7 @@ class Validator:
         """An 'array of T' type is valid iff T is a valid, non-array type."""
         basetype = t.type
         if self.is_array(basetype):
-            self._signal_error(
-                "%d:%d: error: Invalid type: Array of array",
-                t.lineno,
-                t.lexpos
-            )
+            raise LlamaArrayofArrayError(t)
         self.validate(basetype)
 
     def _validate_builtin(self, t):
@@ -92,11 +88,7 @@ class Validator:
         """
         t1, t2 = t.fromType, t.toType
         if self.is_array(t2):
-            self._signal_error(
-                "%d:%d: error: Invalid type: Function returning array",
-                t.lineno,
-                t.lexpos
-            )
+            raise LlamaArrayReturnError(t)
         self.validate(t1)
         self.validate(t2)
 
@@ -104,11 +96,7 @@ class Validator:
         """A 'ref T' type is valid iff T is a valid, non-array type."""
         basetype = t.type
         if self.is_array(basetype):
-            self._signal_error(
-                "%d:%d: error: Invalid type: Reference of array",
-                t.lineno,
-                t.lexpos
-            )
+            raise LlamaRefofArrayError(t)
         self.validate(basetype)
 
     def _validate_user(self, t):
