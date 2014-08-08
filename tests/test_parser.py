@@ -40,6 +40,9 @@ class TestParserAPI(unittest.TestCase):
         )
         p1.should.have.property("logger").being.equal(logger)
 
+class TestParserRules(unittest.TestCase):
+    """Test the Parser's coverage of Llama grammar."""
+
     @classmethod
     def setUpClass(cls):
         cls.one = parse.quiet_parse("1", "expr")
@@ -50,6 +53,15 @@ class TestParserAPI(unittest.TestCase):
 
         cls.xfunc = parse.quiet_parse("let x = 1", "letdef")
         cls.yfunc = parse.quiet_parse("let y = 2", "letdef")
+
+    def _assert_parse_fails(self, expr, start="expr"):
+        """
+        Assert that attempting to parse the expression from the given
+        start will fail.
+        """
+        p = parse.Parser(logger=error.LoggerMock(), start=start)
+        p.parse(expr)
+        p.logger.success.should.be.false
 
     def test_empty_program(self):
         parse.quiet_parse("").should.equal(ast.Program([]))
@@ -449,15 +461,6 @@ class TestParserAPI(unittest.TestCase):
             parsed1 = parse.quiet_parse(expr1, start)
             parsed2 = parse.quiet_parse(expr2, start)
             parsed1.shouldnt.equal(parsed2)
-
-    def _assert_parse_fails(self, expr, start="expr"):
-        """
-        Assert that attempting to parse the expression from the given
-        start will fail.
-        """
-        p = parse.Parser(logger=error.LoggerMock(), start=start)
-        p.parse(expr)
-        p.logger.success.should.be.false
 
     def test_precedence_new_bang(self):
         self._assert_equivalent("!new int", "!(new int)")
