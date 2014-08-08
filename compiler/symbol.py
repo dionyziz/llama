@@ -14,44 +14,45 @@ from collections import defaultdict
 
 from compiler import ast
 
-class Entry:
-    """An entry of the symbol table."""
-    # Reference to the ast node that the entry represents.
-    # The node should contain the lineno and lexpos attributes.
-    node = None
-
-    # Reference to the symbol table scope containing the entry.
-    # Used for fast lookup and sanity-checking.
-    scope = None
-
-    @property
-    def identifier(self):
-        return self.node.name
-
-    def __init__(self, node, scope):
-        """Create a new symbol table entry from a NameNode."""
-        self.node = node
-        self.scope = scope
-
-
-class Scope:
-    """
-    A scope of the symbol table. Contains a list of entries,
-    knows its nesting level and can be optionally hidden from lookup.
-    """
-    entries = []
-    visible = True
-    nesting = None
-
-    def __init__(self, entries, visible, nesting):
-        """Make a new scope."""
-        self.entries = entries
-        self.visible = visible
-        self.nesting = nesting
-
 
 class SymbolTable:
     """A fully Pythonic symbol table for Llama."""
+
+    class _Entry:
+        """An entry of the symbol table."""
+        # Reference to the ast node that the entry represents.
+        # The node should contain the lineno and lexpos attributes.
+        node = None
+
+        # Reference to the symbol table scope containing the entry.
+        # Used for fast lookup and sanity-checking.
+        scope = None
+
+        @property
+        def identifier(self):
+            return self.node.name
+
+        def __init__(self, node, scope):
+            """Create a new symbol table entry from a NameNode."""
+            self.node = node
+            self.scope = scope
+
+
+    class _Scope:
+        """
+        A scope of the symbol table. Contains a list of entries,
+        knows its nesting level and can be optionally hidden from lookup.
+        """
+        entries = []
+        visible = True
+        nesting = None
+
+        def __init__(self, entries, visible, nesting):
+            """Make a new scope."""
+            self.entries = entries
+            self.visible = visible
+            self.nesting = nesting
+
 
     _scopes = []
     nesting = 0       # Inv.: nesting == len(scopes)
@@ -71,14 +72,14 @@ class SymbolTable:
         # TODO: Dump library namespace here as a tuple of virtual AST nodes.
         lib_namespace = tuple()
 
-        lib_scope = Scope(
+        lib_scope = self._Scope(
             entries=[],
             visible=True,
             nesting=self.nesting
         )
 
         for node in lib_namespace:
-            entry = Entry(node, lib_scope)
+            entry = self._Entry(node, lib_scope)
             lib_scope.entries.append(entry)
 
         self._push_scope(lib_scope)
@@ -102,7 +103,7 @@ class SymbolTable:
 
     def open_scope(self):
         """Open a new scope in the symbol table."""
-        new_scope = Scope(
+        new_scope = self._Scope(
             entries=[],
             visible=True,
             nesting=self.nesting + 1
