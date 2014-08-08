@@ -149,8 +149,9 @@ class SymbolTable:
 
         if guard:
             self.logger.error(
-                # FIXME: Meaningful line?
-                "error: Unknown identifier: %s",
+                "%d:%d: error: Unknown identifier: %s",
+                node.lineno,
+                node.lexpos,
                 ename
             )
             # TODO: Raise an exception here.
@@ -175,7 +176,7 @@ class SymbolTable:
         If 'guard' is True, alert if an alias is already present.
         """
         assert self.cur_scope, 'No scope to insert into.'
-        assert isinstance(node, ast.NameNode), 'Node is not a NameNode'
+        assert isinstance(node, ast.NameNode), 'Node is not a NameNode.'
 
         new_name = node.name
         new_entry = self._Entry(node, self.cur_scope)
@@ -184,10 +185,13 @@ class SymbolTable:
             entry = self._find_identifier_in_current_scope(new_name)
             if entry is not None:
                 self.logger.error(
-                    # FIXME: Meaningful line?
-                    "error: Duplicate identifier: %s",
-                    node.name
-                    # TODO: Show line of previous declaration
+                    "%d:%d: error: Redefining identifier '%s' in same scope"
+                    "\tPrevious definition: %d:%d",
+                    node.lineno,
+                    node.lexpos,
+                    node.name,
+                    entry.node.lineno,
+                    entry.node.lexpos
                 )
                 # TODO: Raise some kind of exception here.
 
