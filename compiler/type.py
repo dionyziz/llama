@@ -70,7 +70,8 @@ class Validator:
             raise LlamaArrayofArrayError(t)
         self.validate(basetype)
 
-    def _validate_builtin(self, t):
+    @staticmethod
+    def _validate_builtin(_):
         """A builtin type is always valid."""
         pass
 
@@ -92,11 +93,13 @@ class Validator:
             raise LlamaRefofArrayError(t)
         self.validate(basetype)
 
-    def _validate_user(self, t):
+    @staticmethod
+    def _validate_user(_):
         """A user-defined type is always valid."""
         pass
 
     def __init__(self):
+        # FIXME: This should really become a closuere one day.
         """Create a new Validator."""
 
         # Bulk-add dispatching for builtin types.
