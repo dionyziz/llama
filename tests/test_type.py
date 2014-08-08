@@ -14,13 +14,6 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         except type.LlamaBadTypeError:
             pass
 
-    def test_invalid_type_error(self):
-        try:
-            raise type.LlamaInvalidTypeError()
-            self.fail()
-        except type.LlamaInvalidTypeError:
-            pass
-
     def test_array_of_array_error(self):
         try:
             node = ast.Array(ast.Array(ast.Int()))

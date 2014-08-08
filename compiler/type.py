@@ -16,10 +16,12 @@ from compiler import ast, error, smartdict
 
 class LlamaInvalidTypeError(Exception):
     """Exception thrown on detecting an invalid type."""
-    pass
 
     # The offending type node
     node = None
+
+    def __init__(self):
+        raise NotImplementedError
 
 
 class LlamaArrayofArrayError(LlamaInvalidTypeError):
@@ -62,13 +64,6 @@ class Validator:
     def is_array(t):
         """Check if a type is an array type."""
         return isinstance(t, ast.Array)
-
-    def _signal_error(self, msg, *args):
-        """
-        Record invalid type and throw exception to semantic analyzer.
-        """
-        self.logger.error(msg, *args)
-        raise LlamaInvalidTypeError
 
     def _validate_array(self, t):
         """An 'array of T' type is valid iff T is a valid, non-array type."""
