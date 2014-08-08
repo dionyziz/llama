@@ -18,6 +18,30 @@ class LlamaInvalidTypeError(Exception):
     """Exception thrown on detecting an invalid type."""
     pass
 
+    # The offending type node
+    node = None
+
+
+class LlamaArrayofArrayError(LlamaInvalidTypeError):
+    """Exception thrown on detecting an array of arrays."""
+
+    def __init__(self, node):
+        self.node = node
+
+
+class LlamaArrayReturnError(LlamaInvalidTypeError):
+    """Exception thrown on detecting a function returning an array."""
+
+    def __init__(self, node):
+        self.node = node
+
+
+class LlamaRefofArrayError(LlamaInvalidTypeError):
+    """Exception thrown on detecting a ref to an array."""
+
+    def __init__(self, node):
+        self.node = node
+
 
 class LlamaBadTypeError(Exception):
     """Exception thrown on detecting a bad type declaration."""
