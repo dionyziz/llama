@@ -207,16 +207,30 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
             proc.when.called_with(tree).shouldnt.throw(error)
 
         wrong_testcases = (
-            "(array of int) ref",
-            "(int -> array of int) ref",
-
-            "array of (array of int)",
-            "array of ((array of int) ref)",
-
-            "int -> array of int",
-            "int -> (int -> array of int)"
+            (
+                (
+                    "array of (array of int)",
+                ),
+                type.LlamaArrayofArrayError
+            ),
+            (
+                (
+                    "(array of int) ref",
+                    "array of ((array of int) ref)"
+                ),
+                type.LlamaRefofArrayError
+            ),
+            (
+                (
+                    "(int -> array of int) ref",
+                    "int -> array of int",
+                    "int -> (int -> array of int)"
+                ),
+                type.LlamaArrayReturnError
+            ),
         )
 
-        for case in wrong_testcases:
-            tree = self._parse(case, 'type')
-            proc.when.called_with(tree).should.throw(error)
+        for cases, error in wrong_testcases:
+            for case in cases:
+                tree = self._parse(case, "type")
+                proc.when.called_with(tree).should.throw(error)
