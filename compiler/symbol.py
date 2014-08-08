@@ -128,28 +128,32 @@ class SymbolTable:
 #             self.cur_scope.entries.append(entry)
 #
 
-    def lookup_symbol(self, identifier, lookup_all=False, guard=False):
+    def lookup_symbol(self, node, lookup_all=False, guard=False):
         """
-        Lookup 'identifier' in current scope.
+        Lookup name of 'node' in current scope.
         If 'lookup_all' is True, perform lookup in all scopes.
-        If 'guard' is True, alert if 'identifier' is absent from
+        If 'guard' is True, alert if name is absent from
         checked scope(s).
+        If lookup succeeds, return the stored node, None otherwise.
         """
+
+        ename = node.name
         if lookup_all:
-            for entry in reversed(self.hash_table[identifier]):
+            for entry in reversed(self.hash_table[ename]):
                 if entry.scope.visible:
-                    return entry
+                    return entry.node
         else:
-            entry = self._find_identifier_in_current_scope(identifier)
+            entry = self._find_name_in_current_scope(ename)
             if entry is not None:
-                return entry
+                return entry.node
 
         if guard:
             self.logger.error(
                 # FIXME: Meaningful line?
                 "error: Unknown identifier: %s",
-                identifier
+                ename
             )
+            # TODO: Raise an exception here.
         return None
 
     def _find_name_in_current_scope(self, name):
@@ -167,21 +171,22 @@ class SymbolTable:
 
     def insert_symbol(self, node, guard=False):
         """
-        Insert a new symbol in the current scope.
+        Insert a new NameNode in the current scope.
         If 'guard' is True, alert if an alias is already present.
         """
         assert self.cur_scope, 'No scope to insert into.'
+        assert isinstance(node, ast.NameNode), 'Node is not a NameNode'
 
+        new_name = node.name
         new_entry = self._Entry(node, self.cur_scope)
-        new_id = new_entry.identifier
 
         if guard:
-            entry = self._find_identifier_in_current_scope(new_id)
+            entry = self._find_identifier_in_current_scope(new_name)
             if entry is not None:
                 self.logger.error(
                     # FIXME: Meaningful line?
                     "error: Duplicate identifier: %s",
-                    new_id
+                    node.name
                     # TODO: Show line of previous declaration
                 )
                 # TODO: Raise some kind of exception here.
