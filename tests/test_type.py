@@ -9,9 +9,9 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
 
     def test_bad_type_error(self):
         try:
-            raise type.LlamaBadTypeError()
+            raise type.LlamaBadTypeDefError()
             self.fail()
-        except type.LlamaBadTypeError:
+        except type.LlamaBadTypeDefError:
             pass
 
     def test_array_of_array_error(self):
@@ -52,6 +52,52 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         t2 = type.Table(logger=logger)
         t2.should.have.property("logger").being(logger)
 
+    def test_redef_builtin_type_error(self):
+        try:
+            node = ast.Int()
+            node.lineno, node.lexpos = 1, 2
+            raise type.LlamaRedefBuiltinTypeError(node)
+            self.fail()
+        except type.LlamaRedefBuiltinTypeError as e:
+            e.should.be.a(type.LlamaBadTypeDefError)
+            e.should.have.property("node").being(node)
+
+    def test_redef_constructor_error(self):
+        try:
+            node = ast.Constructor("Red")
+            node.lineno, node.lexpos = 1, 2
+            prev = ast.Constructor("Red")
+            prev.lineno, prev.lexpos = 3, 4
+            raise type.LlamaRedefConstructorError(node, prev)
+            self.fail()
+        except type.LlamaRedefConstructorError as e:
+            e.should.be.a(type.LlamaBadTypeDefError)
+            e.should.have.property("node").being(node)
+            e.should.have.property("prev").being(prev)
+
+    def test_redef_user_type_error(self):
+        try:
+            node = ast.User("foo")
+            node.lineno, node.lexpos = 1, 2
+            prev = ast.User("foo")
+            prev.lineno, prev.lexpos = 3, 4
+            raise type.LlamaRedefUserTypeError(node, prev)
+            self.fail()
+        except type.LlamaRedefUserTypeError as e:
+            e.should.be.a(type.LlamaBadTypeDefError)
+            e.should.have.property("node").being(node)
+            e.should.have.property("prev").being(prev)
+
+    def test_undef_type_error(self):
+        try:
+            node = ast.User("foo")
+            node.lineno, node.lexpos = 1, 2
+            raise type.LlamaUndefTypeError(node)
+            self.fail()
+        except type.LlamaUndefTypeError as e:
+            e.should.be.a(type.LlamaBadTypeDefError)
+            e.should.have.property("node").being(node)
+
     @staticmethod
     def test_validator_init():
         t1 = type.Validator()
@@ -70,7 +116,7 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
 
     def test_type_process(self):
         proc = self._process_typedef
-        error = type.LlamaBadTypeError
+        error = type.LlamaBadTypeDefError
 
         right_testcases = (
             "type color = Red | Green | Blue",
