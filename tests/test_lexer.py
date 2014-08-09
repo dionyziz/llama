@@ -84,6 +84,7 @@ class TestLexerAPI(unittest.TestCase):
         tokens2 = list(l2.tokenize("(*"))
         tokens2.should.equal([])
         l2.logger.success.should.be.false
+        l2.logger.clear()
         tokens3 = list(l2.tokenize(""))
         tokens3.should.equal([])
         l2.logger.success.should.be.true
