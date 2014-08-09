@@ -530,8 +530,17 @@ class Lexer:
             self.logger = logger
         self.verbose = verbose
 
-        self._lexer = _LexerFactory(logger=self.logger, verbose=verbose)
-        self._lexer.build(debug=debug, optimize=optimize, reflags=re.ASCII)
+        self._setup_inner_lexer()
+
+    def _setup_inner_lexer(self):
+        """Create a new inner lexer and bind it to the Lexer object."""
+
+        self._lexer = _LexerFactory(logger=self.logger, verbose=self.verbose)
+        self._lexer.build(
+            debug=self.debug,
+            optimize=self.optimize,
+            reflags=re.ASCII
+        )
 
     # == ITERATOR INTERFACE ==
 
