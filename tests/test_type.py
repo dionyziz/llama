@@ -7,13 +7,6 @@ from tests import parser_db
 class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
     """Test the API of the type module."""
 
-    def test_bad_type_error(self):
-        try:
-            raise type.LlamaBadTypeDefError()
-            self.fail()
-        except type.LlamaBadTypeDefError:
-            pass
-
     def test_array_of_array_error(self):
         try:
             node = ast.Array(ast.Array(ast.Int()))
@@ -136,37 +129,47 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
             proc.when.called_with(tree).shouldnt.throw(error)
 
         wrong_testcases = (
-            """
-            -- No constructor reuse
-            type dup = ConDup | ConDup
-            """,
-            """
-            -- No reference to undefined type
-            type what = What of undeftype
-            """,
-            """
-            -- No type redefinition
-            type same = Foo1
-            type same = Foo2
-            """,
-            """
-            -- No constructor sharing
-            type one = Con
-            type two = Con
-            """,
-            """
-            -- No redefinition of builtin types
-            type bool = BoolCon
-            type char = CharCon
-            type float = FloatCon
-            type int = IntCon
-            type unit = UnitCon
-            """
+            (
+                (
+                    "type bool = BoolCon",
+                    "type char = CharCon",
+                    "type float = FloatCon",
+                    "type int = IntCon",
+                    "type unit = UnitCon",
+                ),
+                type.LlamaRedefBuiltinTypeError
+            ),
+            (
+                (
+                    "type dup = ConDup | ConDup",
+                    """
+                    type one = Con
+                    type two = Con
+                    """,
+                ),
+                type.LlamaRedefConstructorError
+            ),
+            (
+                (
+                    """
+                    type same = Foo1
+                    type same = Foo2
+                    """,
+                ),
+                type.LlamaRedefUserTypeError
+            ),
+            (
+                (
+                    "type what = What of undeftype",
+                ),
+                type.LlamaUndefTypeError
+            )
         )
 
-        for case in wrong_testcases:
-            tree = self._parse(case)
-            proc.when.called_with(tree).should.throw(error)
+        for cases, error in wrong_testcases:
+            for case in cases:
+                tree = self._parse(case)
+                proc.when.called_with(tree).should.throw(error)
 
 
 class TestValidator(unittest.TestCase, parser_db.ParserDB):
@@ -239,21 +242,24 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
             (
                 (
                     "array of (array of int)",
+                    "(array of (array of int)) -> int",
+                    "((array of (array of int)) -> int) ref",
                 ),
                 type.LlamaArrayofArrayError
             ),
             (
                 (
                     "(array of int) ref",
-                    "array of ((array of int) ref)"
+                    "((array of int) ref) -> int",
+                    "array of ((array of int) ref)",
                 ),
                 type.LlamaRefofArrayError
             ),
             (
                 (
-                    "(int -> array of int) ref",
                     "int -> array of int",
-                    "int -> (int -> array of int)"
+                    "int -> (int -> array of int)",
+                    "(int -> array of int) ref",
                 ),
                 type.LlamaArrayReturnError
             ),
