@@ -45,11 +45,6 @@ class LlamaRefofArrayError(LlamaInvalidTypeError):
         self.node = node
 
 
-class LlamaBadTypeError(Exception):
-    """Exception thrown on detecting a bad type declaration."""
-    pass
-
-
 class Validator:
     """
     Type validator. Ensures type structure and semantics follow
@@ -121,6 +116,41 @@ class Validator:
         return self._dispatcher[type(t)](t)
 
 
+class LlamaBadTypeDefError(Exception):
+    """Exception thrown on detecting a bad type declaration."""
+    pass
+
+
+class LlamaRedefBuiltinTypeError(LlamaBadTypeDefError):
+    """Exception thrown on detecting redefinition of builtin type."""
+
+    def __init__(self, node):
+        self.node = node
+
+
+class LlamaRedefConstructorError(LlamaBadTypeDefError):
+    """Exception thrown on detecting redefinition of constructor."""
+
+    def __init__(self, node, prev):
+        self.node = node
+        self.prev = prev
+
+
+class LlamaRedefUserTypeError(LlamaBadTypeDefError):
+    """Exception thrown on detecting redefinition of user type."""
+
+    def __init__(self, node, prev):
+        self.node = node
+        self.prev = prev
+
+
+class LlamaUndefTypeError(LlamaBadTypeDefError):
+    """Exception thrown on detecting reference to undefined type."""
+
+    def __init__(self, node):
+        self.node = node
+
+
 class Table:
     """
     Database of all the program's types. Enables semantic checking
@@ -154,7 +184,7 @@ class Table:
         Record malformed type and throw exception to semantic analyzer.
         """
         self.logger.error(msg, *args)
-        raise LlamaBadTypeError
+        raise LlamaBadTypeDefError
 
     def _insert_new_type(self, newType):
         """
