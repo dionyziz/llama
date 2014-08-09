@@ -38,9 +38,8 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
             e.should.have.property("node").being(node)
 
     @staticmethod
-    def test_table_init():
-        t1 = type.Table()
-
+    def test_validator_init():
+        t1 = type.Validator()
 
     def test_redef_builtin_type_error(self):
         try:
@@ -89,8 +88,8 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
             e.should.have.property("node").being(node)
 
     @staticmethod
-    def test_validator_init():
-        t1 = type.Validator()
+    def test_table_init():
+        t1 = type.Table()
 
 
 class TestTable(unittest.TestCase, parser_db.ParserDB):
