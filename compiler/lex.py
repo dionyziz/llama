@@ -214,15 +214,6 @@ class _LexerFactory:
         self.logger = logger
         self.verbose = verbose
 
-    def reset(self):
-        """Reset the lexer's state."""
-        self.bol = -1
-        self.level = 0
-        self.logger.clear()
-        self.lexer.begin('INITIAL')
-        self.lexer.lexpos = 0
-        self.lexer.lineno = 1
-
     # == REQUIRED METHODS ==
 
     def build(self, **kwargs):
@@ -274,9 +265,8 @@ class _LexerFactory:
         return tok
 
     def input(self, lexdata):
-        """Feed the lexer with input and reset the state."""
+        """Feed the lexer with input."""
         self.lexer.input(lexdata)
-        self.reset()
 
     def skip(self, value=1):
         """Skip 'value' characters in the input string."""
