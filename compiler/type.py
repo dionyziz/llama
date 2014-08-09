@@ -159,15 +159,8 @@ class Table:
     of user defined types and more.
     """
 
-    # Logger used for logging events. Possibly shared with other modules.
-    logger = None
-
-    def __init__(self, logger=None):
+    def __init__(self):
         """Initialize a new Table."""
-        if logger is None:
-            self.logger = error.Logger()
-        else:
-            self.logger = logger
 
         # Dictionary of types seen so far. Builtin types always available.
         # Values : list of constructors which the type defines

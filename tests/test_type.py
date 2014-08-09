@@ -41,9 +41,6 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
     def test_table_init():
         t1 = type.Table()
 
-        logger = error.LoggerMock()
-        t2 = type.Table(logger=logger)
-        t2.should.have.property("logger").being(logger)
 
     def test_redef_builtin_type_error(self):
         try:
@@ -101,11 +98,9 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
 
     @classmethod
     def _process_typedef(cls, typedefListList):
-        mock = error.LoggerMock()
-        typeTable = type.Table(logger=mock)
+        typeTable = type.Table()
         for typedefList in typedefListList:
             typeTable.process(typedefList)
-        return typeTable.logger.success
 
     def test_type_process(self):
         proc = self._process_typedef
