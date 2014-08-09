@@ -533,10 +533,34 @@ class Lexer:
         self._lexer = _LexerFactory(logger=self.logger, verbose=verbose)
         self._lexer.build(debug=debug, optimize=optimize, reflags=re.ASCII)
 
-        # Bind methods of interface to _LexerFactory object methods.
-        self.input = self._lexer.input
-        self.skip  = self._lexer.skip
-        self.token = self._lexer.token
+    # == ITERATOR INTERFACE ==
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        tok = self.token()
+        if tok is None:
+            raise StopIteration
+        return tok
+
+    # == PUBLIC API ==
+
+    def input(self, data):
+        """Feed the lexer with input."""
+        self._lexer.input(data)
+
+    def skip(self, amount):
+        """Skip the lexer 'amount' characters forward."""
+        if self._lexer is None:
+            raise Exception("Cannot skip over empty data.")
+        self._lexer.skip(amount)
+
+    def token(self):
+        """Skip the lexer 'amount' characters forward."""
+        if self._lexer is None:
+            raise Exception("Cannot tokenize from empty data.")
+        return self._lexer.token()
 
     def tokenize(self, data):
         """
@@ -556,17 +580,6 @@ class Lexer:
     def lineno(self):
         """Return current line of input"""
         return self._lexer.lexer.lineno
-
-    # == ITERATOR INTERFACE ==
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        tok = self.token()
-        if tok is None:
-            raise StopIteration
-        return tok
 
 
 def tokenize(data, logger=None):
