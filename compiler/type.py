@@ -196,22 +196,9 @@ class Table:
             return
 
         if isinstance(existingType, ast.Builtin):
-            self._signal_error(
-                "%d:%d: error: Redefining builtin type '%s'",
-                newType.lineno,
-                newType.lexpos,
-                newType.name
-            )
+            raise LlamaRedefBuiltinTypeError(newType)
         else:
-            self._signal_error(
-                "%d:%d: error: Redefining user-defined type '%s'"
-                "\tPrevious definition: %d:%d",
-                newType.lineno,
-                newType.lexpos,
-                newType.name,
-                existingType.lineno,
-                existingType.lexpos
-            )
+            raise LlamaRedefUserTypeError(newType, existingType)
 
     def _insert_new_constructor(self, newType, constructor):
         """Insert new constructor in Table. Signal error on reuse."""
@@ -222,22 +209,9 @@ class Table:
 
             for argType in constructor:
                 if argType not in self.knownTypes:
-                    self._signal_error(
-                        "%d:%d: error: Undefined type '%s'",
-                        argType.lineno,
-                        argType.lexpos,
-                        argType.name
-                    )
+                    raise LlamaUndefTypeError(argType)
         else:
-            self._signal_error(
-                "%d:%d: error: Redefining constructor '%s'"
-                "\tPrevious definition: %d:%d",
-                constructor.lineno,
-                constructor.lexpos,
-                constructor.name,
-                existingConstructor.lineno,
-                existingConstructor.lexpos
-            )
+            raise LlamaRedefConstructorError(constructor, existingConstructor)
 
     def process(self, typeDefList):
         """
