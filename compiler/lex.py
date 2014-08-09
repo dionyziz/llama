@@ -522,10 +522,13 @@ class Lexer:
         For detailed reporting on regex construction, enable 'debug'.
         For echoing matched tokens to stdout, enable 'verbose'.
         """
+        self.debug = debug
+        self.optimize = optimize
         if logger is None:
             self.logger = error.Logger()
         else:
             self.logger = logger
+        self.verbose = verbose
 
         self._lexer = _LexerFactory(logger=self.logger, verbose=verbose)
         self._lexer.build(debug=debug, optimize=optimize, reflags=re.ASCII)
