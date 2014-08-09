@@ -15,6 +15,24 @@ from collections import defaultdict
 from compiler import ast
 
 
+class SymbolError(Exception):
+    """
+    Exception thrown on symbol table error.
+    Carries the offending ast node(s).
+    This class is only meant as an interface.
+    Only specific sublcasses should be instantiated.
+    """
+    pass
+
+
+class RedefIdentifierError(SymbolError):
+    """Exception thrown on redefining identifier in same scope."""
+
+    def __init__(self, node, prev):
+        self.node = node
+        self.prev = prev
+
+
 class SymbolTable:
     """A fully Pythonic symbol table for Llama."""
 
