@@ -1,6 +1,6 @@
 import unittest
 
-from compiler import ast, error, type
+from compiler import ast, type
 from tests import parser_db
 
 

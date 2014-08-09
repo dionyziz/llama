@@ -11,7 +11,7 @@
 # ----------------------------------------------------------------------
 """
 
-from compiler import ast, error, smartdict
+from compiler import ast, smartdict
 
 
 class LlamaInvalidTypeError(Exception):
