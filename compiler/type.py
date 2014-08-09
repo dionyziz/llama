@@ -118,7 +118,9 @@ class Validator:
 
 class LlamaBadTypeDefError(Exception):
     """Exception thrown on detecting a bad type declaration."""
-    pass
+
+    def __init__(self):
+        raise NotImplementedError
 
 
 class LlamaRedefBuiltinTypeError(LlamaBadTypeDefError):
@@ -178,13 +180,6 @@ class Table:
         # Value: Type which the constructor produces.
         # This is a smartdict, so keys can be retrieved.
         self.knownConstructors = smartdict.Smartdict()
-
-    def _signal_error(self, msg, *args):
-        """
-        Record malformed type and throw exception to semantic analyzer.
-        """
-        self.logger.error(msg, *args)
-        raise LlamaBadTypeDefError
 
     def _insert_new_type(self, newType):
         """
