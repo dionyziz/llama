@@ -530,8 +530,6 @@ class Lexer:
             self.logger = logger
         self.verbose = verbose
 
-        self._setup_inner_lexer()
-
     def _setup_inner_lexer(self):
         """Create a new inner lexer and bind it to the Lexer object."""
 
@@ -556,7 +554,8 @@ class Lexer:
     # == PUBLIC API ==
 
     def input(self, data):
-        """Feed the lexer with input."""
+        """Feed the lexer with input and prepare for tokenizing."""
+        self._setup_inner_lexer()
         self._lexer.input(data)
 
     def skip(self, amount):
