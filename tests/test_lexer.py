@@ -32,6 +32,48 @@ class TestLexerAPI(unittest.TestCase):
     """Test the API of the Lexer class."""
 
     @staticmethod
+    def test_init():
+        lexer1 = lex.Lexer()
+
+        logger = error.LoggerMock()
+        lexer2 = lex.Lexer(
+            logger=logger,
+            debug=False,
+            optimize=True,
+            verbose=False
+        )
+        lexer2.should.have.property("debug").being(False)
+        lexer2.should.have.property("logger").being(logger)
+        lexer2.should.have.property("optimize").being(True)
+        lexer2.should.have.property("verbose").being(False)
+
+    @staticmethod
+    def test_input():
+        lexer = lex.Lexer()
+        lexer.input("foo")
+
+    @staticmethod
+    def test_skip():
+        lexer = lex.Lexer()
+        lexer.skip.when.called_with(1).should.throw(Exception)
+        lexer.input("foo")
+        lexer.skip(1)
+
+    @staticmethod
+    def test_token():
+        lexer = lex.Lexer()
+        lexer.token.when.called.should.throw(Exception)
+        lexer.input("foo")
+        t = lexer.token()
+
+    @staticmethod
+    def test_iterator():
+        lexer = lex.Lexer()
+        lexer.input("foo")
+        i = iter(lexer)
+        next(lexer)
+
+    @staticmethod
     def test_tokenize():
         l1 = lex.Lexer()
         tokens1 = list(l1.tokenize(""))
@@ -71,17 +113,6 @@ class TestLexerRules(unittest.TestCase):
     def _assert_lex_failure(self, input):
         _, logger = self._lex_data(input)
         logger.success.should.be.false
-
-    def test_iterator(self):
-        lexer = lex.Lexer(logger=error.LoggerMock())
-        lexer.input("foo")
-        i = iter(lexer)
-        next(lexer)
-
-    def test_init(self):
-        logger = error.LoggerMock()
-        lexer = lex.Lexer(logger=logger)
-        lexer.should.have.property("logger").being.equal(logger)
 
     def test_empty(self):
         tokens, logger = self._lex_data("")
