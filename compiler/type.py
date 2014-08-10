@@ -14,6 +14,8 @@
 from compiler import ast, smartdict
 
 
+# == TYPE VALIDATION ==
+
 class InvalidTypeError(Exception):
     """Exception thrown on detecting an invalid type."""
 
@@ -45,6 +47,11 @@ class RefOfArrayError(InvalidTypeError):
         self.node = node
 
 
+def is_array(t):
+    """Check if a type is an array type."""
+    return isinstance(t, ast.Array)
+
+
 class Validator:
     """
     Type validator. Ensures type structure and semantics follow
@@ -53,15 +60,11 @@ class Validator:
 
     _dispatcher = None
 
-    @staticmethod
-    def is_array(t):
-        """Check if a type is an array type."""
-        return isinstance(t, ast.Array)
 
     def _validate_array(self, t):
         """An 'array of T' type is valid iff T is a valid, non-array type."""
         basetype = t.type
-        if self.is_array(basetype):
+        if is_array(basetype):
             raise ArrayOfArrayError(t)
         self.validate(basetype)
 
@@ -76,7 +79,7 @@ class Validator:
         valid, non-array type.
         """
         t1, t2 = t.fromType, t.toType
-        if self.is_array(t2):
+        if is_array(t2):
             raise ArrayReturnError(t)
         self.validate(t1)
         self.validate(t2)
@@ -84,7 +87,7 @@ class Validator:
     def _validate_ref(self, t):
         """A 'ref T' type is valid iff T is a valid, non-array type."""
         basetype = t.type
-        if self.is_array(basetype):
+        if is_array(basetype):
             raise RefOfArrayError(t)
         self.validate(basetype)
 
@@ -115,6 +118,7 @@ class Validator:
         """Verify that a type is a valid type."""
         return self._dispatcher[type(t)](t)
 
+# == USER-TYPE STORAGE/PROCESSING ==
 
 class BadTypeDefError(Exception):
     """Exception thrown on detecting a bad type declaration."""

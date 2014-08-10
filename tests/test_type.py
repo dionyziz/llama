@@ -8,6 +8,10 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
     """Test the API of the type module."""
 
     @staticmethod
+    def test_is_array():
+        type.is_array(ast.Array(ast.Int())).should.be.true
+
+    @staticmethod
     def test_array_of_array_error():
         node = ast.Array(ast.Array(ast.Int()))
         node.lineno, node.lexpos = 1, 2
@@ -155,13 +159,10 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
 class TestValidator(unittest.TestCase, parser_db.ParserDB):
     """Test the Validator's functionality."""
 
-    @staticmethod
-    def _is_array(t):
-        return type.Validator.is_array(t)
 
-    def test_isarray(self):
+    def test_is_array(self):
         for typecon in ast.builtin_types_map.values():
-            self._is_array(typecon()).should.be.false
+            type.is_array(typecon()).should.be.false
 
         right_testcases = (
             "array of int",
@@ -171,7 +172,7 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
 
         for case in right_testcases:
             tree = self._parse(case, 'type')
-            self._is_array(tree).should.be.true
+            type.is_array(tree).should.be.true
 
         wrong_testcases = (
             "foo",
@@ -181,7 +182,7 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
 
         for case in wrong_testcases:
             tree = self._parse(case, 'type')
-            self._is_array(tree).should.be.false
+            type.is_array(tree).should.be.false
 
     def test_validate(self):
         proc = type.Validator().validate
