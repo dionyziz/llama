@@ -37,7 +37,7 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
 
     @staticmethod
     def test_validator_init():
-        t1 = type.Validator()
+        type.Validator()
 
     @staticmethod
     def test_redef_builtin_type_error():
@@ -79,7 +79,7 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
 
     @staticmethod
     def test_table_init():
-        t1 = type.Table()
+        type.Table()
 
 
 class TestTable(unittest.TestCase, parser_db.ParserDB):
