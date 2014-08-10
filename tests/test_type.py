@@ -8,84 +8,63 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
     """Test the API of the type module."""
 
     def test_array_of_array_error(self):
-        try:
-            node = ast.Array(ast.Array(ast.Int()))
-            node.lineno, node.lexpos = 1, 2
-            raise type.ArrayOfArrayError(node)
-            self.fail()
-        except type.ArrayOfArrayError as e:
-            e.should.be.a(type.InvalidTypeError)
-            e.should.have.property("node").being(node)
+        node = ast.Array(ast.Array(ast.Int()))
+        node.lineno, node.lexpos = 1, 2
+        exc = type.ArrayOfArrayError(node)
+        exc.should.be.a(type.InvalidTypeError)
+        exc.should.have.property("node").being(node)
 
     def test_array_return_error(self):
-        try:
-            node = ast.Function(ast.Int(), ast.Array(ast.Int()))
-            node.lineno, node.lexpos = 1, 2
-            raise type.ArrayReturnError(node)
-            self.fail()
-        except type.ArrayReturnError as e:
-            e.should.be.a(type.InvalidTypeError)
-            e.should.have.property("node").being(node)
+        node = ast.Function(ast.Int(), ast.Array(ast.Int()))
+        node.lineno, node.lexpos = 1, 2
+        exc = type.ArrayReturnError(node)
+        exc.should.be.a(type.InvalidTypeError)
+        exc.should.have.property("node").being(node)
 
     def test_ref_of_array_error(self):
-        try:
-            node = ast.Ref(ast.Array(ast.Int()))
-            node.lineno, node.lexpos = 1, 2
-            raise type.RefOfArrayError(node)
-            self.fail()
-        except type.RefOfArrayError as e:
-            e.should.be.a(type.InvalidTypeError)
-            e.should.have.property("node").being(node)
+        node = ast.Ref(ast.Array(ast.Int()))
+        node.lineno, node.lexpos = 1, 2
+        exc = type.RefOfArrayError(node)
+        exc.should.be.a(type.InvalidTypeError)
+        exc.should.have.property("node").being(node)
 
     @staticmethod
     def test_validator_init():
         t1 = type.Validator()
 
     def test_redef_builtin_type_error(self):
-        try:
-            node = ast.Int()
-            node.lineno, node.lexpos = 1, 2
-            raise type.RedefBuiltinTypeError(node)
-            self.fail()
-        except type.RedefBuiltinTypeError as e:
-            e.should.be.a(type.BadTypeDefError)
-            e.should.have.property("node").being(node)
+        node = ast.Int()
+        node.lineno, node.lexpos = 1, 2
+        exc = type.RedefBuiltinTypeError(node)
+        exc.should.be.a(type.BadTypeDefError)
+        exc.should.have.property("node").being(node)
 
     def test_redef_constructor_error(self):
-        try:
-            node = ast.Constructor("Red")
-            node.lineno, node.lexpos = 1, 2
-            prev = ast.Constructor("Red")
-            prev.lineno, prev.lexpos = 3, 4
-            raise type.RedefConstructorError(node, prev)
-            self.fail()
-        except type.RedefConstructorError as e:
-            e.should.be.a(type.BadTypeDefError)
-            e.should.have.property("node").being(node)
-            e.should.have.property("prev").being(prev)
+        node = ast.Constructor("Red")
+        node.lineno, node.lexpos = 1, 2
+        prev = ast.Constructor("Red")
+        prev.lineno, prev.lexpos = 3, 4
+        exc = type.RedefConstructorError(node, prev)
+        exc.should.be.a(type.BadTypeDefError)
+        exc.should.have.property("node").being(node)
+        exc.should.have.property("prev").being(prev)
 
     def test_redef_user_type_error(self):
-        try:
-            node = ast.User("foo")
-            node.lineno, node.lexpos = 1, 2
-            prev = ast.User("foo")
-            prev.lineno, prev.lexpos = 3, 4
-            raise type.RedefUserTypeError(node, prev)
-            self.fail()
-        except type.RedefUserTypeError as e:
-            e.should.be.a(type.BadTypeDefError)
-            e.should.have.property("node").being(node)
-            e.should.have.property("prev").being(prev)
+        node = ast.User("foo")
+        node.lineno, node.lexpos = 1, 2
+        prev = ast.User("foo")
+        prev.lineno, prev.lexpos = 3, 4
+        exc = type.RedefUserTypeError(node, prev)
+        exc.should.be.a(type.BadTypeDefError)
+        exc.should.have.property("node").being(node)
+        exc.should.have.property("prev").being(prev)
 
     def test_undef_type_error(self):
-        try:
-            node = ast.User("foo")
-            node.lineno, node.lexpos = 1, 2
-            raise type.UndefTypeError(node)
-            self.fail()
-        except type.UndefTypeError as e:
-            e.should.be.a(type.BadTypeDefError)
-            e.should.have.property("node").being(node)
+        node = ast.User("foo")
+        node.lineno, node.lexpos = 1, 2
+        exc = type.UndefTypeError(node)
+        exc.should.be.a(type.BadTypeDefError)
+        exc.should.have.property("node").being(node)
 
     @staticmethod
     def test_table_init():
