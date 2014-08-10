@@ -116,17 +116,19 @@ class Validator:
 
 
 class BadTypeDefError(Exception):
-    """Exception thrown on detecting a bad type declaration."""
-
-    def __init__(self):
-        raise NotImplementedError
+    """
+    Exception thrown on detecting a bad type declaration.
+    Carries the offfending ast node(s).
+    This class is only meant as an interface.
+    Only specific sublcasses should be instantiated.
+    """
+    def __init__(self, node):
+        self.node = node
 
 
 class RedefBuiltinTypeError(BadTypeDefError):
     """Exception thrown on detecting redefinition of builtin type."""
-
-    def __init__(self, node):
-        self.node = node
+    pass
 
 
 class RedefConstructorError(BadTypeDefError):
@@ -147,9 +149,7 @@ class RedefUserTypeError(BadTypeDefError):
 
 class UndefTypeError(BadTypeDefError):
     """Exception thrown on detecting reference to undefined type."""
-
-    def __init__(self, node):
-        self.node = node
+    pass
 
 
 class Table:
