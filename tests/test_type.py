@@ -11,9 +11,9 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         try:
             node = ast.Array(ast.Array(ast.Int()))
             node.lineno, node.lexpos = 1, 2
-            raise type.LlamaArrayofArrayError(node)
+            raise type.LlamaArrayOfArrayError(node)
             self.fail()
-        except type.LlamaArrayofArrayError as e:
+        except type.LlamaArrayOfArrayError as e:
             e.should.be.a(type.LlamaInvalidTypeError)
             e.should.have.property("node").being(node)
 
@@ -239,7 +239,7 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
                     "(array of (array of int)) -> int",
                     "((array of (array of int)) -> int) ref",
                 ),
-                type.LlamaArrayofArrayError
+                type.LlamaArrayOfArrayError
             ),
             (
                 (

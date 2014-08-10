@@ -24,7 +24,7 @@ class LlamaInvalidTypeError(Exception):
         raise NotImplementedError
 
 
-class LlamaArrayofArrayError(LlamaInvalidTypeError):
+class LlamaArrayOfArrayError(LlamaInvalidTypeError):
     """Exception thrown on detecting an array of arrays."""
 
     def __init__(self, node):
@@ -62,7 +62,7 @@ class Validator:
         """An 'array of T' type is valid iff T is a valid, non-array type."""
         basetype = t.type
         if self.is_array(basetype):
-            raise LlamaArrayofArrayError(t)
+            raise LlamaArrayOfArrayError(t)
         self.validate(basetype)
 
     @staticmethod
