@@ -36,8 +36,8 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         exc.should.have.property("node").being(node)
 
     @staticmethod
-    def test_validator_init():
-        type.Validator()
+    def test_validate():
+        type.validate(ast.Int())
 
     @staticmethod
     def test_redef_builtin_type_error():
@@ -156,9 +156,8 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
                 proc.when.called_with(tree).should.throw(error)
 
 
-class TestValidator(unittest.TestCase, parser_db.ParserDB):
-    """Test the Validator's functionality."""
-
+class TestValidating(unittest.TestCase, parser_db.ParserDB):
+    """Test the validating of types."""
 
     def test_is_array(self):
         for typecon in ast.builtin_types_map.values():
@@ -185,7 +184,7 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
             type.is_array(tree).should.be.false
 
     def test_validate(self):
-        proc = type.Validator().validate
+        proc = type.validate
         error = type.InvalidTypeError
 
         for typecon in ast.builtin_types_map.values():
