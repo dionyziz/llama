@@ -213,13 +213,6 @@ class _LexerFactory:
         """
         self.logger = logger
         self.verbose = verbose
-        if self.verbose:
-            self.logger.info(
-                "%s: %s: %s",
-                __name__,
-                self.__class__.__name__,
-                'wrapper initialized'
-            )
 
     # == REQUIRED METHODS ==
 
@@ -231,13 +224,6 @@ class _LexerFactory:
         or attributes of the wrapper object are accessed.
         """
         self.lexer = lex.lex(module=self, **kwargs)
-        if self.verbose:
-            self.logger.info(
-                "%s: %s: %s",
-                __name__,
-                self.__class__.__name__,
-                'lexer ready'
-            )
 
     # A wrapper around the function of the inner lexer
     def token(self):
@@ -516,12 +502,6 @@ class Lexer:
     # Logger used for logging events. Possibly shared with other modules.
     logger = None
 
-    # == REQUIRED METHODS (see _LexerFactory for details) ==
-
-    token = None
-    input = None
-    skip = None
-
     def __init__(self, debug=False, optimize=True, logger=None, verbose=False):
         """
         Create a new lexer.
@@ -532,25 +512,60 @@ class Lexer:
         For detailed reporting on regex construction, enable 'debug'.
         For echoing matched tokens to stdout, enable 'verbose'.
         """
+        self.debug = debug
+        self.optimize = optimize
         if logger is None:
             self.logger = error.Logger()
         else:
             self.logger = logger
+        self.verbose = verbose
 
-        self._lexer = _LexerFactory(logger=logger, verbose=verbose)
-        self._lexer.build(debug=debug, optimize=optimize, reflags=re.ASCII)
+    def _setup_inner_lexer(self):
+        """Create a new inner lexer and bind it to the Lexer object."""
 
-        # Bind methods of interface to _LexerFactory object methods.
-        self.token = self._lexer.token
-        self.input = self._lexer.input
-        self.skip  = self._lexer.skip
-        if verbose:
-            self.logger.info(
-                "%s: %s: %s",
-                __name__,
-                self.__class__.__name__,
-                'lexer ready'
-            )
+        self._lexer = _LexerFactory(logger=self.logger, verbose=self.verbose)
+        self._lexer.build(
+            debug=self.debug,
+            optimize=self.optimize,
+            reflags=re.ASCII
+        )
+
+    # == ITERATOR INTERFACE ==
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        tok = self.token()
+        if tok is None:
+            raise StopIteration
+        return tok
+
+    # == PUBLIC API ==
+
+    def input(self, data):
+        """Feed the lexer with input and prepare for tokenizing."""
+        self._setup_inner_lexer()
+        self._lexer.input(data)
+
+    def skip(self, amount):
+        """Skip the lexer 'amount' characters forward."""
+        if self._lexer is None:
+            raise Exception("Cannot skip over empty data.")
+        self._lexer.skip(amount)
+
+    def token(self):
+        """Skip the lexer 'amount' characters forward."""
+        if self._lexer is None:
+            raise Exception("Cannot tokenize from empty data.")
+        return self._lexer.token()
+
+    def tokenize(self, data):
+        """
+        Lex the given string. Return an iterator over the string tokens.
+        """
+        self.input(data)
+        return iter(self)
 
     # == EXPORT POSITION ATTRIBUTES ==
 
@@ -564,23 +579,20 @@ class Lexer:
         """Return current line of input"""
         return self._lexer.lexer.lineno
 
-    # == ITERATOR INTERFACE ==
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        tok = self.token()
-        if tok is None:
-            raise StopIteration
-        return tok
-
 
 def tokenize(data, logger=None):
     """
     Lex the given string using the default Lexer.
-    Returns an iterator over the string tokens.
+    Return an iterator over the string tokens.
     """
     lexer = Lexer(logger=logger)
-    lexer.input(data)
-    return iter(lexer)
+    return lexer.tokenize(data)
+
+
+def quiet_tokenize(data):
+    """
+    Lex the given string using the default Lexer.
+    Return an iterator over the string tokens.
+    Explicitly silence errors/warnings.
+    """
+    return tokenize(data, logger=error.LoggerMock())
