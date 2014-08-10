@@ -14,7 +14,7 @@
 from compiler import ast, smartdict
 
 
-class LlamaInvalidTypeError(Exception):
+class InvalidTypeError(Exception):
     """Exception thrown on detecting an invalid type."""
 
     # The offending type node
@@ -24,21 +24,21 @@ class LlamaInvalidTypeError(Exception):
         raise NotImplementedError
 
 
-class LlamaArrayOfArrayError(LlamaInvalidTypeError):
+class ArrayOfArrayError(InvalidTypeError):
     """Exception thrown on detecting an array of arrays."""
 
     def __init__(self, node):
         self.node = node
 
 
-class LlamaArrayReturnError(LlamaInvalidTypeError):
+class ArrayReturnError(InvalidTypeError):
     """Exception thrown on detecting a function returning an array."""
 
     def __init__(self, node):
         self.node = node
 
 
-class LlamaRefofArrayError(LlamaInvalidTypeError):
+class RefofArrayError(InvalidTypeError):
     """Exception thrown on detecting a ref to an array."""
 
     def __init__(self, node):
@@ -62,7 +62,7 @@ class Validator:
         """An 'array of T' type is valid iff T is a valid, non-array type."""
         basetype = t.type
         if self.is_array(basetype):
-            raise LlamaArrayOfArrayError(t)
+            raise ArrayOfArrayError(t)
         self.validate(basetype)
 
     @staticmethod
@@ -77,7 +77,7 @@ class Validator:
         """
         t1, t2 = t.fromType, t.toType
         if self.is_array(t2):
-            raise LlamaArrayReturnError(t)
+            raise ArrayReturnError(t)
         self.validate(t1)
         self.validate(t2)
 
@@ -85,7 +85,7 @@ class Validator:
         """A 'ref T' type is valid iff T is a valid, non-array type."""
         basetype = t.type
         if self.is_array(basetype):
-            raise LlamaRefofArrayError(t)
+            raise RefofArrayError(t)
         self.validate(basetype)
 
     @staticmethod
@@ -116,21 +116,21 @@ class Validator:
         return self._dispatcher[type(t)](t)
 
 
-class LlamaBadTypeDefError(Exception):
+class BadTypeDefError(Exception):
     """Exception thrown on detecting a bad type declaration."""
 
     def __init__(self):
         raise NotImplementedError
 
 
-class LlamaRedefBuiltinTypeError(LlamaBadTypeDefError):
+class RedefBuiltinTypeError(BadTypeDefError):
     """Exception thrown on detecting redefinition of builtin type."""
 
     def __init__(self, node):
         self.node = node
 
 
-class LlamaRedefConstructorError(LlamaBadTypeDefError):
+class RedefConstructorError(BadTypeDefError):
     """Exception thrown on detecting redefinition of constructor."""
 
     def __init__(self, node, prev):
@@ -138,7 +138,7 @@ class LlamaRedefConstructorError(LlamaBadTypeDefError):
         self.prev = prev
 
 
-class LlamaRedefUserTypeError(LlamaBadTypeDefError):
+class RedefUserTypeError(BadTypeDefError):
     """Exception thrown on detecting redefinition of user type."""
 
     def __init__(self, node, prev):
@@ -146,7 +146,7 @@ class LlamaRedefUserTypeError(LlamaBadTypeDefError):
         self.prev = prev
 
 
-class LlamaUndefTypeError(LlamaBadTypeDefError):
+class UndefTypeError(BadTypeDefError):
     """Exception thrown on detecting reference to undefined type."""
 
     def __init__(self, node):
@@ -184,9 +184,9 @@ class Table:
             return
 
         if isinstance(existingType, ast.Builtin):
-            raise LlamaRedefBuiltinTypeError(newType)
+            raise RedefBuiltinTypeError(newType)
         else:
-            raise LlamaRedefUserTypeError(newType, existingType)
+            raise RedefUserTypeError(newType, existingType)
 
     def _insert_new_constructor(self, newType, constructor):
         """Insert new constructor in Table. Signal error on reuse."""
@@ -197,9 +197,9 @@ class Table:
 
             for argType in constructor:
                 if argType not in self.knownTypes:
-                    raise LlamaUndefTypeError(argType)
+                    raise UndefTypeError(argType)
         else:
-            raise LlamaRedefConstructorError(constructor, existingConstructor)
+            raise RedefConstructorError(constructor, existingConstructor)
 
     def process(self, typeDefList):
         """

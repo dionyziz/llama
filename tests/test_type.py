@@ -11,30 +11,30 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         try:
             node = ast.Array(ast.Array(ast.Int()))
             node.lineno, node.lexpos = 1, 2
-            raise type.LlamaArrayOfArrayError(node)
+            raise type.ArrayOfArrayError(node)
             self.fail()
-        except type.LlamaArrayOfArrayError as e:
-            e.should.be.a(type.LlamaInvalidTypeError)
+        except type.ArrayOfArrayError as e:
+            e.should.be.a(type.InvalidTypeError)
             e.should.have.property("node").being(node)
 
     def test_array_return_error(self):
         try:
             node = ast.Function(ast.Int(), ast.Array(ast.Int()))
             node.lineno, node.lexpos = 1, 2
-            raise type.LlamaArrayReturnError(node)
+            raise type.ArrayReturnError(node)
             self.fail()
-        except type.LlamaArrayReturnError as e:
-            e.should.be.a(type.LlamaInvalidTypeError)
+        except type.ArrayReturnError as e:
+            e.should.be.a(type.InvalidTypeError)
             e.should.have.property("node").being(node)
 
     def test_ref_of_array_error(self):
         try:
             node = ast.Ref(ast.Array(ast.Int()))
             node.lineno, node.lexpos = 1, 2
-            raise type.LlamaRefofArrayError(node)
+            raise type.RefofArrayError(node)
             self.fail()
-        except type.LlamaRefofArrayError as e:
-            e.should.be.a(type.LlamaInvalidTypeError)
+        except type.RefofArrayError as e:
+            e.should.be.a(type.InvalidTypeError)
             e.should.have.property("node").being(node)
 
     @staticmethod
@@ -45,10 +45,10 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         try:
             node = ast.Int()
             node.lineno, node.lexpos = 1, 2
-            raise type.LlamaRedefBuiltinTypeError(node)
+            raise type.RedefBuiltinTypeError(node)
             self.fail()
-        except type.LlamaRedefBuiltinTypeError as e:
-            e.should.be.a(type.LlamaBadTypeDefError)
+        except type.RedefBuiltinTypeError as e:
+            e.should.be.a(type.BadTypeDefError)
             e.should.have.property("node").being(node)
 
     def test_redef_constructor_error(self):
@@ -57,10 +57,10 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
             node.lineno, node.lexpos = 1, 2
             prev = ast.Constructor("Red")
             prev.lineno, prev.lexpos = 3, 4
-            raise type.LlamaRedefConstructorError(node, prev)
+            raise type.RedefConstructorError(node, prev)
             self.fail()
-        except type.LlamaRedefConstructorError as e:
-            e.should.be.a(type.LlamaBadTypeDefError)
+        except type.RedefConstructorError as e:
+            e.should.be.a(type.BadTypeDefError)
             e.should.have.property("node").being(node)
             e.should.have.property("prev").being(prev)
 
@@ -70,10 +70,10 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
             node.lineno, node.lexpos = 1, 2
             prev = ast.User("foo")
             prev.lineno, prev.lexpos = 3, 4
-            raise type.LlamaRedefUserTypeError(node, prev)
+            raise type.RedefUserTypeError(node, prev)
             self.fail()
-        except type.LlamaRedefUserTypeError as e:
-            e.should.be.a(type.LlamaBadTypeDefError)
+        except type.RedefUserTypeError as e:
+            e.should.be.a(type.BadTypeDefError)
             e.should.have.property("node").being(node)
             e.should.have.property("prev").being(prev)
 
@@ -81,10 +81,10 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         try:
             node = ast.User("foo")
             node.lineno, node.lexpos = 1, 2
-            raise type.LlamaUndefTypeError(node)
+            raise type.UndefTypeError(node)
             self.fail()
-        except type.LlamaUndefTypeError as e:
-            e.should.be.a(type.LlamaBadTypeDefError)
+        except type.UndefTypeError as e:
+            e.should.be.a(type.BadTypeDefError)
             e.should.have.property("node").being(node)
 
     @staticmethod
@@ -103,7 +103,7 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
 
     def test_type_process(self):
         proc = self._process_typedef
-        error = type.LlamaBadTypeDefError
+        error = type.BadTypeDefError
 
         right_testcases = (
             "type color = Red | Green | Blue",
@@ -131,7 +131,7 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
                     "type int = IntCon",
                     "type unit = UnitCon",
                 ),
-                type.LlamaRedefBuiltinTypeError
+                type.RedefBuiltinTypeError
             ),
             (
                 (
@@ -141,7 +141,7 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
                     type two = Con
                     """,
                 ),
-                type.LlamaRedefConstructorError
+                type.RedefConstructorError
             ),
             (
                 (
@@ -150,13 +150,13 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
                     type same = Foo2
                     """,
                 ),
-                type.LlamaRedefUserTypeError
+                type.RedefUserTypeError
             ),
             (
                 (
                     "type what = What of undeftype",
                 ),
-                type.LlamaUndefTypeError
+                type.UndefTypeError
             )
         )
 
@@ -199,7 +199,7 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
 
     def test_validate(self):
         proc = type.Validator().validate
-        error = type.LlamaInvalidTypeError
+        error = type.InvalidTypeError
 
         for typecon in ast.builtin_types_map.values():
             proc.when.called_with(typecon()).shouldnt.throw(error)
@@ -239,7 +239,7 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
                     "(array of (array of int)) -> int",
                     "((array of (array of int)) -> int) ref",
                 ),
-                type.LlamaArrayOfArrayError
+                type.ArrayOfArrayError
             ),
             (
                 (
@@ -247,7 +247,7 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
                     "((array of int) ref) -> int",
                     "array of ((array of int) ref)",
                 ),
-                type.LlamaRefofArrayError
+                type.RefofArrayError
             ),
             (
                 (
@@ -255,7 +255,7 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
                     "int -> (int -> array of int)",
                     "(int -> array of int) ref",
                 ),
-                type.LlamaArrayReturnError
+                type.ArrayReturnError
             ),
         )
 
