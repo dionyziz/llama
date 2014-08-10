@@ -38,7 +38,7 @@ class ArrayReturnError(InvalidTypeError):
         self.node = node
 
 
-class RefofArrayError(InvalidTypeError):
+class RefOfArrayError(InvalidTypeError):
     """Exception thrown on detecting a ref to an array."""
 
     def __init__(self, node):
@@ -85,7 +85,7 @@ class Validator:
         """A 'ref T' type is valid iff T is a valid, non-array type."""
         basetype = t.type
         if self.is_array(basetype):
-            raise RefofArrayError(t)
+            raise RefOfArrayError(t)
         self.validate(basetype)
 
     @staticmethod

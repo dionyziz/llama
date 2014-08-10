@@ -31,9 +31,9 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         try:
             node = ast.Ref(ast.Array(ast.Int()))
             node.lineno, node.lexpos = 1, 2
-            raise type.RefofArrayError(node)
+            raise type.RefOfArrayError(node)
             self.fail()
-        except type.RefofArrayError as e:
+        except type.RefOfArrayError as e:
             e.should.be.a(type.InvalidTypeError)
             e.should.have.property("node").being(node)
 
@@ -247,7 +247,7 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
                     "((array of int) ref) -> int",
                     "array of ((array of int) ref)",
                 ),
-                type.RefofArrayError
+                type.RefOfArrayError
             ),
             (
                 (
