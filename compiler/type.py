@@ -13,38 +13,33 @@
 
 from compiler import ast, smartdict
 
-
 # == TYPE VALIDATION ==
 
+
 class InvalidTypeError(Exception):
-    """Exception thrown on detecting an invalid type."""
-
-    # The offending type node
-    node = None
-
-    def __init__(self):
-        raise NotImplementedError
+    """
+    Exception thrown on detecting an invalid type.
+    Carries the offending ast node.
+    This class is only meant as an interface.
+    Only specific sublcasses should be instantiated.
+    """
+    def __init__(self, node):
+        self.node = node
 
 
 class ArrayOfArrayError(InvalidTypeError):
     """Exception thrown on detecting an array of arrays."""
-
-    def __init__(self, node):
-        self.node = node
+    pass
 
 
 class ArrayReturnError(InvalidTypeError):
     """Exception thrown on detecting a function returning an array."""
-
-    def __init__(self, node):
-        self.node = node
+    pass
 
 
 class RefOfArrayError(InvalidTypeError):
     """Exception thrown on detecting a ref to an array."""
-
-    def __init__(self, node):
-        self.node = node
+    pass
 
 
 def is_array(t):
@@ -59,7 +54,6 @@ class Validator:
     """
 
     _dispatcher = None
-
 
     def _validate_array(self, t):
         """An 'array of T' type is valid iff T is a valid, non-array type."""
@@ -119,6 +113,7 @@ class Validator:
         return self._dispatcher[type(t)](t)
 
 # == USER-TYPE STORAGE/PROCESSING ==
+
 
 class BadTypeDefError(Exception):
     """Exception thrown on detecting a bad type declaration."""
