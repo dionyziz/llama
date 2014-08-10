@@ -7,21 +7,24 @@ from tests import parser_db
 class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
     """Test the API of the type module."""
 
-    def test_array_of_array_error(self):
+    @staticmethod
+    def test_array_of_array_error():
         node = ast.Array(ast.Array(ast.Int()))
         node.lineno, node.lexpos = 1, 2
         exc = type.ArrayOfArrayError(node)
         exc.should.be.a(type.InvalidTypeError)
         exc.should.have.property("node").being(node)
 
-    def test_array_return_error(self):
+    @staticmethod
+    def test_array_return_error():
         node = ast.Function(ast.Int(), ast.Array(ast.Int()))
         node.lineno, node.lexpos = 1, 2
         exc = type.ArrayReturnError(node)
         exc.should.be.a(type.InvalidTypeError)
         exc.should.have.property("node").being(node)
 
-    def test_ref_of_array_error(self):
+    @staticmethod
+    def test_ref_of_array_error():
         node = ast.Ref(ast.Array(ast.Int()))
         node.lineno, node.lexpos = 1, 2
         exc = type.RefOfArrayError(node)
@@ -32,14 +35,16 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
     def test_validator_init():
         t1 = type.Validator()
 
-    def test_redef_builtin_type_error(self):
+    @staticmethod
+    def test_redef_builtin_type_error():
         node = ast.Int()
         node.lineno, node.lexpos = 1, 2
         exc = type.RedefBuiltinTypeError(node)
         exc.should.be.a(type.BadTypeDefError)
         exc.should.have.property("node").being(node)
 
-    def test_redef_constructor_error(self):
+    @staticmethod
+    def test_redef_constructor_error():
         node = ast.Constructor("Red")
         node.lineno, node.lexpos = 1, 2
         prev = ast.Constructor("Red")
@@ -49,7 +54,8 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         exc.should.have.property("node").being(node)
         exc.should.have.property("prev").being(prev)
 
-    def test_redef_user_type_error(self):
+    @staticmethod
+    def test_redef_user_type_error():
         node = ast.User("foo")
         node.lineno, node.lexpos = 1, 2
         prev = ast.User("foo")
@@ -59,7 +65,8 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         exc.should.have.property("node").being(node)
         exc.should.have.property("prev").being(prev)
 
-    def test_undef_type_error(self):
+    @staticmethod
+    def test_undef_type_error():
         node = ast.User("foo")
         node.lineno, node.lexpos = 1, 2
         exc = type.UndefTypeError(node)
