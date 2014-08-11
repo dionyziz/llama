@@ -7,6 +7,13 @@ class TestSymbolTableAPI(unittest.TestCase):
     """Test the API of the SymbolTable class."""
 
     @staticmethod
+    def test_scope_init():
+        scope = symbol.Scope()
+        scope.should.have.property("entries").equal([])
+        scope.should.have.property("visible").equal(False)
+        scope.should.have.property("nesting").being(None)
+
+    @staticmethod
     def test_symboltable_init():
         symbol.SymbolTable()
 
