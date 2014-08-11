@@ -338,43 +338,43 @@ def map(root, func=None, obj=None):
     class Mapper():
         @classmethod
         def map_listnode(cls, p):
-            Mapper.map(p.list)
+            cls.map(p.list)
 
         @classmethod
         def map_list(cls, l):
             for item in l:
-                Mapper.map(item)
+                cls.map(item)
 
         @classmethod
         def map_functiondef(cls, p):
-            Mapper.map(p.params)
-            Mapper.map(p.body)
-            Mapper.map(p.type)
+            cls.map(p.params)
+            cls.map(p.body)
+            cls.map(p.type)
 
         @classmethod
         def map_param(cls, p):
-            Mapper.map(p.type)
+            cls.map(p.type)
 
         @classmethod
         def map_unaryexpression(cls, p):
-            Mapper.map(p.operand)
+            cls.map(p.operand)
 
         @classmethod
         def map_binaryexpression(cls, p):
-            Mapper.map(p.leftOperand)
-            Mapper.map(p.rightOperand)
+            cls.map(p.leftOperand)
+            cls.map(p.rightOperand)
 
         @classmethod
         def map_constexpression(cls, p):
-            Mapper.map(p.type)
+            cls.map(p.type)
 
         @classmethod
         def map_deleteexpression(cls, p):
-            Mapper.map(p.expr)
+            cls.map(p.expr)
 
         @classmethod
         def map_forexpression(cls, p):
-            Mapper.map([
+            cls.map([
                 p.counter,
                 p.startExpr,
                 p.stopExpr,
@@ -383,40 +383,40 @@ def map(root, func=None, obj=None):
 
         @classmethod
         def map_letinexpression(cls, p):
-            Mapper.map(p.letdef)
-            Mapper.map(p.expr)
+            cls.map(p.letdef)
+            cls.map(p.expr)
 
         @classmethod
         def map_ifexpression(cls, p):
-            Mapper.map(p.condition)
-            Mapper.map(p.thenExpr)
-            Mapper.map(p.elseExpr)
+            cls.map(p.condition)
+            cls.map(p.thenExpr)
+            cls.map(p.elseExpr)
 
         @classmethod
         def map_matchexpression(cls, p):
-            Mapper.map(p.expr)
+            cls.map(p.expr)
 
         @classmethod
         def map_clause(cls, p):
-            Mapper.map(p.pattern)
-            Mapper.map(p.expr)
+            cls.map(p.pattern)
+            cls.map(p.expr)
 
         @classmethod
         def map_newexpression(cls, p):
-            Mapper.map(p.type)
+            cls.map(p.type)
 
         @classmethod
         def map_whileexpression(cls, p):
-            Mapper.map(p.condition)
-            Mapper.map(p.body)
+            cls.map(p.condition)
+            cls.map(p.body)
 
         @classmethod
         def map_variabledef(cls, p):
-            Mapper.map(p.type)
+            cls.map(p.type)
 
         @classmethod
         def map_tdef(cls, p):
-            Mapper.map(p.type)
+            cls.map(p.type)
 
         @classmethod
         def map(cls, p):
@@ -426,7 +426,7 @@ def map(root, func=None, obj=None):
                 try:
                     if obj is not None:
                         getattr(obj, 'map_' + c.__name__.lower())(p)
-                    getattr(Mapper, 'map_' + c.__name__.lower())(p)
+                    getattr(cls, 'map_' + c.__name__.lower())(p)
                 except AttributeError:
                     pass
 
