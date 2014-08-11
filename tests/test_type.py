@@ -55,7 +55,14 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         type.Table()
 
 
-class TestTable(unittest.TestCase, parser_db.ParserDB):
+class TestBase(unittest.TestCase, parser_db.ParserDB):
+    def _assert_node_lineinfo(self, node):
+        node.should.have.property("lineno")
+        node.lineno.shouldnt.be(None)
+        node.should.have.property("lexpos")
+        node.lexpos.shouldnt.be(None)
+
+class TestTable(TestBase):
     """Test the Table's processing of type definitions."""
 
     def test_type_process_correct(self):
@@ -78,11 +85,6 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
             tree = self._parse(case, "typedef")
             proc.when.called_with(tree).shouldnt.throw(type.BadTypeDefError)
 
-    def _assert_node_lineinfo(self, node):
-        node.should.have.property("lineno")
-        node.lineno.shouldnt.be(None)
-        node.should.have.property("lexpos")
-        node.lexpos.shouldnt.be(None)
 
     def test_type_process_wrong(self):
         wrong_testcases = (
@@ -144,7 +146,7 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
                     self._assert_node_lineinfo(exc.prev)
 
 
-class TestValidating(unittest.TestCase, parser_db.ParserDB):
+class TestValidating(TestBase):
     """Test the validating of types."""
 
     def test_is_array(self):
@@ -241,8 +243,4 @@ class TestValidating(unittest.TestCase, parser_db.ParserDB):
                 exc = context.exception
                 exc.should.have.property("node")
 
-                node = exc.node
-                node.should.have.property("lineno")
-                node.lineno.shouldnt.be(None)
-                node.should.have.property("lexpos")
-                node.lexpos.shouldnt.be(None)
+                self._assert_node_lineinfo(exc.node)
