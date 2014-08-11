@@ -116,49 +116,49 @@ class TestASTMap(unittest.TestCase):
                 else:
                     once = True
             self._mockf.assert_any_call(args)
-            func = getattr(self._mocko, 'map_' + call)
+            func = getattr(self._mocko, "map_" + call)
             if once:
                 func.assert_called_once_with(args)
             else:
                 func.assert_any_call(args)
 
     def test_node(self):
-        self._assert_walk(self._int, [('node',)])
+        self._assert_walk(self._int, [("node",)])
 
     def test_list(self):
         self._assert_walk(
             self._list,
-            [('list',), ('builtin', self._int)]
+            [("list",), ("builtin", self._int)]
         )
 
     def test_program(self):
         p = ast.Program(self._list)
-        self._assert_walk(p, [('program',)])
+        self._assert_walk(p, [("program",)])
 
     def test_letdef(self):
         l = ast.LetDef(self._list)
-        self._assert_walk(l, [('letdef',)])
+        self._assert_walk(l, [("letdef",)])
 
     def test_functiondef(self):
         f = ast.FunctionDef("foo", [], self._one)
         self._assert_walk(
             f,
             [
-                ('functiondef',),
-                ('def', f),
-                ('list', []),
-                ('expression', self._one)
+                ("functiondef",),
+                ("def", f),
+                ("list", []),
+                ("expression", self._one)
             ]
         )
 
     def test_functiondef_with_type(self):
         f = ast.FunctionDef("foo", [], self._one, self._float)
-        self._assert_walk(f, [('float', self._float)])
+        self._assert_walk(f, [("float", self._float)])
 
     def test_param(self):
         p = ast.Param("bar", self._float)
         self._assert_walk(
-            p, [('param',), ('float', self._float)]
+            p, [("param",), ("float", self._float)]
         )
 
     def test_unaryexpression(self):
@@ -166,8 +166,8 @@ class TestASTMap(unittest.TestCase):
 
         self._assert_walk(
             e,
-            [('unaryexpression',),
-             ('constexpression', self._one)]
+            [("unaryexpression",),
+             ("constexpression", self._one)]
         )
 
     def test_binaryexpression(self):
@@ -175,25 +175,25 @@ class TestASTMap(unittest.TestCase):
 
         self._assert_walk(
             e,
-            [('binaryexpression',),
-             ('constexpression', self._one),
-             ('constexpression', self._two)]
+            [("binaryexpression",),
+             ("constexpression", self._one),
+             ("constexpression", self._two)]
         )
 
     def test_constexpression(self):
         self._assert_walk(
             self._one,
-            [('constexpression',),
-             ('expression', self._one),
-             ('builtin', self._int)]
+            [("constexpression",),
+             ("expression",),
+             ("builtin", self._int)]
         )
 
     def test_deleteexpression(self):
         d = ast.DeleteExpression(self._foo)
         self._assert_walk(
             d,
-            [('deleteexpression',),
-             ('genidexpression', self._foo)]
+            [("deleteexpression",),
+             ("genidexpression", self._foo)]
         )
 
     def test_forexpression(self):
@@ -206,22 +206,22 @@ class TestASTMap(unittest.TestCase):
         
         self._assert_walk(
             f,
-            [('forexpression',),
-             ('genidexpression', self._foo),
-             ('constexpression', self._one, False),
-             ('constexpression', self._two, False),
-             ('constexpression', self._three, False)]
+            [("forexpression",),
+             ("genidexpression", self._foo),
+             ("constexpression", self._one),
+             ("constexpression", self._two),
+             ("constexpression", self._three)]
         )
 
     def test_letinexpression(self):
-        letdef = ast.LetDef([ast.FunctionDef('x', [], self._one)])
+        letdef = ast.LetDef([ast.FunctionDef("x", [], self._one)])
         letin = ast.LetInExpression(letdef, self._two)
 
         self._assert_walk(
             letin,
-            [('letinexpression',),
-             ('letdef', letdef),
-             ('constexpression', self._two, False)]
+            [("letinexpression",),
+             ("letdef", letdef),
+             ("constexpression", self._two, False)]
         )
 
     def test_ifexpression(self):
@@ -229,10 +229,10 @@ class TestASTMap(unittest.TestCase):
 
         self._assert_walk(
             ifexpr,
-            [('ifexpression',),
-             ('constexpression', self._one),
-             ('constexpression', self._two),
-             ('constexpression', self._three)]
+            [("ifexpression",),
+             ("constexpression", self._one),
+             ("constexpression", self._two),
+             ("constexpression", self._three)]
         )
 
     def test_matchexpression(self):
@@ -240,9 +240,9 @@ class TestASTMap(unittest.TestCase):
 
         self._assert_walk(
             m,
-            [('matchexpression',),
-             ('constexpression', self._one),
-             ('list', [])]
+            [("matchexpression",),
+             ("constexpression", self._one),
+             ("list", [])]
         )
 
     def test_clause(self):
@@ -251,24 +251,24 @@ class TestASTMap(unittest.TestCase):
 
         self._assert_walk(
             c,
-            [('clause',),
-             ('pattern', p),
-             ('expression', self._one, False)]
+            [("clause",),
+             ("pattern", p),
+             ("expression", self._one, False)]
         )
     
     def test_newexpression(self):
         n = ast.NewExpression(self._foo)
 
-        self._assert_walk(n, [('newexpression', n), ('genidexpression', self._foo)])
+        self._assert_walk(n, [("newexpression", n), ("genidexpression", self._foo)])
 
     def test_whileexpression(self):
         whileexpr = ast.WhileExpression(self._one, self._two)
 
         self._assert_walk(
             whileexpr,
-            [('whileexpression',),
-             ('expression', self._one),
-             ('expression', self._two)]
+            [("whileexpression",),
+             ("expression", self._one),
+             ("expression", self._two)]
         )
 
     def test_variabledef(self):
@@ -276,8 +276,8 @@ class TestASTMap(unittest.TestCase):
 
         self._assert_walk(
             d,
-            [('variabledef',),
-             ('float', self._float)]
+            [("variabledef",),
+             ("float", self._float)]
         )
 
     def test_tdef(self):
