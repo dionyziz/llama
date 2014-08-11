@@ -146,13 +146,11 @@ class SymbolTable:
 #             self.cur_scope.entries.append(entry)
 #
 
-    def lookup_symbol(self, node, lookup_all=False, guard=False):
+    def lookup_symbol(self, node, lookup_all=False):
         """
         Lookup name of 'node' in current scope.
-        If 'lookup_all' is True, perform lookup in all scopes.
-        If 'guard' is True, alert if name is absent from
-        checked scope(s).
         If lookup succeeds, return the stored node, None otherwise.
+        If 'lookup_all' is set, perform lookup in all scopes.
         """
 
         ename = node.name
@@ -165,14 +163,12 @@ class SymbolTable:
             if entry is not None:
                 return entry.node
 
-        if guard:
-            self.logger.error(
-                "%d:%d: error: Unknown identifier: %s",
-                node.lineno,
-                node.lexpos,
-                ename
-            )
-            # TODO: Raise an exception here.
+        self.logger.error(
+            "%d:%d: error: Unknown identifier: %s",
+            node.lineno,
+            node.lexpos,
+            ename
+        )
         return None
 
     def _find_name_in_current_scope(self, name):
