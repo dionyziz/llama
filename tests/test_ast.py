@@ -291,3 +291,14 @@ class TestASTMap(unittest.TestCase):
              ("list", l, False),
              ("user", foo)]
         )
+
+    def test_regression_nomethod(self):
+        class MapperMock:
+            builtin_called = False
+
+            def map_user(self, p):
+                self.builtin_called = True
+
+        m = MapperMock()
+        ast.map(ast.TDef(ast.User('color'), [ast.Constructor('Red')]), obj=m)
+        m.builtin_called.should.equal(True)
