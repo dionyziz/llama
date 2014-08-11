@@ -158,23 +158,18 @@ class SymbolTable:
                 if entry.scope.visible:
                     return entry.node
 
-        entry = self._find_name_in_current_scope(ename)
-        if entry is not None:
+        assert self.cur_scope, 'No scope to search.'
+        try:
+            entry = self.hash_table[ename][-1]
+        except (KeyError, IndexError):
+            # NOTE: Using defaultdict means KeyError never happens.
+            return None
+
+        enest = entry.scope.nesting
+        if enest >= self.nesting:
+            assert enest == self.nesting, "Entry nested deeper than it should."
             return entry.node
         return None
-
-    def _find_name_in_current_scope(self, name):
-        """
-        Lookup a name in the current scope.
-        If lookup succeeds, return the entry, None otherwise.
-        """
-        assert self.cur_scope, 'No scope to search.'
-
-        entry = self.hash_table[name][-1]
-
-        if entry.scope.nesting != self.nesting:
-            return None
-        return entry
 
     def insert_symbol(self, node):
         """
@@ -184,12 +179,10 @@ class SymbolTable:
         assert self.cur_scope, 'No scope to insert into.'
         assert isinstance(node, ast.NameNode), 'Node is not a NameNode.'
 
-        new_name = node.name
+        prev = self.lookup_symbol(node)
+        if prev is not None:
+            raise RedefIdentifierError(node, prev)
+
         new_entry = self._Entry(node, self.cur_scope)
-
-        entry = self._find_identifier_in_current_scope(new_name)
-        if entry is not None:
-            raise RedefIdentifierError(node, entry.node)
-
-        self.hash_table[new_entry.identifier].append(new_entry)
+        self.hash_table[node.name].append(new_entry)
         self.cur_scope.entries.append(new_entry)
