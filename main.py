@@ -14,7 +14,7 @@ import collections
 import logging
 import sys
 
-from compiler import lex, parse, error
+from compiler import lex, parse, error, sem
 
 # Compiler invocation options and switches.
 # Available to all modules.
@@ -151,11 +151,13 @@ def main():
     data = read_program(OPTS["input"])
 
     # Lex, parse and construct the AST.
-    ast = parser.parse(data=data, lexer=lexer)
+    root = parser.parse(data=data, lexer=lexer)
 
     # On lexing/parsing error, abort further compilation.
     if not (lexer.logger.success or parser.logger.success):
         sys.exit(1)
+
+    sem.analyze(root)
 
 if __name__ == "__main__":
     main()
