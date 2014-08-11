@@ -70,11 +70,6 @@ class Expression(DataNode):
     pass
 
 
-class Def(Node):
-    """Definition of a new name."""
-    pass
-
-
 class NameNode(Node):
     """
     A node with a user-defined name.
@@ -122,7 +117,7 @@ class LetDef(ListNode):
         self.isRec = isRec
 
 
-class FunctionDef(Def):
+class FunctionDef(DataNode):
     def __init__(self, name, params, body, type=None):
         self.name = name
         self.params = params
@@ -250,7 +245,7 @@ class WhileExpression(Expression):
         self.body = body
 
 
-class VariableDef(Def):
+class VariableDef(DataNode):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
@@ -263,7 +258,7 @@ class ArrayVariableDef(VariableDef):
         self.type = type
 
 
-class TDef(ListNode):
+class TDef(ListNode, DataNode):
     def __init__(self, type, list):
         self.type = type
         self.list = list
