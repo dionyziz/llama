@@ -374,12 +374,10 @@ def map(root, func=None, obj=None):
 
         @classmethod
         def map_forexpression(cls, p):
-            cls.map([
-                p.counter,
-                p.startExpr,
-                p.stopExpr,
-                p.body
-            ])
+            cls.map(p.counter)
+            cls.map(p.startExpr)
+            cls.map(p.stopExpr)
+            cls.map(p.body)
 
         @classmethod
         def map_letinexpression(cls, p):
@@ -423,9 +421,12 @@ def map(root, func=None, obj=None):
             if func is not None:
                 func(p)
             for c in inspect.getmro(p.__class__):
-                try:
-                    if obj is not None:
+                if obj is not None:
+                    try:
                         getattr(obj, 'map_' + c.__name__.lower())(p)
+                    except AttributeError:
+                        pass
+                try:
                     getattr(cls, 'map_' + c.__name__.lower())(p)
                 except AttributeError:
                     pass
