@@ -1,6 +1,6 @@
 import unittest
 
-from compiler import ast, error, symbol
+from compiler import ast, symbol
 
 
 class TestSymbolTableAPI(unittest.TestCase):
@@ -8,12 +8,7 @@ class TestSymbolTableAPI(unittest.TestCase):
 
     @staticmethod
     def test_symboltable_init():
-        symbol_table1 = symbol.SymbolTable()
-
-        logger = error.LoggerMock()
-        symbol_table2 = symbol.SymbolTable(logger=logger)
-
-        symbol_table2.should.have.property("logger").being(logger)
+        symbol.SymbolTable()
 
     @staticmethod
     def test_redef_identifier_error():

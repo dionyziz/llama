@@ -78,9 +78,8 @@ class SymbolTable:
     # the same identifier, appearing at increasing scope depth.
     hash_table = defaultdict(list)
 
-    def __init__(self, logger):
+    def __init__(self):
         """Make a new symbol table and insert the library namespace."""
-        self.logger = logger
         self._insert_library_symbols()
 
     def _insert_library_symbols(self):
