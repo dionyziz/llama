@@ -32,41 +32,23 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
 
     @staticmethod
     def test_redef_builtin_type_error():
-        node = ast.Int()
-        node.lineno, node.lexpos = 1, 2
-        exc = type.RedefBuiltinTypeError(node)
-        exc.should.be.a(type.BadTypeDefError)
-        exc.should.have.property("node").being(node)
+        exc = type.RedefBuiltinTypeError
+        issubclass(exc, type.BadTypeDefError).should.be.true
 
     @staticmethod
     def test_redef_constructor_error():
-        node = ast.Constructor("Red")
-        node.lineno, node.lexpos = 1, 2
-        prev = ast.Constructor("Red")
-        prev.lineno, prev.lexpos = 3, 4
-        exc = type.RedefConstructorError(node, prev)
-        exc.should.be.a(type.BadTypeDefError)
-        exc.should.have.property("node").being(node)
-        exc.should.have.property("prev").being(prev)
+        exc = type.RedefConstructorError
+        issubclass(exc, type.BadTypeDefError).should.be.true
 
     @staticmethod
     def test_redef_user_type_error():
-        node = ast.User("foo")
-        node.lineno, node.lexpos = 1, 2
-        prev = ast.User("foo")
-        prev.lineno, prev.lexpos = 3, 4
-        exc = type.RedefUserTypeError(node, prev)
-        exc.should.be.a(type.BadTypeDefError)
-        exc.should.have.property("node").being(node)
-        exc.should.have.property("prev").being(prev)
+        exc = type.RedefUserTypeError
+        issubclass(exc, type.BadTypeDefError).should.be.true
 
     @staticmethod
     def test_undef_type_error():
-        node = ast.User("foo")
-        node.lineno, node.lexpos = 1, 2
-        exc = type.UndefTypeError(node)
-        exc.should.be.a(type.BadTypeDefError)
-        exc.should.have.property("node").being(node)
+        exc = type.UndefTypeError
+        issubclass(exc, type.BadTypeDefError).should.be.true
 
     @staticmethod
     def test_table_init():
