@@ -253,7 +253,8 @@ class VariableDef(DataNode):
 
 class ArrayVariableDef(VariableDef):
     def __init__(self, name, dimensions, type=None):
-        assert isinstance(type, Array)
+        if type is not None:
+            assert isinstance(type, Array)
         self.name = name
         self.dimensions = dimensions
         self.type = type
@@ -414,24 +415,38 @@ def map(root, func=None, obj=None):
 
         @classmethod
         def map(cls, p):
+            """Visit the current node of the AST and apply the function-to-be-mapped
+               and object-to-be-mapped; then recursively visit its children."""
+
             if func is not None:
+                # If the user specified a function-to-be-mapped, apply it on the
+                # node is currently being visited
                 func(p)
+            # Go through all the superclasses of the node being visited
             for c in inspect.getmro(p.__class__):
                 if obj is not None:
-                    attr = None
+                    # If the user specified a visitor object, dispatch to the appropriate
+                    # visitor object method for the respective class
+                    method = None
                     try:
-                        attr = getattr(obj, 'map_' + c.__name__.lower())
+                        # see a visitor object method has been defined for this superclass
+                        method = getattr(obj, 'map_' + c.__name__.lower())
                     except AttributeError:
                         pass
-                    if attr is not None:
-                        attr(p)
-                attr = None
+                    if method is not None:
+                        # call the visitor object method
+                        method(p)
+                # Similarily, check to see if our own Mapper object has
+                # implemented a visitor method for tree traversal
+                method = None
                 try:
-                    attr = getattr(cls, 'map_' + c.__name__.lower())
+                    method = getattr(cls, 'map_' + c.__name__.lower())
                 except AttributeError:
                     pass
-                if attr is not None:
-                    attr(p)
+                if method is not None:
+                    # recursively call a specialized Mapper method for
+                    # tree traversal; this implements DFS
+                    method(p)
 
     if root is None:
         return
