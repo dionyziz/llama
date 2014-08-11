@@ -8,10 +8,10 @@ class TestSymbolTableAPI(unittest.TestCase):
 
     @staticmethod
     def test_scope_init():
-        scope = symbol.Scope()
+        scope = symbol.Scope([], True, 1)
         scope.should.have.property("entries").equal([])
-        scope.should.have.property("visible").equal(False)
-        scope.should.have.property("nesting").being(None)
+        scope.should.have.property("visible").equal(True)
+        scope.should.have.property("nesting").being(1)
 
     @staticmethod
     def test_symboltable_init():
@@ -34,7 +34,7 @@ class TestSymbolTableAPI(unittest.TestCase):
         param = ast.Param("foo")
 
         table = symbol.SymbolTable()
-        table.open_scope()
+        scope1 = table.open_scope()
 
         error1 = symbol.SymbolError
         table.insert_symbol.when.called_with(expr).shouldnt.throw(error1)
@@ -46,18 +46,19 @@ class TestSymbolTableAPI(unittest.TestCase):
 
         table.lookup_symbol(ast.Param("bar")).should.be(None)
 
-        error2 = symbol.RedefIdentifierError(param, expr)
+        error2 = symbol.RedefIdentifierError
         table.insert_symbol.when.called_with(param).should.throw(error2)
 
-        table.open_scope()
+        scope2 = table.open_scope()
         table.insert_symbol.when.called_with(param).shouldnt.throw(error1)
 
         table.lookup_symbol(param).should.equal(param)
         table.lookup_symbol(expr).should.equal(param)
 
-        table.open_scope()
+        scope3 = table.open_scope()
         table.lookup_symbol(expr, lookup_all=True).should.equal(param)
-        table.lookup_symbol(param, lookup_all=True).should.equal(param)
+        scope2.visible = False
+        table.lookup_symbol(param, lookup_all=True).should.equal(expr)
 
         table.close_scope()
         table.close_scope()
