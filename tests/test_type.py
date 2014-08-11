@@ -13,27 +13,18 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
 
     @staticmethod
     def test_array_of_array_error():
-        node = ast.Array(ast.Array(ast.Int()))
-        node.lineno, node.lexpos = 1, 2
-        exc = type.ArrayOfArrayError(node)
-        exc.should.be.a(type.InvalidTypeError)
-        exc.should.have.property("node").being(node)
+        exc = type.ArrayOfArrayError
+        issubclass(exc, type.InvalidTypeError).should.be.true
 
     @staticmethod
     def test_array_return_error():
-        node = ast.Function(ast.Int(), ast.Array(ast.Int()))
-        node.lineno, node.lexpos = 1, 2
-        exc = type.ArrayReturnError(node)
-        exc.should.be.a(type.InvalidTypeError)
-        exc.should.have.property("node").being(node)
+        exc = type.ArrayReturnError
+        issubclass(exc, type.InvalidTypeError).should.be.true
 
     @staticmethod
     def test_ref_of_array_error():
-        node = ast.Ref(ast.Array(ast.Int()))
-        node.lineno, node.lexpos = 1, 2
-        exc = type.RefOfArrayError(node)
-        exc.should.be.a(type.InvalidTypeError)
-        exc.should.have.property("node").being(node)
+        exc = type.RefOfArrayError
+        issubclass(exc, type.InvalidTypeError).should.be.true
 
     @staticmethod
     def test_validate():
