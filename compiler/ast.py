@@ -253,7 +253,8 @@ class VariableDef(DataNode):
 
 class ArrayVariableDef(VariableDef):
     def __init__(self, name, dimensions, type=None):
-        assert isinstance(type, Array)
+        if type is not None:
+            assert isinstance(type, Array)
         self.name = name
         self.dimensions = dimensions
         self.type = type
