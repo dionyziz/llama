@@ -199,6 +199,7 @@ class TestParser(unittest.TestCase):
         )
 
     def test_pattern(self):
+        parse.quiet_parse("true", "pattern").should.equal(self.true)
         parse.quiet_parse("Red true", "pattern").should.equal(
             ast.Pattern("Red", [self.true])
         )
