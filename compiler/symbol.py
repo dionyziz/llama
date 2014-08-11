@@ -33,6 +33,22 @@ class RedefIdentifierError(SymbolError):
         self.prev = prev
 
 
+class Scope:
+    """
+    A scope of the symbol table. Contains a list of entries,
+    knows its nesting level and can be optionally hidden from lookup.
+    """
+    entries = []
+    visible = True
+    nesting = None
+
+    def __init__(self, entries, visible, nesting):
+        """Make a new scope."""
+        self.entries = entries
+        self.visible = visible
+        self.nesting = nesting
+
+
 class SymbolTable:
     """A fully Pythonic symbol table for Llama."""
 
@@ -53,23 +69,6 @@ class SymbolTable:
             self.node = node
             self.scope = scope
 
-
-    class _Scope:
-        """
-        A scope of the symbol table. Contains a list of entries,
-        knows its nesting level and can be optionally hidden from lookup.
-        """
-        entries = []
-        visible = True
-        nesting = None
-
-        def __init__(self, entries, visible, nesting):
-            """Make a new scope."""
-            self.entries = entries
-            self.visible = visible
-            self.nesting = nesting
-
-
     _scopes = []
     nesting = 0       # Inv.: nesting == len(scopes)
     cur_scope = None  # Inv.: cur_scope == _scopes[-1] if _scopes else None
@@ -87,7 +86,7 @@ class SymbolTable:
         # TODO: Dump library namespace here as a tuple of virtual AST nodes.
         lib_namespace = tuple()
 
-        lib_scope = self._Scope(
+        lib_scope = Scope(
             entries=[],
             visible=True,
             nesting=self.nesting
@@ -118,7 +117,7 @@ class SymbolTable:
 
     def open_scope(self):
         """Open a new scope in the symbol table."""
-        new_scope = self._Scope(
+        new_scope = Scope(
             entries=[],
             visible=True,
             nesting=self.nesting + 1
