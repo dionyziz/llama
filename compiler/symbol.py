@@ -184,10 +184,10 @@ class SymbolTable:
             return None
         return entry
 
-    def insert_symbol(self, node, guard=False):
+    def insert_symbol(self, node):
         """
         Insert a new NameNode in the current scope.
-        If 'guard' is True, alert if an alias is already present.
+        Alert if an alias is already present in same scope.
         """
         assert self.cur_scope, 'No scope to insert into.'
         assert isinstance(node, ast.NameNode), 'Node is not a NameNode.'
@@ -195,19 +195,18 @@ class SymbolTable:
         new_name = node.name
         new_entry = self._Entry(node, self.cur_scope)
 
-        if guard:
-            entry = self._find_identifier_in_current_scope(new_name)
-            if entry is not None:
-                self.logger.error(
-                    "%d:%d: error: Redefining identifier '%s' in same scope"
-                    "\tPrevious definition: %d:%d",
-                    node.lineno,
-                    node.lexpos,
-                    node.name,
-                    entry.node.lineno,
-                    entry.node.lexpos
-                )
-                # TODO: Raise some kind of exception here.
+        entry = self._find_identifier_in_current_scope(new_name)
+        if entry is not None:
+            self.logger.error(
+                "%d:%d: error: Redefining identifier '%s' in same scope"
+                "\tPrevious definition: %d:%d",
+                node.lineno,
+                node.lexpos,
+                node.name,
+                entry.node.lineno,
+                entry.node.lexpos
+            )
+            # TODO: Raise some kind of exception here.
 
         self.hash_table[new_entry.identifier].append(new_entry)
         self.cur_scope.entries.append(new_entry)
