@@ -58,16 +58,12 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
 class TestTable(unittest.TestCase, parser_db.ParserDB):
     """Test the Table's processing of type definitions."""
 
-    @classmethod
-    def _process_typedef(cls, typedefListList):
+    def _process_typedef(self, typeDefListList):
         typeTable = type.Table()
-        for typedefList in typedefListList:
-            typeTable.process(typedefList)
+        for typeDefList in typeDefListList:
+            typeTable.process(typeDefList)
 
-    def test_type_process(self):
-        proc = self._process_typedef
-        error = type.BadTypeDefError
-
+    def test_type_process_correct(self):
         right_testcases = (
             "type color = Red | Green | Blue",
             "type list = Nil | Cons of int list",
@@ -81,10 +77,13 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
             """
         )
 
+        table = type.Table()
+        proc = table.process
         for case in right_testcases:
-            tree = self._parse(case)
-            proc.when.called_with(tree).shouldnt.throw(error)
+            tree = self._parse(case, "typedef")
+            proc.when.called_with(tree).shouldnt.throw(type.BadTypeDefError)
 
+    def test_type_process_wrong(self):
         wrong_testcases = (
             (
                 (
@@ -123,6 +122,7 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
             )
         )
 
+        proc = self._process_typedef
         for cases, error in wrong_testcases:
             for case in cases:
                 tree = self._parse(case)
