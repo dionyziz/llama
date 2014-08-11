@@ -248,4 +248,13 @@ class TestValidating(unittest.TestCase, parser_db.ParserDB):
         for cases, error in wrong_testcases:
             for case in cases:
                 tree = self._parse(case, "type")
-                proc.when.called_with(tree).should.throw(error)
+                with self.assertRaises(error) as context:
+                    proc(tree)
+                exc = context.exception
+                exc.should.have.property("node")
+
+                node = exc.node
+                node.should.have.property("lineno")
+                node.lineno.shouldnt.be(None)
+                node.should.have.property("lexpos")
+                node.lexpos.shouldnt.be(None)
