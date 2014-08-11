@@ -1,58 +1,71 @@
 import unittest
 
-from compiler import ast, error, type
+from compiler import ast, type
 from tests import parser_db
 
 
 class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
     """Test the API of the type module."""
 
-    def test_bad_type_error(self):
-        try:
-            raise type.LlamaBadTypeError()
-            self.fail()
-        except type.LlamaBadTypeError:
-            pass
+    @staticmethod
+    def test_is_array():
+        type.is_array(ast.Array(ast.Int())).should.be.true
 
-    def test_invalid_type_error(self):
-        try:
-            raise type.LlamaInvalidTypeError()
-            self.fail()
-        except type.LlamaInvalidTypeError:
-            pass
+    @staticmethod
+    def test_array_of_array_error():
+        exc = type.ArrayOfArrayError
+        issubclass(exc, type.InvalidTypeError).should.be.true
+
+    @staticmethod
+    def test_array_return_error():
+        exc = type.ArrayReturnError
+        issubclass(exc, type.InvalidTypeError).should.be.true
+
+    @staticmethod
+    def test_ref_of_array_error():
+        exc = type.RefOfArrayError
+        issubclass(exc, type.InvalidTypeError).should.be.true
+
+    @staticmethod
+    def test_validate():
+        type.validate(ast.Int())
+
+    @staticmethod
+    def test_redef_builtin_type_error():
+        exc = type.RedefBuiltinTypeError
+        issubclass(exc, type.BadTypeDefError).should.be.true
+
+    @staticmethod
+    def test_redef_constructor_error():
+        exc = type.RedefConstructorError
+        issubclass(exc, type.BadTypeDefError).should.be.true
+
+    @staticmethod
+    def test_redef_user_type_error():
+        exc = type.RedefUserTypeError
+        issubclass(exc, type.BadTypeDefError).should.be.true
+
+    @staticmethod
+    def test_undef_type_error():
+        exc = type.UndefTypeError
+        issubclass(exc, type.BadTypeDefError).should.be.true
 
     @staticmethod
     def test_table_init():
-        t1 = type.Table()
-
-        logger = error.LoggerMock()
-        t2 = type.Table(logger=logger)
-        t2.should.have.property("logger").being(logger)
-
-    @staticmethod
-    def test_validator_init():
-        t1 = type.Validator()
-
-        logger = error.LoggerMock()
-        t2 = type.Validator(logger=logger)
-        t2.should.have.property("logger").being(logger)
+        type.Table()
 
 
-class TestTable(unittest.TestCase, parser_db.ParserDB):
+class TestBase(unittest.TestCase, parser_db.ParserDB):
+    def _assert_node_lineinfo(self, node):
+        node.should.have.property("lineno")
+        node.lineno.shouldnt.be(None)
+        node.should.have.property("lexpos")
+        node.lexpos.shouldnt.be(None)
+
+class TestTable(TestBase):
     """Test the Table's processing of type definitions."""
 
-    @classmethod
-    def _process_typedef(cls, typedefListList):
-        mock = error.LoggerMock()
-        typeTable = type.Table(logger=mock)
-        for typedefList in typedefListList:
-            typeTable.process(typedefList)
-        return typeTable.logger.success
-
-    def test_type_process(self):
-        proc = self._process_typedef
-        error = type.LlamaBadTypeError
-
+    def test_type_process_correct(self):
         right_testcases = (
             "type color = Red | Green | Blue",
             "type list = Nil | Cons of int list",
@@ -66,54 +79,79 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
             """
         )
 
+        table = type.Table()
+        proc = table.process
         for case in right_testcases:
-            tree = self._parse(case)
-            proc.when.called_with(tree).shouldnt.throw(error)
+            tree = self._parse(case, "typedef")
+            proc.when.called_with(tree).shouldnt.throw(type.BadTypeDefError)
 
+
+    def test_type_process_wrong(self):
         wrong_testcases = (
-            """
-            -- No constructor reuse
-            type dup = ConDup | ConDup
-            """,
-            """
-            -- No reference to undefined type
-            type what = What of undeftype
-            """,
-            """
-            -- No type redefinition
-            type same = Foo1
-            type same = Foo2
-            """,
-            """
-            -- No constructor sharing
-            type one = Con
-            type two = Con
-            """,
-            """
-            -- No redefinition of builtin types
-            type bool = BoolCon
-            type char = CharCon
-            type float = FloatCon
-            type int = IntCon
-            type unit = UnitCon
-            """
+            (
+                (
+                    "type bool = BoolCon",
+                    "type char = CharCon",
+                    "type float = FloatCon",
+                    "type int = IntCon",
+                    "type unit = UnitCon",
+                ),
+                type.RedefBuiltinTypeError,
+                1
+            ),
+            (
+                (
+                    "type dup = ConDup | ConDup",
+                    """
+                    type one = Con
+                    type two = Con
+                    """,
+                ),
+                type.RedefConstructorError,
+                2
+            ),
+            (
+                (
+                    """
+                    type same = Foo1
+                    type same = Foo2
+                    """,
+                ),
+                type.RedefUserTypeError,
+                2
+            ),
+            (
+                (
+                    "type what = What of undeftype",
+                ),
+                type.UndefTypeError,
+                1
+            )
         )
 
-        for case in wrong_testcases:
-            tree = self._parse(case)
-            proc.when.called_with(tree).should.throw(error)
+        for cases, error, exc_node_count in wrong_testcases:
+            for case in cases:
+                table = type.Table()
+                tree = self._parse(case)
+                with self.assertRaises(error) as context:
+                    for typeDefList in tree:
+                        table.process(typeDefList)
+
+                exc = context.exception
+                exc.should.have.property("node")
+                self._assert_node_lineinfo(exc.node)
+                if exc_node_count == 2:
+                    exc.should.have.property("prev")
+                    exc.prev.shouldnt.be(exc.node)
+                    self._assert_node_lineinfo(exc.prev)
 
 
-class TestValidator(unittest.TestCase, parser_db.ParserDB):
-    """Test the Validator's functionality."""
+class TestValidating(TestBase):
+    """Test the validating of types."""
 
-    @staticmethod
-    def _is_array(t):
-        return type.Validator.is_array(t)
-
-    def test_isarray(self):
+    def test_is_array(self):
         for typecon in ast.builtin_types_map.values():
-            self._is_array(typecon()).should.be.false
+            type.is_array(typecon()).should.be.false
 
         right_testcases = (
             "array of int",
@@ -123,7 +161,7 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
 
         for case in right_testcases:
             tree = self._parse(case, 'type')
-            self._is_array(tree).should.be.true
+            type.is_array(tree).should.be.true
 
         wrong_testcases = (
             "foo",
@@ -133,17 +171,11 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
 
         for case in wrong_testcases:
             tree = self._parse(case, 'type')
-            self._is_array(tree).should.be.false
-
-    def _validate(self, t):
-        mock = error.LoggerMock()
-        validator = type.Validator(logger=mock)
-        validator.validate(t)
-        return validator.logger.success
+            type.is_array(tree).should.be.false
 
     def test_validate(self):
-        proc = self._validate
-        error = type.LlamaInvalidTypeError
+        proc = type.validate
+        error = type.InvalidTypeError
 
         for typecon in ast.builtin_types_map.values():
             proc.when.called_with(typecon()).shouldnt.throw(error)
@@ -177,16 +209,38 @@ class TestValidator(unittest.TestCase, parser_db.ParserDB):
             proc.when.called_with(tree).shouldnt.throw(error)
 
         wrong_testcases = (
-            "(array of int) ref",
-            "(int -> array of int) ref",
-
-            "array of (array of int)",
-            "array of ((array of int) ref)",
-
-            "int -> array of int",
-            "int -> (int -> array of int)"
+            (
+                (
+                    "array of (array of int)",
+                    "(array of (array of int)) -> int",
+                    "((array of (array of int)) -> int) ref",
+                ),
+                type.ArrayOfArrayError
+            ),
+            (
+                (
+                    "(array of int) ref",
+                    "((array of int) ref) -> int",
+                    "array of ((array of int) ref)",
+                ),
+                type.RefOfArrayError
+            ),
+            (
+                (
+                    "int -> array of int",
+                    "int -> (int -> array of int)",
+                    "(int -> array of int) ref",
+                ),
+                type.ArrayReturnError
+            ),
         )
 
-        for case in wrong_testcases:
-            tree = self._parse(case, 'type')
-            proc.when.called_with(tree).should.throw(error)
+        for cases, error in wrong_testcases:
+            for case in cases:
+                tree = self._parse(case, "type")
+                with self.assertRaises(error) as context:
+                    proc(tree)
+                exc = context.exception
+                exc.should.have.property("node")
+
+                self._assert_node_lineinfo(exc.node)

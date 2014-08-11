@@ -4,42 +4,121 @@ import unittest
 from compiler import error, lex
 
 
-class TestLexer(unittest.TestCase):
-    def _lex_data(self, input):
+class TestModuleAPI(unittest.TestCase):
+    """Test the API of the lex module."""
+
+    @staticmethod
+    def test_tokenize():
+        l1 = lex.Lexer()
+        tokens1 = list(lex.tokenize(""))
+        tokens2 = list(l1.tokenize(""))
+        tokens1.should.equal(tokens2)
+
         mock = error.LoggerMock()
-        tokens = lex.tokenize(input, logger=mock)
-        return list(tokens), mock
+        l2 = lex.Lexer(logger=mock)
+        tokens3 = list(lex.tokenize(""))
+        tokens4 = list(l2.tokenize(""))
+        tokens3.should.equal(tokens4)
+
+    @staticmethod
+    def test_quiet_tokenize():
+        l1 = lex.Lexer(logger=error.LoggerMock())
+        tokens1 = list(lex.quiet_tokenize(""))
+        tokens2 = list(l1.tokenize(""))
+        tokens1.should.equal(tokens2)
+
+
+class TestLexerAPI(unittest.TestCase):
+    """Test the API of the Lexer class."""
+
+    @staticmethod
+    def test_init():
+        lexer1 = lex.Lexer()
+
+        logger = error.LoggerMock()
+        lexer2 = lex.Lexer(
+            logger=logger,
+            debug=False,
+            optimize=True,
+            verbose=False
+        )
+        lexer2.should.have.property("debug").being(False)
+        lexer2.should.have.property("logger").being(logger)
+        lexer2.should.have.property("optimize").being(True)
+        lexer2.should.have.property("verbose").being(False)
+
+    @staticmethod
+    def test_input():
+        lexer = lex.Lexer()
+        lexer.input("foo")
+
+    @staticmethod
+    def test_skip():
+        lexer = lex.Lexer()
+        lexer.skip.when.called_with(1).should.throw(Exception)
+        lexer.input("foo")
+        lexer.skip(1)
+
+    @staticmethod
+    def test_token():
+        lexer = lex.Lexer()
+        lexer.token.when.called.should.throw(Exception)
+        lexer.input("foo")
+        t = lexer.token()
+
+    @staticmethod
+    def test_iterator():
+        lexer = lex.Lexer()
+        lexer.input("foo")
+        i = iter(lexer)
+        next(lexer)
+
+    @staticmethod
+    def test_tokenize():
+        l1 = lex.Lexer()
+        tokens1 = list(l1.tokenize(""))
+        tokens1.should.equal([])
+        l1.logger.success.should.be.true
+
+        l2 = lex.Lexer(logger=error.LoggerMock())
+        tokens2 = list(l2.tokenize("(*"))
+        tokens2.should.equal([])
+        l2.logger.success.should.be.false
+        l2.logger.clear()
+        tokens3 = list(l2.tokenize(""))
+        tokens3.should.equal([])
+        l2.logger.success.should.be.true
+
+
+class TestLexerRules(unittest.TestCase):
+    """Test the Lexer's coverage of Llama vocabulary."""
+
+    @staticmethod
+    def _lex_data(input):
+        lexer = lex.Lexer(logger=error.LoggerMock())
+        tokens = list(lexer.tokenize(input))
+        return tokens, lexer.logger
 
     def _assert_individual_token(self, input, expected_type, expected_value):
-        tokens, mock = self._lex_data(input)
+        tokens, logger = self._lex_data(input)
         tokens.should.have.length_of(1)
         tok = tokens[0]
         tok.type.shouldnt.be.different_of(expected_type)
         tok.value.should.equal(expected_value)
-        mock.success.should.be.true
+        logger.success.should.be.true
 
     def _assert_lex_success(self, input):
-        _, mock = self._lex_data(input)
-        mock.success.should.be.true
+        _, logger = self._lex_data(input)
+        logger.success.should.be.true
 
     def _assert_lex_failure(self, input):
-        _, mock = self._lex_data(input)
-        mock.success.should.be.false
-
-    def test_tokenize(self):
-        list(lex.tokenize("")).should.equal([])
-        mock = error.LoggerMock()
-        list(lex.tokenize("", mock)).should.equal([])
-
-    def test_init(self):
-        mock = error.LoggerMock()
-        lexer = lex.Lexer(logger=mock)
-        lexer.should.have.property("logger").being.equal(mock)
+        _, logger = self._lex_data(input)
+        logger.success.should.be.false
 
     def test_empty(self):
-        tokens, mock = self._lex_data("")
+        tokens, logger = self._lex_data("")
         tokens.should.be.empty
-        mock.success.should.be.true
+        logger.success.should.be.true
 
     def test_keywords(self):
         for input_program in lex.reserved_words:
