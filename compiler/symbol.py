@@ -157,11 +157,10 @@ class SymbolTable:
             for entry in reversed(self.hash_table[ename]):
                 if entry.scope.visible:
                     return entry.node
-        else:
-            entry = self._find_name_in_current_scope(ename)
-            if entry is not None:
-                return entry.node
 
+        entry = self._find_name_in_current_scope(ename)
+        if entry is not None:
+            return entry.node
         return None
 
     def _find_name_in_current_scope(self, name):
