@@ -145,7 +145,7 @@ class TestASTMap(unittest.TestCase):
             f,
             [
                 ("functiondef",),
-                ("def", f),
+                ("def",),
                 ("list", []),
                 ("expression", self._one)
             ]
