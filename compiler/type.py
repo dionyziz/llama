@@ -11,110 +11,139 @@
 # ----------------------------------------------------------------------
 """
 
-from compiler import ast, error, smartdict
+from compiler import ast, smartdict
+
+# == TYPE VALIDATION ==
 
 
-class LlamaInvalidTypeError(Exception):
-    """Exception thrown on detecting an invalid type."""
+class InvalidTypeError(Exception):
+    """
+    Exception thrown on detecting an invalid type.
+    Carries the offending ast node.
+    This class is only meant as an interface.
+    Only specific sublcasses should be instantiated.
+    """
+    def __init__(self, node):
+        self.node = node
+
+
+class ArrayOfArrayError(InvalidTypeError):
+    """Exception thrown on detecting an array of arrays."""
     pass
 
 
-class LlamaBadTypeError(Exception):
-    """Exception thrown on detecting a bad type declaration."""
+class ArrayReturnError(InvalidTypeError):
+    """Exception thrown on detecting a function returning an array."""
     pass
 
 
-class Validator:
+class RefOfArrayError(InvalidTypeError):
+    """Exception thrown on detecting a ref to an array."""
+    pass
+
+
+def is_array(t):
+    """Check if a type is an array type."""
+    return isinstance(t, ast.Array)
+
+
+def _validate_array(t):
+    """An 'array of T' type is valid iff T is a valid, non-array type."""
+    basetype = t.type
+    if is_array(basetype):
+        raise ArrayOfArrayError(t)
+    validate(basetype)
+
+
+def _validate_builtin(_):
+    """A builtin type is always valid."""
+    pass
+
+
+def _validate_function(t):
     """
-    Type validator. Ensures type structure and semantics follow
-    language spec.
+    A 'T1 -> T2' type is valid iff T1 is a valid type and T2 is a
+    valid, non-array type.
     """
+    t1, t2 = t.fromType, t.toType
+    if is_array(t2):
+        raise ArrayReturnError(t)
+    validate(t1)
+    validate(t2)
 
-    # Logger used for logging events. Possibly shared with other modules.
-    logger = None
-    _dispatcher = None
 
-    @staticmethod
-    def is_array(t):
-        """Check if a type is an array type."""
-        return isinstance(t, ast.Array)
+def _validate_ref(t):
+    """A 'ref T' type is valid iff T is a valid, non-array type."""
+    basetype = t.type
+    if is_array(basetype):
+        raise RefOfArrayError(t)
+    validate(basetype)
 
-    def _signal_error(self, msg, *args):
-        """
-        Record invalid type and throw exception to semantic analyzer.
-        """
-        self.logger.error(msg, *args)
-        raise LlamaInvalidTypeError
 
-    def _validate_array(self, t):
-        """An 'array of T' type is valid iff T is a valid, non-array type."""
-        basetype = t.type
-        if self.is_array(basetype):
-            self._signal_error(
-                "%d:%d: error: Invalid type: Array of array",
-                t.lineno,
-                t.lexpos
-            )
-        self.validate(basetype)
+def _validate_user(_):
+    """A user-defined type is always valid."""
+    pass
 
-    def _validate_builtin(self, t):
-        """A builtin type is always valid."""
-        pass
+_dispatcher = {
+    # Bulk-add dispatching for builtin types.
+    typecon: _validate_builtin
+    for typecon in ast.builtin_types_map.values()
+}
 
-    def _validate_function(self, t):
-        """
-        A 'T1 -> T2' type is valid iff T1 is a valid type and T2 is a
-        valid, non-array type.
-        """
-        t1, t2 = t.fromType, t.toType
-        if self.is_array(t2):
-            self._signal_error(
-                "%d:%d: error: Invalid type: Function returning array",
-                t.lineno,
-                t.lexpos
-            )
-        self.validate(t1)
-        self.validate(t2)
+_dispatcher.update((
+    # Add dispatching for other types.
+    (ast.Array, _validate_array),
+    (ast.Function, _validate_function),
+    (ast.Ref, _validate_ref),
+    (ast.User, _validate_user)
+))
 
-    def _validate_ref(self, t):
-        """A 'ref T' type is valid iff T is a valid, non-array type."""
-        basetype = t.type
-        if self.is_array(basetype):
-            self._signal_error(
-                "%d:%d: error: Invalid type: Reference of array",
-                t.lineno,
-                t.lexpos
-            )
-        self.validate(basetype)
 
-    def _validate_user(self, t):
-        """A user-defined type is always valid."""
-        pass
+def validate(t):
+    """
+    Verify that a type is a valid type, i.e. ensures type structure
+    and semantics follow language spec.
+    """
+    return _dispatcher[type(t)](t)
 
-    def __init__(self, logger=None):
-        """Create a new Validator."""
-        if logger is None:
-            self.logger = error.Logger()
-        else:
-            self.logger = logger
+# == USER-TYPE STORAGE/PROCESSING ==
 
-        # Bulk-add dispatching for builtin types.
-        self._dispatcher = {
-            typecon: self._validate_builtin
-            for typecon in ast.builtin_types_map.values()
-        }
 
-        # Add dispatching for other types.
-        self._dispatcher.update((
-            (ast.Array, self._validate_array),
-            (ast.Function, self._validate_function),
-            (ast.Ref, self._validate_ref),
-            (ast.User, self._validate_user)
-        ))
+class BadTypeDefError(Exception):
+    """
+    Exception thrown on detecting a bad type declaration.
+    Carries the offfending ast node(s).
+    This class is only meant as an interface.
+    Only specific sublcasses should be instantiated.
+    """
+    def __init__(self, node):
+        self.node = node
 
-    def validate(self, t):
-        """Verify that a type is a valid type."""
-        return self._dispatcher[type(t)](t)
+
+class RedefBuiltinTypeError(BadTypeDefError):
+    """Exception thrown on detecting redefinition of builtin type."""
+    pass
+
+
+class RedefConstructorError(BadTypeDefError):
+    """Exception thrown on detecting redefinition of constructor."""
+
+    def __init__(self, node, prev):
+        self.node = node
+        self.prev = prev
+
+
+class RedefUserTypeError(BadTypeDefError):
+    """Exception thrown on detecting redefinition of user type."""
+
+    def __init__(self, node, prev):
+        self.node = node
+        self.prev = prev
+
+
+class UndefTypeError(BadTypeDefError):
+    """Exception thrown on detecting reference to undefined type."""
+    pass
 
 
 class Table:
@@ -123,15 +152,8 @@ class Table:
     of user defined types and more.
     """
 
-    # Logger used for logging events. Possibly shared with other modules.
-    logger = None
-
-    def __init__(self, logger=None):
+    def __init__(self):
         """Initialize a new Table."""
-        if logger is None:
-            self.logger = error.Logger()
-        else:
-            self.logger = logger
 
         # Dictionary of types seen so far. Builtin types always available.
         # Values : list of constructors which the type defines
@@ -145,13 +167,6 @@ class Table:
         # This is a smartdict, so keys can be retrieved.
         self.knownConstructors = smartdict.Smartdict()
 
-    def _signal_error(self, msg, *args):
-        """
-        Record malformed type and throw exception to semantic analyzer.
-        """
-        self.logger.error(msg, *args)
-        raise LlamaBadTypeError
-
     def _insert_new_type(self, newType):
         """
         Insert newly defined type in Table. Signal error on redefinition.
@@ -162,22 +177,9 @@ class Table:
             return
 
         if isinstance(existingType, ast.Builtin):
-            self._signal_error(
-                "%d:%d: error: Redefining builtin type '%s'",
-                newType.lineno,
-                newType.lexpos,
-                newType.name
-            )
+            raise RedefBuiltinTypeError(newType)
         else:
-            self._signal_error(
-                "%d:%d: error: Redefining user-defined type '%s'"
-                "\tPrevious definition: %d:%d",
-                newType.lineno,
-                newType.lexpos,
-                newType.name,
-                existingType.lineno,
-                existingType.lexpos
-            )
+            raise RedefUserTypeError(newType, existingType)
 
     def _insert_new_constructor(self, newType, constructor):
         """Insert new constructor in Table. Signal error on reuse."""
@@ -188,22 +190,9 @@ class Table:
 
             for argType in constructor:
                 if argType not in self.knownTypes:
-                    self._signal_error(
-                        "%d:%d: error: Undefined type '%s'",
-                        argType.lineno,
-                        argType.lexpos,
-                        argType.name
-                    )
+                    raise UndefTypeError(argType)
         else:
-            self._signal_error(
-                "%d:%d: error: Redefining constructor '%s'"
-                "\tPrevious definition: %d:%d",
-                constructor.lineno,
-                constructor.lexpos,
-                constructor.name,
-                existingConstructor.lineno,
-                existingConstructor.lexpos
-            )
+            raise RedefConstructorError(constructor, existingConstructor)
 
     def process(self, typeDefList):
         """
