@@ -163,12 +163,6 @@ class SymbolTable:
             if entry is not None:
                 return entry.node
 
-        self.logger.error(
-            "%d:%d: error: Unknown identifier: %s",
-            node.lineno,
-            node.lexpos,
-            ename
-        )
         return None
 
     def _find_name_in_current_scope(self, name):
@@ -197,16 +191,7 @@ class SymbolTable:
 
         entry = self._find_identifier_in_current_scope(new_name)
         if entry is not None:
-            self.logger.error(
-                "%d:%d: error: Redefining identifier '%s' in same scope"
-                "\tPrevious definition: %d:%d",
-                node.lineno,
-                node.lexpos,
-                node.name,
-                entry.node.lineno,
-                entry.node.lexpos
-            )
-            # TODO: Raise some kind of exception here.
+            raise RedefIdentifierError(node, entry.node)
 
         self.hash_table[new_entry.identifier].append(new_entry)
         self.cur_scope.entries.append(new_entry)
