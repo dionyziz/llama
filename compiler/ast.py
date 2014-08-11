@@ -418,14 +418,20 @@ def map(root, func=None, obj=None):
                 func(p)
             for c in inspect.getmro(p.__class__):
                 if obj is not None:
+                    attr = None
                     try:
-                        getattr(obj, 'map_' + c.__name__.lower())(p)
+                        attr = getattr(obj, 'map_' + c.__name__.lower())
                     except AttributeError:
                         pass
+                    if attr is not None:
+                        attr(p)
+                attr = None
                 try:
-                    getattr(cls, 'map_' + c.__name__.lower())(p)
+                    attr = getattr(cls, 'map_' + c.__name__.lower())
                 except AttributeError:
                     pass
+                if attr is not None:
+                    attr(p)
 
     if root is None:
         return

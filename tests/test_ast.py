@@ -302,3 +302,11 @@ class TestASTMap(unittest.TestCase):
         m = MapperMock()
         ast.map(ast.TDef(ast.User('color'), [ast.Constructor('Red')]), obj=m)
         m.builtin_called.should.equal(True)
+
+    def test_regression(self):
+        class MapperMock:
+            def map_user(self, p):
+                p.invalid_attribute
+
+        m = MapperMock()
+        self.assertRaises(AttributeError, ast.map, ast.User('color'), None, m)
