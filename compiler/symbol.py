@@ -76,7 +76,7 @@ class SymbolTable:
 
     # Each hashtable entry is a list containing symbols with
     # the same identifier, appearing at increasing scope depth.
-    hash_table = defaultdict(list)
+    _hash_table = defaultdict(list)
 
     def __init__(self):
         """Make a new symbol table and insert the library namespace."""
@@ -132,8 +132,8 @@ class SymbolTable:
         old_scope = self._pop_scope()
         for entry in old_scope.entries:
             ename = entry.node.name
-            assert self.hash_table[ename], 'Identifier %s not found' % ename
-            self.hash_table[ename].pop()
+            assert self._hash_table[ename], 'Identifier %s not found' % ename
+            self._hash_table[ename].pop()
         return old_scope
 
 #     def insert_scope(self, scope):
@@ -141,7 +141,7 @@ class SymbolTable:
 #         assert self.cur_scope, 'No scope to merge into.'
 #         for entry in scope.entries:
 #             entry.scope = self.cur_scope
-#             self.hash_table[entry.node.name].append(entry)
+#             self._hash_table[entry.node.name].append(entry)
 #             self.cur_scope.entries.append(entry)
 #
 
@@ -154,13 +154,13 @@ class SymbolTable:
 
         ename = node.name
         if lookup_all:
-            for entry in reversed(self.hash_table[ename]):
+            for entry in reversed(self._hash_table[ename]):
                 if entry.scope.visible:
                     return entry.node
 
         assert self.cur_scope, 'No scope to search.'
         try:
-            entry = self.hash_table[ename][-1]
+            entry = self._hash_table[ename][-1]
         except (KeyError, IndexError):
             # NOTE: Using defaultdict means KeyError never happens.
             return None
@@ -184,5 +184,5 @@ class SymbolTable:
             raise RedefIdentifierError(node, prev)
 
         new_entry = self._Entry(node, self.cur_scope)
-        self.hash_table[node.name].append(new_entry)
+        self._hash_table[node.name].append(new_entry)
         self.cur_scope.entries.append(new_entry)
