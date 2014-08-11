@@ -374,12 +374,10 @@ def map(root, func=None, obj=None):
 
         @classmethod
         def map_forexpression(cls, p):
-            cls.map([
-                p.counter,
-                p.startExpr,
-                p.stopExpr,
-                p.body
-            ])
+            cls.map(p.counter)
+            cls.map(p.startExpr)
+            cls.map(p.stopExpr)
+            cls.map(p.body)
 
         @classmethod
         def map_letinexpression(cls, p):
