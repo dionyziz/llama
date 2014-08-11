@@ -58,11 +58,6 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
 class TestTable(unittest.TestCase, parser_db.ParserDB):
     """Test the Table's processing of type definitions."""
 
-    def _process_typedef(self, typeDefListList):
-        typeTable = type.Table()
-        for typeDefList in typeDefListList:
-            typeTable.process(typeDefList)
-
     def test_type_process_correct(self):
         right_testcases = (
             "type color = Red | Green | Blue",
@@ -83,6 +78,12 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
             tree = self._parse(case, "typedef")
             proc.when.called_with(tree).shouldnt.throw(type.BadTypeDefError)
 
+    def _assert_node_lineinfo(self, node):
+        node.should.have.property("lineno")
+        node.lineno.shouldnt.be(None)
+        node.should.have.property("lexpos")
+        node.lexpos.shouldnt.be(None)
+
     def test_type_process_wrong(self):
         wrong_testcases = (
             (
@@ -93,7 +94,8 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
                     "type int = IntCon",
                     "type unit = UnitCon",
                 ),
-                type.RedefBuiltinTypeError
+                type.RedefBuiltinTypeError,
+                1
             ),
             (
                 (
@@ -103,7 +105,8 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
                     type two = Con
                     """,
                 ),
-                type.RedefConstructorError
+                type.RedefConstructorError,
+                2
             ),
             (
                 (
@@ -112,21 +115,33 @@ class TestTable(unittest.TestCase, parser_db.ParserDB):
                     type same = Foo2
                     """,
                 ),
-                type.RedefUserTypeError
+                type.RedefUserTypeError,
+                2
             ),
             (
                 (
                     "type what = What of undeftype",
                 ),
-                type.UndefTypeError
+                type.UndefTypeError,
+                1
             )
         )
 
-        proc = self._process_typedef
-        for cases, error in wrong_testcases:
+        for cases, error, exc_node_count in wrong_testcases:
             for case in cases:
+                table = type.Table()
                 tree = self._parse(case)
-                proc.when.called_with(tree).should.throw(error)
+                with self.assertRaises(error) as context:
+                    for typeDefList in tree:
+                        table.process(typeDefList)
+
+                exc = context.exception
+                exc.should.have.property("node")
+                self._assert_node_lineinfo(exc.node)
+                if exc_node_count == 2:
+                    exc.should.have.property("prev")
+                    exc.prev.shouldnt.be(exc.node)
+                    self._assert_node_lineinfo(exc.prev)
 
 
 class TestValidating(unittest.TestCase, parser_db.ParserDB):
