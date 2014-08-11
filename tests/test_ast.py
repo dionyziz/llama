@@ -1,11 +1,10 @@
 import itertools
 import unittest
 
-from compiler import ast
-from tests import parser_db
+from compiler import ast, error, parse
 
 
-class TestAST(unittest.TestCase, parser_db.ParserDB):
+class TestAST(unittest.TestCase):
 
     def test_eq(self):
         foocon = ast.Constructor("foo", [])
@@ -13,7 +12,7 @@ class TestAST(unittest.TestCase, parser_db.ParserDB):
         ast.Constructor("bar", []).shouldnt.equal(foocon)
 
     def test_regression_constructor_attr_equality(self):
-        tdef1 = self._parse("type color = Red", "typedef")
+        tdef1 = parse.quiet_parse("type color = Red", "typedef")
         tdef2 = [ast.TDef(ast.User("color"), [ast.Constructor("Red")])]
 
         node_eq = lambda a, b: a == b
