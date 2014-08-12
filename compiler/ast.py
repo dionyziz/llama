@@ -120,10 +120,10 @@ class LetDef(ListNode):
         self.isRec = isRec
 
 
-class FunctionDef(Def, NameNode, ListNode):
-    def __init__(self, name, list, body, type=None):
+class FunctionDef(Def, NameNode):
+    def __init__(self, name, params, body, type=None):
         self.name = name
-        self.list = list
+        self.params = params
         self.body = body
         self.type = type
 
