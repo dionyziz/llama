@@ -157,22 +157,28 @@ class SymbolTable:
 #             self.cur_scope.entries.append(entry)
 #
 
-    def lookup_symbol(self, node, lookup_all=False):
+    def find_live_def(self, node):
         """
-        Lookup name of 'node' in current scope.
+        Find the definition governing the given use of 'node',
+        starting from the current scope and going upwards, honouring
+        scope visibilities.
         If lookup succeeds, return the stored node, None otherwise.
-        If 'lookup_all' is set, perform lookup in all scopes.
         """
-
         ename = node.name
-        if lookup_all:
-            for entry in reversed(self._hash_table[ename]):
-                if entry.scope.visible:
-                    return entry.node
+        for entry in reversed(self._hash_table[ename]):
+            if entry.scope.visible:
+                return entry.node
+        return None
 
+    def find_symbol_in_current_scope(self, node):
+        """
+        Lookup name of 'node' in current scope, ignoring visibility.
+        If lookup succeeds, return the stored node, None otherwise.
+        """
         assert self.cur_scope, 'No scope to search.'
+
         try:
-            entry = self._hash_table[ename][-1]
+            entry = self._hash_table[node.name][-1]
         except IndexError:
             # NOTE: Using defaultdict means KeyError never happens.
             return None
@@ -191,7 +197,7 @@ class SymbolTable:
         assert self.cur_scope, 'No scope to insert into.'
         assert isinstance(node, ast.NameNode), 'Node is not a NameNode.'
 
-        prev = self.lookup_symbol(node)
+        prev = self.find_symbol_in_current_scope(node)
         if prev is not None:
             raise RedefIdentifierError(node, prev)
 
