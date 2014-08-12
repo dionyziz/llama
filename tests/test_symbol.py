@@ -19,14 +19,8 @@ class TestSymbolTableAPI(unittest.TestCase):
 
     @staticmethod
     def test_redef_identifier_error():
-        node = ast.GenidExpression("foo")
-        node.lineno, node.lexpos = 1, 2
-        prev = ast.GenidExpression("foo")
-        prev.lineno, prev.lexpos = 3, 4
-        exc = symbol.RedefIdentifierError(node, prev)
-        exc.should.be.a(symbol.SymbolError)
-        exc.should.have.property("node").being(node)
-        exc.should.have.property("prev").being(prev)
+        exc = symbol.RedefIdentifierError
+        issubclass(exc, symbol.SymbolError).should.be.true
 
     @staticmethod
     def test_functionality():
