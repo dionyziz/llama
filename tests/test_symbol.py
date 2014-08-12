@@ -23,24 +23,37 @@ class TestSymbolTableAPI(unittest.TestCase):
         issubclass(exc, symbol.SymbolError).should.be.true
 
     def test_functionality(self):
+
+        # A couple of NameNodes
         expr = ast.GenidExpression("foo")
         expr.lineno, expr.lexpos = 1, 2
         param = ast.Param("foo")
         param.lineno, param.lexpos = 3, 4
 
         table = symbol.SymbolTable()
-        scope1 = table.open_scope()
 
+        # Open a scope and define "foo".
+        scope1 = table.open_scope()
         error1 = symbol.SymbolError
         table.insert_symbol.when.called_with(expr).shouldnt.throw(error1)
 
-        table.lookup_symbol(expr).should.be(expr)
+        # Query whether a "foo" is defined in current scope.
+        table.find_symbol_in_current_scope(expr).should.be(expr)
+        table.find_symbol_in_current_scope(param).should.be(expr)
+        table.find_symbol_in_current_scope(ast.Param("bar")).should.be(None)
 
-        # Counter-intuitive, but this is what is needed.
-        table.lookup_symbol(param).should.be(expr)
+        # Find the live definition of a "foo"
+        table.find_live_def(expr).should.be(expr)
+        table.find_live_def(param).should.be(expr)
+        table.find_live_def(ast.Param("bar")).should.be(None)
 
-        table.lookup_symbol(ast.Param("bar")).should.be(None)
+        # Check for scope effectiveness.
+        scope2a = table.open_scope()
+        table.find_symbol_in_current_scope(expr).should.be(None)
+        table.find_live_def(expr).should.be(expr)
+        table.close_scope()
 
+        # Reject inserting another "foo" in same scope
         with self.assertRaises(symbol.RedefIdentifierError) as context:
             table.insert_symbol(param)
 
@@ -48,17 +61,25 @@ class TestSymbolTableAPI(unittest.TestCase):
         exc.should.have.property("node").being(param)
         exc.should.have.property("prev").being(expr)
 
-        scope2 = table.open_scope()
+        # Open a new scope; define a new "foo"
+        scope2b = table.open_scope()
         table.insert_symbol.when.called_with(param).shouldnt.throw(error1)
 
-        table.lookup_symbol(param).should.equal(param)
-        table.lookup_symbol(expr).should.equal(param)
+        # Query the newly defined "foo"
+        table.find_symbol_in_current_scope(expr).should.be(param)
+        table.find_symbol_in_current_scope(param).should.be(param)
 
-        scope3 = table.open_scope()
-        table.lookup_symbol(expr, lookup_all=True).should.equal(param)
-        scope2.visible = False
-        table.lookup_symbol(param, lookup_all=True).should.equal(expr)
+        # Check for proper shadowing
+        table.find_live_def(expr).should.be(param)
+        table.find_live_def(param).should.be(param)
 
+        # Check visibility honouring/ignoring.
+        scope2b.visible = False
+        table.find_live_def(param).should.be(expr)
+        table.find_symbol_in_current_scope(param).should.be(param)
+        scope2b.visible = True
+
+        # Check for gracefull shutdown.
         table.close_scope()
         table.close_scope()
         table.close_scope()
