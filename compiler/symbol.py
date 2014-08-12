@@ -38,14 +38,27 @@ class Scope:
     A scope of the symbol table. Contains a list of entries,
     knows its nesting level and can be optionally hidden from lookup.
     """
-    entries = []
-    visible = True
-    nesting = None
 
     def __init__(self, entries, visible, nesting):
         """Make a new scope."""
+
+        # List of names defined in the scope.
+        # Mainly used for clean-up upon closing the scope.
         self.entries = entries
+
+        # If the scope is not 'visible' then its entries should be hidden
+        # from name lookup. In Llama, scopes are by default hidden upon
+        # their creation. A name defined in a hidden scope cannot be used
+        # until after the scope is made visible. This allows proper name
+        # shadowing: the shadowed name's value can be correctly referenced
+        # when initializing the shadowing names.
+        # Exceptions: Some scopes are visible from the moment of their
+        # creation, as for example those introduced by a 'let rec'.
+        # This is necessary for implementing recursive definitions.
         self.visible = visible
+
+        # Nesting level within the SymbolTable.
+        # TODO: Should this be a read-only attribute?
         self.nesting = nesting
 
 
