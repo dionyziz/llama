@@ -160,7 +160,7 @@ class SymbolTable:
         assert self.cur_scope, 'No scope to search.'
         try:
             entry = self._hash_table[ename][-1]
-        except (KeyError, IndexError):
+        except IndexError:
             # NOTE: Using defaultdict means KeyError never happens.
             return None
 
