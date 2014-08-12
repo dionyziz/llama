@@ -22,10 +22,11 @@ class TestSymbolTableAPI(unittest.TestCase):
         exc = symbol.RedefIdentifierError
         issubclass(exc, symbol.SymbolError).should.be.true
 
-    @staticmethod
-    def test_functionality():
+    def test_functionality(self):
         expr = ast.GenidExpression("foo")
+        expr.lineno, expr.lexpos = 1, 2
         param = ast.Param("foo")
+        param.lineno, param.lexpos = 3, 4
 
         table = symbol.SymbolTable()
         scope1 = table.open_scope()
@@ -40,8 +41,12 @@ class TestSymbolTableAPI(unittest.TestCase):
 
         table.lookup_symbol(ast.Param("bar")).should.be(None)
 
-        error2 = symbol.RedefIdentifierError
-        table.insert_symbol.when.called_with(param).should.throw(error2)
+        with self.assertRaises(symbol.RedefIdentifierError) as context:
+            table.insert_symbol(param)
+
+        exc = context.exception
+        exc.should.have.property("node").being(param)
+        exc.should.have.property("prev").being(expr)
 
         scope2 = table.open_scope()
         table.insert_symbol.when.called_with(param).shouldnt.throw(error1)
