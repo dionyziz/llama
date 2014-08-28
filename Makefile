@@ -10,7 +10,7 @@ TESTPATH=./tests/
 all: clean prepare test
 
 beauty:
-	pep8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
+	flake8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
 
 test: unittest functionaltest
 
