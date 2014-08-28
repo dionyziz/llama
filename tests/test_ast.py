@@ -1,7 +1,7 @@
 import itertools
 import unittest
 
-from compiler import ast, error, parse
+from compiler import ast, parse
 
 
 class TestAST(unittest.TestCase):
