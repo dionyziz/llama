@@ -40,6 +40,7 @@ class TestParserAPI(unittest.TestCase):
         )
         p1.should.have.property("logger").being.equal(logger)
 
+
 class TestParserRules(unittest.TestCase):
     """Test the Parser's coverage of Llama grammar."""
 
@@ -220,7 +221,11 @@ class TestParserRules(unittest.TestCase):
                 "i", self.one, self.two, self.unit
             )
         )
-        parse.quiet_parse("for i = 2 downto 1 do () done", "expr").should.equal(
+
+        parse.quiet_parse(
+            "for i = 2 downto 1 do () done",
+            "expr"
+        ).should.equal(
             ast.ForExpression(
                 "i", self.two, self.one, self.unit, True
             )
@@ -233,7 +238,9 @@ class TestParserRules(unittest.TestCase):
         )
         parse.quiet_parse("(true)", "pattern").should.equal(self.true)
 
-        parse.quiet_parse("foo", "pattern").should.equal(ast.GenidPattern("foo"))
+        parse.quiet_parse("foo", "pattern").should.equal(
+            ast.GenidPattern("foo")
+        )
         parse.quiet_parse("true", "pattern").should.equal(self.true)
         parse.quiet_parse("false", "pattern").should.equal(self.false)
         parse.quiet_parse("'c'", "pattern").should.equal(
@@ -377,7 +384,9 @@ class TestParserRules(unittest.TestCase):
         parse.quiet_parse("(1)", "expr").should.equal(self.one)
 
     def test_conid_expr(self):
-        parse.quiet_parse("Red", "expr").should.equal(ast.ConidExpression("Red"))
+        parse.quiet_parse("Red", "expr").should.equal(
+            ast.ConidExpression("Red")
+        )
 
     def test_genid_expr(self):
         parse.quiet_parse("f", "expr").should.equal(ast.GenidExpression("f"))
@@ -385,10 +394,9 @@ class TestParserRules(unittest.TestCase):
     def test_constr_pipe_seq(self):
         self._assert_parse_fails("", "constr_pipe_seq")
 
-        parse.quiet_parse("Red | Green | Blue", "constr_pipe_seq").should.equal(
-            [ast.Constructor("Red"),
-             ast.Constructor("Green"),
-             ast.Constructor("Blue")]
+        parse.quiet_parse("Black | White", "constr_pipe_seq").should.equal(
+            [ast.Constructor("Black"),
+             ast.Constructor("White")]
         )
 
     def test_tdef(self):
