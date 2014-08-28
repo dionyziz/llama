@@ -7,7 +7,7 @@ TESTPATH=./tests
 
 .PHONY: check clean cleanaux functionaltest prepare test unittest
 
-all: clean prepare test
+all: clean prepare check test
 
 check:
 	flake8 --ignore=E221 ./compiler/lex.py
