@@ -10,7 +10,10 @@ TESTPATH=./tests/
 all: clean prepare test
 
 beauty:
-	flake8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
+	flake8 --ignore=E221 ./compiler/lex.py
+	flake8 --ignore=E501 ./compiler/parse.py
+	flake8 --exclude=lex.py,parse.py $(SOURCEFILES)
+	flake8 --exclude=__init__.py $(TESTPATH)/*.py
 
 test: unittest functionaltest
 
