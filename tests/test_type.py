@@ -62,6 +62,7 @@ class TestBase(unittest.TestCase, parser_db.ParserDB):
         node.should.have.property("lexpos")
         node.lexpos.shouldnt.be(None)
 
+
 class TestTable(TestBase):
     """Test the Table's processing of type definitions."""
 
@@ -84,7 +85,6 @@ class TestTable(TestBase):
         for case in right_testcases:
             tree = self._parse(case, "typedef")
             proc.when.called_with(tree).shouldnt.throw(type.BadTypeDefError)
-
 
     def test_type_process_wrong(self):
         wrong_testcases = (
