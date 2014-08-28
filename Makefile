@@ -5,15 +5,16 @@ SOURCEFILES=main.py ./compiler/*.py
 BINPATH=./bin
 TESTPATH=./tests/
 
-.PHONY: beauty clean cleanaux functionaltest prepare static test unittest
+.PHONY: check clean cleanaux functionaltest prepare test unittest
 
 all: clean prepare test
 
-beauty:
+check:
 	flake8 --ignore=E221 ./compiler/lex.py
 	flake8 --ignore=E501 ./compiler/parse.py
 	flake8 --exclude=lex.py,parse.py $(SOURCEFILES)
 	flake8 --exclude=__init__.py $(TESTPATH)/*.py
+	pylint -E $(SOURCEFILES)
 
 test: unittest functionaltest
 
@@ -22,9 +23,6 @@ unittest: $(BINPATH)/utest.sh
 
 functionaltest: $(BINPATH)/ftest.sh
 	$(BINPATH)/ftest.sh
-
-static:
-	pylint -E $(SOURCEFILES)
 
 prepare:
 	$(PYTHON) main.py $(PREPARE_FLAGS)
