@@ -33,7 +33,7 @@ class TestLexerAPI(unittest.TestCase):
 
     @staticmethod
     def test_init():
-        lexer1 = lex.Lexer()
+        lex.Lexer()
 
         logger = error.LoggerMock()
         lexer2 = lex.Lexer(
@@ -64,13 +64,13 @@ class TestLexerAPI(unittest.TestCase):
         lexer = lex.Lexer()
         lexer.token.when.called.should.throw(Exception)
         lexer.input("foo")
-        t = lexer.token()
+        lexer.token()
 
     @staticmethod
     def test_iterator():
         lexer = lex.Lexer()
         lexer.input("foo")
-        i = iter(lexer)
+        iter(lexer)
         next(lexer)
 
     @staticmethod

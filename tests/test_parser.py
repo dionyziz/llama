@@ -433,7 +433,7 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         start will fail.
         """
         p = parse.Parser(logger=error.LoggerMock(), start=start)
-        _ = p.parse(expr)
+        p.parse(expr)
         p.logger.success.should.be.false
 
     def test_precedence_new_bang(self):
