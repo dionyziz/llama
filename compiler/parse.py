@@ -393,10 +393,10 @@ class Parser:
 
     def p_simple_pattern(self, p):
         """simple_pattern : LPAREN pattern RPAREN
-                          | bconst_simple_pattern
-                          | cconst_simple_pattern
+                          | bconst_simple_expr
+                          | cconst_simple_expr
                           | conid_simple_pattern
-                          | fconst_simple_pattern
+                          | fconst_simple_expr
                           | iconst_simple_expr
                           | genid_simple_pattern
                           | mfconst_simple_pattern
@@ -413,7 +413,7 @@ class Parser:
         """conid_simple_pattern : CONID"""
         p[0] = ast.Pattern(p[1])
         _track(p)
-    
+
     def p_genid_simple_pattern(self, p):
         """genid_simple_pattern : GENID"""
         p[0] = ast.GenidPattern(p[1])
