@@ -3,27 +3,27 @@ PREPARE_FLAGS=--prepare -pd
 OPT=-OO
 SOURCEFILES=main.py ./compiler/*.py
 BINPATH=./bin
-TESTPATH=./tests/
+TESTPATH=./tests
 
-.PHONY: beauty clean cleanaux functionaltest prepare static test unittest
+.PHONY: check clean cleanaux functionaltest prepare test unittest
 
-all: test
+all: clean prepare check test
 
-beauty:
-	pep8 --ignore=E221 $(SOURCEFILES) $(TESTPATH)
+check:
+	flake8 --ignore=E221 ./compiler/lex.py
+	flake8 --ignore=E501 ./compiler/parse.py
+	flake8 --exclude=lex.py,parse.py $(SOURCEFILES)
+	flake8 --exclude=__init__.py $(TESTPATH)/*.py
+	pylint -E --ignore=test_lexer.py $(SOURCEFILES) $(TESTPATH)
+	pylint -E -d E1101 $(TESTPATH)/test_lexer.py
 
-test:
-	make -B unittest
-	make -B functionaltest
+test: unittest functionaltest
 
-unittest: cleanmain prepare $(BINPATH)/utest.sh
+unittest: $(BINPATH)/utest.sh
 	$(BINPATH)/utest.sh
 
-functionaltest: cleanmain prepare $(BINPATH)/ftest.sh
+functionaltest: $(BINPATH)/ftest.sh
 	$(BINPATH)/ftest.sh
-
-static:
-	pylint -E $(SOURCEFILES)
 
 prepare:
 	$(PYTHON) main.py $(PREPARE_FLAGS)
