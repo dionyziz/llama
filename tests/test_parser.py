@@ -223,8 +223,7 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         )
 
     def test_simple_pattern_seq(self):
-        self._parse("", "simple_pattern_seq").should.equal(None)
-
+        self._assert_parse_fails("", "simple_pattern_seq")
         red, blue = ast.Pattern("Red"), ast.Pattern("Blue")
         self._parse("Red", "simple_pattern_seq").should.equal([red])
         self._parse("Red Blue", "simple_pattern_seq").should.equal([red, blue])
