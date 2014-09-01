@@ -151,7 +151,7 @@ def main():
     data = read_program(OPTS["input"])
 
     # Lex, parse and construct the AST.
-    ast = parser.parse(data=data, lexer=lexer)
+    parser.parse(data=data, lexer=lexer)
 
     # On lexing/parsing error, abort further compilation.
     if not (lexer.logger.success or parser.logger.success):

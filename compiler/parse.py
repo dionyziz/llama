@@ -376,23 +376,26 @@ class Parser:
         _track(p)
 
     def p_pattern(self, p):
-        """pattern : CONID simple_pattern_list
+        """pattern : complex_pattern
                    | simple_pattern"""
-        if len(p) == 3:
-            p[0] = ast.Pattern(p[1], p[2])
-        else:
-            p[0] = p[1]
+        p[0] = p[1]
         _track(p)
 
-    def p_simple_pattern_list(self, p):
-        """simple_pattern_list : simple_pattern simple_pattern_list
-                               | empty"""
-        self._expand_list(p)
+    def p_complex_pattern(self, p):
+        """complex_pattern : CONID simple_pattern_seq"""
+        p[0] = ast.Pattern(p[1], p[2])
+        _track(p)
+
+    def p_simple_pattern_seq(self, p):
+        """simple_pattern_seq : simple_pattern simple_pattern_seq
+                              | simple_pattern"""
+        self._expand_seq(p, list_idx=2)
 
     def p_simple_pattern(self, p):
         """simple_pattern : LPAREN pattern RPAREN
                           | bconst_simple_expr
                           | cconst_simple_expr
+                          | conid_simple_pattern
                           | fconst_simple_expr
                           | iconst_simple_expr
                           | genid_simple_pattern
@@ -404,6 +407,11 @@ class Parser:
             p[0] = p[2]
         else:
             p[0] = p[1]
+        _track(p)
+
+    def p_conid_simple_pattern(self, p):
+        """conid_simple_pattern : CONID"""
+        p[0] = ast.Pattern(p[1])
         _track(p)
 
     def p_genid_simple_pattern(self, p):

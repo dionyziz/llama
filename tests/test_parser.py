@@ -222,15 +222,11 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
             ast.ConstExpression(ast.Int(), -42)
         )
 
-    def test_simple_pattern_list(self):
-        self._parse("", "simple_pattern_list").should.equal([])
-
-    @unittest.skip("Enable me after bug #33 is fixed.")
-    def test_regression_pattern_constructor_without_parens(self):
-        pattern = ast.Pattern("Red", [])
-        self._parse("Red Red", "simple_pattern_list").should.equal(
-            [pattern, pattern]
-        )
+    def test_simple_pattern_seq(self):
+        self._assert_parse_fails("", "simple_pattern_seq")
+        red, blue = ast.Pattern("Red"), ast.Pattern("Blue")
+        self._parse("Red", "simple_pattern_seq").should.equal([red])
+        self._parse("Red Blue", "simple_pattern_seq").should.equal([red, blue])
 
     def test_match_expr(self):
         self._parse(
@@ -433,7 +429,7 @@ class TestParser(unittest.TestCase, parser_db.ParserDB):
         start will fail.
         """
         p = parse.Parser(logger=error.LoggerMock(), start=start)
-        _ = p.parse(expr)
+        p.parse(expr)
         p.logger.success.should.be.false
 
     def test_precedence_new_bang(self):
