@@ -33,7 +33,7 @@ class TestSymbolTableAPI(unittest.TestCase):
         table = symbol.SymbolTable()
 
         # Open a scope and define "foo".
-        scope1 = table.open_scope()
+        table.open_scope()
         error1 = symbol.SymbolError
         table.insert_symbol.when.called_with(expr).shouldnt.throw(error1)
 
@@ -48,7 +48,7 @@ class TestSymbolTableAPI(unittest.TestCase):
         table.find_live_def(ast.Param("bar")).should.be(None)
 
         # Check for scope effectiveness.
-        scope2a = table.open_scope()
+        table.open_scope()
         table.find_symbol_in_current_scope(expr).should.be(None)
         table.find_live_def(expr).should.be(expr)
         table.close_scope()
