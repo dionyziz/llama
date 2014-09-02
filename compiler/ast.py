@@ -74,7 +74,8 @@ class Def(Node):
 
 class NameNode(Node):
     """
-    A node with a user-defined name.
+    A node with a user-defined name that possibly requires
+    scope-aware disambiguation or checking.
     Provides basic hashing functionality.
     """
     name = None
@@ -119,7 +120,7 @@ class LetDef(ListNode):
         self.isRec = isRec
 
 
-class FunctionDef(Def):
+class FunctionDef(Def, NameNode):
     def __init__(self, name, params, body, type=None):
         self.name = name
         self.params = params
@@ -127,7 +128,7 @@ class FunctionDef(Def):
         self.type = type
 
 
-class Param(DataNode):
+class Param(DataNode, NameNode):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
@@ -146,13 +147,13 @@ class UnaryExpression(Expression):
         self.operand = operand
 
 
-class ConstructorCallExpression(Expression, ListNode):
+class ConstructorCallExpression(Expression, ListNode, NameNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
 
 
-class ArrayExpression(Expression, ListNode):
+class ArrayExpression(Expression, ListNode, NameNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
@@ -164,12 +165,12 @@ class ConstExpression(Expression):
         self.value = value
 
 
-class ConidExpression(Expression):
+class ConidExpression(Expression, NameNode):
     def __init__(self, name):
         self.name = name
 
 
-class GenidExpression(Expression):
+class GenidExpression(Expression, NameNode):
     def __init__(self, name):
         self.name = name
 
@@ -179,7 +180,7 @@ class DeleteExpression(Expression):
         self.expr = expr
 
 
-class DimExpression(Expression):
+class DimExpression(Expression, NameNode):
     def __init__(self, name, dimension=1):
         self.name = name
         self.dimension = dimension
@@ -194,7 +195,7 @@ class ForExpression(Expression):
         self.isDown = isDown
 
 
-class FunctionCallExpression(Expression, ListNode):
+class FunctionCallExpression(Expression, ListNode, NameNode):
     def __init__(self, name, list):
         self.name = name
         self.list = list
@@ -225,13 +226,13 @@ class Clause(Node):
         self.expr = expr
 
 
-class Pattern(ListNode):
+class Pattern(ListNode, NameNode):
     def __init__(self, name, list=None):
         self.name = name
         self.list = list or []
 
 
-class GenidPattern(Node):
+class GenidPattern(NameNode):
     def __init__(self, name):
         self.name = name
 
@@ -247,13 +248,13 @@ class WhileExpression(Expression):
         self.body = body
 
 
-class VariableDef(Def):
+class VariableDef(Def, NameNode):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
 
 
-class ArrayVariableDef(VariableDef):
+class ArrayVariableDef(VariableDef, NameNode):
     def __init__(self, name, dimensions, type=None):
         self.name = name
         self.dimensions = dimensions

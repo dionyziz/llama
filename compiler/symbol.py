@@ -1,3 +1,4 @@
+"""
 # ----------------------------------------------------------------------
 # symbol.py
 #
@@ -7,22 +8,29 @@
 # Authors: Nick Korasidis <Renelvon@gmail.com>
 #          Dimitris Koutsoukos <dim.kou.shmmy@gmail.com>
 # ----------------------------------------------------------------------
+"""
 
 from collections import defaultdict
 
+from compiler import ast
 
-class Entry:
-    """An entry of the symbol table. It knows which scope it's in."""
-    identifier = None
-    scope = None
 
-    lexpos = None
-    lineno = None
+class SymbolError(Exception):
+    """
+    Exception thrown on symbol table error.
+    Carries the offending ast node(s).
+    This class is only meant as an interface.
+    Only specific sublcasses should be instantiated.
+    """
+    pass
 
-    def __init__(self, identifier, scope):
-        self.identifier = identifier
-        self.scope = scope
-        # TODO: Initialize lineno and lexpos
+
+class RedefIdentifierError(SymbolError):
+    """Exception thrown on redefining identifier in same scope."""
+
+    def __init__(self, node, prev):
+        self.node = node
+        self.prev = prev
 
 
 class Scope:
@@ -30,23 +38,49 @@ class Scope:
     A scope of the symbol table. Contains a list of entries,
     knows its nesting level and can be optionally hidden from lookup.
     """
-    entries = []
-    hidden = False
-    nesting = None
 
-    def __init__(self, entries, hidden, nesting):
+    def __init__(self, entries, visible, nesting):
         """Make a new scope."""
-        self.entries = entries
-        self.hidden = hidden
-        self.nesting = nesting
 
-    def hide_scope(self, hidden=True):
-        """Hide visibility of scope."""
-        self.hidden = hidden
+        # List of names defined in the scope.
+        # Mainly used for clean-up upon closing the scope.
+        self.entries = entries
+
+        # If the scope is not 'visible' then its entries should be hidden
+        # from name lookup. In Llama, scopes are by default hidden upon
+        # their creation. A name defined in a hidden scope cannot be used
+        # until after the scope is made visible. This allows proper name
+        # shadowing: the shadowed name's value can be correctly referenced
+        # when initializing the shadowing names.
+        # Exceptions: Some scopes are visible from the moment of their
+        # creation, as for example those introduced by a 'let rec'.
+        # This is necessary for implementing recursive definitions.
+        self.visible = visible
+
+        # Nesting level within the SymbolTable.
+        # TODO: Should this be a read-only attribute?
+        self.nesting = nesting
 
 
 class SymbolTable:
     """A fully Pythonic symbol table for Llama."""
+
+    class _Entry:
+        """An entry of the symbol table."""
+        # Reference to the ast node that the entry represents.
+        # The node should contain the lineno and lexpos attributes.
+        node = None
+
+        # Reference to the symbol table scope containing the entry.
+        # Used for fast lookup and sanity-checking.
+        scope = None
+
+        # Entry has an implicit identifier: node.name
+
+        def __init__(self, node, scope):
+            """Create a new symbol table entry from a NameNode."""
+            self.node = node
+            self.scope = scope
 
     _scopes = []
     nesting = 0       # Inv.: nesting == len(scopes)
@@ -54,25 +88,25 @@ class SymbolTable:
 
     # Each hashtable entry is a list containing symbols with
     # the same identifier, appearing at increasing scope depth.
-    hash_table = defaultdict(list)
+    _hash_table = defaultdict(list)
 
-    def __init__(self, logger):
+    def __init__(self):
         """Make a new symbol table and insert the library namespace."""
-        self._logger = logger
         self._insert_library_symbols()
 
     def _insert_library_symbols(self):
         """Open a new scope populated with the library namespace."""
-        lib_namespace = []  # TODO: Dump library namespace here
+        # TODO: Dump library namespace here as a tuple of virtual AST nodes.
+        lib_namespace = tuple()
 
         lib_scope = Scope(
             entries=[],
-            hidden=False,
+            visible=True,
             nesting=self.nesting
         )
 
-        for identifier in lib_namespace:
-            entry = Entry(identifier, lib_scope)
+        for node in lib_namespace:
+            entry = self._Entry(node, lib_scope)
             lib_scope.entries.append(entry)
 
         self._push_scope(lib_scope)
@@ -98,7 +132,7 @@ class SymbolTable:
         """Open a new scope in the symbol table."""
         new_scope = Scope(
             entries=[],
-            hidden=False,
+            visible=True,
             nesting=self.nesting + 1
         )
 
@@ -109,9 +143,9 @@ class SymbolTable:
         """Close current scope in symbol table. Cleanup scope entries."""
         old_scope = self._pop_scope()
         for entry in old_scope.entries:
-            eid = entry.identifier
-            assert self.hash_table[eid], 'Identifier %s not found' % eid
-            self.hash_table[entry.identifier].pop()
+            ename = entry.node.name
+            assert self._hash_table[ename], 'Identifier %s not found' % ename
+            self._hash_table[ename].pop()
         return old_scope
 
 #     def insert_scope(self, scope):
@@ -119,64 +153,54 @@ class SymbolTable:
 #         assert self.cur_scope, 'No scope to merge into.'
 #         for entry in scope.entries:
 #             entry.scope = self.cur_scope
-#             self.hash_table[entry.identifier].append(entry)
+#             self._hash_table[entry.node.name].append(entry)
 #             self.cur_scope.entries.append(entry)
 #
 
-    def lookup_symbol(self, identifier, lookup_all=False, guard=False):
+    def find_live_def(self, node):
         """
-        Lookup 'identifier' in current scope.
-        If 'lookup_all' is True, perform lookup in all scopes.
-        If 'guard' is True, alert if 'identifier' is absent from
-        checked scope(s).
+        Find the definition governing the given use of 'node',
+        starting from the current scope and going upwards, honouring
+        scope visibilities.
+        If lookup succeeds, return the stored node, None otherwise.
         """
-        if lookup_all:
-            for entry in reversed(self.hash_table[identifier]):
-                if not entry.scope.hidden:
-                    return entry
-        else:
-            entry = self._find_identifier_in_current_scope(identifier)
-            if entry is not None:
-                return entry
-
-        if guard:
-            self._logger.error(
-                # FIXME: Meaningful line?
-                "Unknown identifier: %s" % identifier
-            )
+        ename = node.name
+        for entry in reversed(self._hash_table[ename]):
+            if entry.scope.visible:
+                return entry.node
         return None
 
-    def _find_identifier_in_current_scope(self, identifier):
-        assert self.cur_scope, 'No scope to check for identifier.'
+    def find_symbol_in_current_scope(self, node):
+        """
+        Lookup name of 'node' in current scope, ignoring visibility.
+        If lookup succeeds, return the stored node, None otherwise.
+        """
+        assert self.cur_scope, 'No scope to search.'
 
-        entry = self.hash_table[identifier][-1]
-
-        if entry.scope.nesting != self.nesting:
+        try:
+            entry = self._hash_table[node.name][-1]
+        except IndexError:
+            # NOTE: Using defaultdict means KeyError never happens.
             return None
 
-        return entry
+        enest = entry.scope.nesting
+        if enest >= self.nesting:
+            assert enest == self.nesting, "Entry nested deeper than it should."
+            return entry.node
+        return None
 
-    def insert_symbol(self, identifier, guard=False):
+    def insert_symbol(self, node):
         """
-        Insert a new symbol in the current scope.
-        If 'guard' is True, alert if an alias is already present.
+        Insert a new NameNode in the current scope.
+        Alert if an alias is already present in same scope.
         """
         assert self.cur_scope, 'No scope to insert into.'
+        assert isinstance(node, ast.NameNode), 'Node is not a NameNode.'
 
-        if guard:
-            entry = self._find_identifier_in_current_scope(identifier)
+        prev = self.find_symbol_in_current_scope(node)
+        if prev is not None:
+            raise RedefIdentifierError(node, prev)
 
-            if entry is not None:
-                self._logger.error(
-                    # FIXME: Meaningful line?
-                    "Duplicate identifier: %s" % identifier
-                    # TODO: Show line of previous declaration
-                )
-
-                return entry
-
-        new_entry = Entry(identifier=identifier, scope=self.cur_scope)
-        self.hash_table[identifier].append(new_entry)
+        new_entry = self._Entry(node, self.cur_scope)
+        self._hash_table[node.name].append(new_entry)
         self.cur_scope.entries.append(new_entry)
-
-        return new_entry
