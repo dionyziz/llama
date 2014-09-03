@@ -29,19 +29,19 @@ class TestTypeAPI(unittest.TestCase):
 
     def test_redef_builtin_type_error(self):
         exc = type.RedefBuiltinTypeError
-        self.assertTrue(issubclass(exc, type.BadTypeDefError))
+        self.assertTrue(issubclass(exc, type.InvalidTypeError))
 
     def test_redef_constructor_error(self):
         exc = type.RedefConstructorError
-        self.assertTrue(issubclass(exc, type.BadTypeDefError))
+        self.assertTrue(issubclass(exc, type.InvalidTypeError))
 
     def test_redef_user_type_error(self):
         exc = type.RedefUserTypeError
-        self.assertTrue(issubclass(exc, type.BadTypeDefError))
+        self.assertTrue(issubclass(exc, type.InvalidTypeError))
 
     def test_undef_type_error(self):
         exc = type.UndefTypeError
-        self.assertTrue(issubclass(exc, type.BadTypeDefError))
+        self.assertTrue(issubclass(exc, type.InvalidTypeError))
 
     def test_table_init(self):
         type.Table()
@@ -76,7 +76,7 @@ class TestTable(TestBase):
         proc = table.process
         for case in right_testcases:
             tree = parse.quiet_parse(case, "typedef")
-            proc.when.called_with(tree).shouldnt.throw(type.BadTypeDefError)
+            proc.when.called_with(tree).shouldnt.throw(type.InvalidTypeError)
 
     def test_type_process_wrong(self):
         wrong_testcases = (
