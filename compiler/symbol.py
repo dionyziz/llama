@@ -62,7 +62,7 @@ class Scope:
         self.nesting = nesting
 
 
-class SymbolTable:
+class Table:
     """A fully Pythonic symbol table for Llama."""
 
     class _Entry:

@@ -43,8 +43,7 @@ class TestTypeAPI(unittest.TestCase):
         exc = type.UndefTypeError
         self.assertTrue(issubclass(exc, type.BadTypeDefError))
 
-    @staticmethod
-    def test_table_init():
+    def test_table_init(self):
         type.Table()
 
 
