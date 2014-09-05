@@ -286,16 +286,15 @@ class TestParserRules(unittest.TestCase):
         )
 
     def test_clause_seq(self):
+        self._assert_parse_fails("", "clause_seq")
+
         clause1 = ast.Clause(self.one, self.two)
         clause2 = ast.Clause(self.true, self.false)
-
         parse.quiet_parse(
             "1 -> 2 | true -> false", "clause_seq"
         ).should.equal(
             [clause1, clause2]
         )
-
-        self._assert_parse_fails("", "clause_seq")
 
     def test_delete(self):
         parse.quiet_parse("delete p", "expr").should.equal(
