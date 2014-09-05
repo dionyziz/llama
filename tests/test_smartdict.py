@@ -10,13 +10,16 @@ class TestSmartdict(unittest.TestCase):
         t = ast.User("foo")
         t.lineno, t.lexpos = 1, 1
         sd[t] = "foo"
-        sd[t].should.be.equal("foo")
+        sd[t].should.equal("foo")
 
         tt = ast.User("foo")
         tt.lineno, tt.lexpos = 0, 0
         ttt = sd.getKey(tt)
-        ttt.lineno.should.be.equal(1)
-        ttt.lexpos.should.be.equal(1)
+        ttt.lineno.should.equal(1)
+        ttt.lexpos.should.equal(1)
+
+        sd2 = smartdict.Smartdict()
+        sd2.getKey(t).should.be(None)
 
         del sd[t]
         sd.get(t).should.be(None)
