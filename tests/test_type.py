@@ -1,10 +1,9 @@
 import unittest
 
-from compiler import ast, type
-from tests import parser_db
+from compiler import ast, parse, type
 
 
-class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
+class TestTypeAPI(unittest.TestCase):
     """Test the API of the type module."""
 
     @staticmethod
@@ -55,7 +54,7 @@ class TestTypeAPI(unittest.TestCase, parser_db.ParserDB):
         type.Table()
 
 
-class TestBase(unittest.TestCase, parser_db.ParserDB):
+class TestBase(unittest.TestCase):
     def _assert_node_lineinfo(self, node):
         node.should.have.property("lineno")
         node.lineno.shouldnt.be(None)
@@ -83,7 +82,7 @@ class TestTable(TestBase):
         table = type.Table()
         proc = table.process
         for case in right_testcases:
-            tree = self._parse(case, "typedef")
+            tree = parse.quiet_parse(case, "typedef")
             proc.when.called_with(tree).shouldnt.throw(type.BadTypeDefError)
 
     def test_type_process_wrong(self):
@@ -132,7 +131,7 @@ class TestTable(TestBase):
         for cases, error, exc_node_count in wrong_testcases:
             for case in cases:
                 table = type.Table()
-                tree = self._parse(case)
+                tree = parse.quiet_parse(case)
                 with self.assertRaises(error) as context:
                     for typeDefList in tree:
                         table.process(typeDefList)
@@ -160,7 +159,7 @@ class TestValidating(TestBase):
         )
 
         for case in right_testcases:
-            tree = self._parse(case, 'type')
+            tree = parse.quiet_parse(case, "type")
             type.is_array(tree).should.be.true
 
         wrong_testcases = (
@@ -170,7 +169,7 @@ class TestValidating(TestBase):
         )
 
         for case in wrong_testcases:
-            tree = self._parse(case, 'type')
+            tree = parse.quiet_parse(case, "type")
             type.is_array(tree).should.be.false
 
     def test_validate(self):
@@ -205,7 +204,7 @@ class TestValidating(TestBase):
         )
 
         for case in right_testcases:
-            tree = self._parse(case, 'type')
+            tree = parse.quiet_parse(case, "type")
             proc.when.called_with(tree).shouldnt.throw(error)
 
         wrong_testcases = (
@@ -237,7 +236,7 @@ class TestValidating(TestBase):
 
         for cases, error in wrong_testcases:
             for case in cases:
-                tree = self._parse(case, "type")
+                tree = parse.quiet_parse(case, "type")
                 with self.assertRaises(error) as context:
                     proc(tree)
                 exc = context.exception
