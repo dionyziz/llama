@@ -24,3 +24,4 @@ class TestSmartdict(unittest.TestCase):
         del sd[t]
         sd.get(t).should.be(None)
         sd.getKey(t).should.be(None)
+        sd.getKey(t, default=42).should.equal(42)
