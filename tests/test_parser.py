@@ -2,6 +2,8 @@ import unittest
 
 from compiler import ast, error, lex, parse
 
+# pylint: disable=no-member
+
 
 class TestModuleAPI(unittest.TestCase):
     """Test the API of the parse module."""

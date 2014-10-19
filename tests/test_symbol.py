@@ -2,6 +2,8 @@ import unittest
 
 from compiler import ast, symbol
 
+# pylint: disable=no-member
+
 
 class TestSymbolTableAPI(unittest.TestCase):
     """Test the API of the SymbolTable class."""

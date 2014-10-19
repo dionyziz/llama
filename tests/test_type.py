@@ -2,6 +2,8 @@ import unittest
 
 from compiler import ast, parse, type
 
+# pylint: disable=no-member
+
 
 class TestTypeAPI(unittest.TestCase):
     """Test the API of the type module."""
