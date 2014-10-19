@@ -64,7 +64,7 @@ class TestParserRules(unittest.TestCase):
         """
         p = parse.Parser(logger=error.LoggerMock(), start=start)
         p.parse(expr)
-        p.logger.success.should.be.false
+        p.logger.success.should.be.false  # pylint: disable=pointless-statement
 
     def test_empty_program(self):
         parse.quiet_parse("").should.equal(ast.Program([]))
