@@ -314,6 +314,7 @@ class _LexerFactory:
 
     # == LEXING OF TOKENS CARRYING NO VALUE ==
 
+    # pylint: disable=bad-whitespace
     # Integer operators
     t_PLUS      = r'\+'
     t_MINUS     = r'-'
