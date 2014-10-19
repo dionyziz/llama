@@ -8,48 +8,40 @@ from compiler import ast, parse, type
 class TestTypeAPI(unittest.TestCase):
     """Test the API of the type module."""
 
-    @staticmethod
-    def test_is_array():
-        type.is_array(ast.Array(ast.Int())).should.be.true
+    def test_is_array(self):
+        self.assertTrue(type.is_array(ast.Array(ast.Int())))
 
-    @staticmethod
-    def test_array_of_array_error():
+    def test_array_of_array_error(self):
         exc = type.ArrayOfArrayError
-        issubclass(exc, type.InvalidTypeError).should.be.true
+        self.assertTrue(issubclass(exc, type.InvalidTypeError))
 
-    @staticmethod
-    def test_array_return_error():
+    def test_array_return_error(self):
         exc = type.ArrayReturnError
-        issubclass(exc, type.InvalidTypeError).should.be.true
+        self.assertTrue(issubclass(exc, type.InvalidTypeError))
 
-    @staticmethod
-    def test_ref_of_array_error():
+    def test_ref_of_array_error(self):
         exc = type.RefOfArrayError
-        issubclass(exc, type.InvalidTypeError).should.be.true
+        self.assertTrue(issubclass(exc, type.InvalidTypeError))
 
     @staticmethod
     def test_validate():
         type.validate(ast.Int())
 
-    @staticmethod
-    def test_redef_builtin_type_error():
+    def test_redef_builtin_type_error(self):
         exc = type.RedefBuiltinTypeError
-        issubclass(exc, type.BadTypeDefError).should.be.true
+        self.assertTrue(issubclass(exc, type.BadTypeDefError))
 
-    @staticmethod
-    def test_redef_constructor_error():
+    def test_redef_constructor_error(self):
         exc = type.RedefConstructorError
-        issubclass(exc, type.BadTypeDefError).should.be.true
+        self.assertTrue(issubclass(exc, type.BadTypeDefError))
 
-    @staticmethod
-    def test_redef_user_type_error():
+    def test_redef_user_type_error(self):
         exc = type.RedefUserTypeError
-        issubclass(exc, type.BadTypeDefError).should.be.true
+        self.assertTrue(issubclass(exc, type.BadTypeDefError))
 
-    @staticmethod
-    def test_undef_type_error():
+    def test_undef_type_error(self):
         exc = type.UndefTypeError
-        issubclass(exc, type.BadTypeDefError).should.be.true
+        self.assertTrue(issubclass(exc, type.BadTypeDefError))
 
     @staticmethod
     def test_table_init():
@@ -152,7 +144,7 @@ class TestValidating(TestBase):
 
     def test_is_array(self):
         for typecon in ast.builtin_types_map.values():
-            type.is_array(typecon()).should.be.false
+            self.assertFalse(type.is_array(typecon()))
 
         right_testcases = (
             "array of int",
@@ -162,7 +154,7 @@ class TestValidating(TestBase):
 
         for case in right_testcases:
             tree = parse.quiet_parse(case, "type")
-            type.is_array(tree).should.be.true
+            self.assertTrue(type.is_array(tree))
 
         wrong_testcases = (
             "foo",
@@ -172,7 +164,7 @@ class TestValidating(TestBase):
 
         for case in wrong_testcases:
             tree = parse.quiet_parse(case, "type")
-            type.is_array(tree).should.be.false
+            self.assertFalse(type.is_array(tree))
 
     def test_validate(self):
         proc = type.validate
