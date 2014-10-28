@@ -19,8 +19,8 @@ check:
 
 test: unittest functionaltest
 
-unittest: $(BINPATH)/utest.sh
-	$(BINPATH)/utest.sh
+unittest:
+	nosetests --with-coverage --cover-package=compiler --cover-inclusive
 
 functionaltest: $(BINPATH)/ftest.sh
 	$(BINPATH)/ftest.sh
