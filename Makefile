@@ -33,6 +33,6 @@ cleanaux:
 	$(RM) aux*.py
 
 cleanmain:
-	$(RM) lextab.py parsetab.py parser.out
+	$(RM) lextab.py parsetab.py parser.out .coverage
 
 clean: cleanaux cleanmain
