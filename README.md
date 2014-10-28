@@ -1,6 +1,7 @@
 # llama 
 
 [![Build Status](https://travis-ci.org/dionyziz/llama.svg?branch=master)](https://travis-ci.org/dionyziz/llama)
+[![Coverage Status](https://img.shields.io/coveralls/dionyziz/llama.svg)](https://coveralls.io/r/dionyziz/llama)
 
 A llama implementation in Python.
 
