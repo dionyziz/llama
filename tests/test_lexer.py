@@ -3,6 +3,9 @@ import unittest
 
 from compiler import error, lex
 
+# pylint: disable=no-member
+# pylint: disable=pointless-statement
+
 
 class TestModuleAPI(unittest.TestCase):
     """Test the API of the lex module."""

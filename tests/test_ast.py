@@ -3,6 +3,8 @@ import unittest
 
 from compiler import ast, parse
 
+# pylint: disable=no-member
+
 
 class TestAST(unittest.TestCase):
 

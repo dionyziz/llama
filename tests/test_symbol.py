@@ -2,6 +2,8 @@ import unittest
 
 from compiler import ast, symbol
 
+# pylint: disable=no-member
+
 
 class TestSymbolTableAPI(unittest.TestCase):
     """Test the API of the SymbolTable class."""
@@ -17,10 +19,9 @@ class TestSymbolTableAPI(unittest.TestCase):
     def test_symboltable_init():
         symbol.SymbolTable()
 
-    @staticmethod
-    def test_redef_identifier_error():
+    def test_redef_identifier_error(self):
         exc = symbol.RedefIdentifierError
-        issubclass(exc, symbol.SymbolError).should.be.true
+        self.assertTrue(issubclass(exc, symbol.SymbolError))
 
     def test_functionality(self):
 
