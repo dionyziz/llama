@@ -1,5 +1,6 @@
 *.swp
 aux*.py
+.coverage
 lextab.py
 parsetab.py
 parser.out

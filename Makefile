@@ -19,8 +19,8 @@ check:
 
 test: unittest functionaltest
 
-unittest: $(BINPATH)/utest.sh
-	$(BINPATH)/utest.sh
+unittest:
+	nosetests --with-coverage --cover-package=compiler --cover-inclusive
 
 functionaltest: $(BINPATH)/ftest.sh
 	$(BINPATH)/ftest.sh
@@ -33,6 +33,6 @@ cleanaux:
 	$(RM) aux*.py
 
 cleanmain:
-	$(RM) lextab.py parsetab.py parser.out
+	$(RM) lextab.py parsetab.py parser.out .coverage
 
 clean: cleanaux cleanmain
