@@ -2,7 +2,9 @@ class Smartdict(dict):
     """A dict which can return its keys for inspection.
 
     Useful when keys contain information overlooked by equality."""
-    keydict = {}
+
+    def __init__(self):
+        self.keydict = {}
 
     def __delitem__(self, key):
         """Delete key from dictionary. Propagate as needed."""
@@ -15,5 +17,5 @@ class Smartdict(dict):
         self.keydict.__setitem__(key, key)
 
     def getKey(self, key, default=None):
-        """Return the key for inspection or None if absent."""
-        return self.keydict.get(key, None)
+        """Return the key for inspection or 'default' if absent."""
+        return self.keydict.get(key, default)
