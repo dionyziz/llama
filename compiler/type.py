@@ -13,12 +13,13 @@
 
 from compiler import ast, smartdict
 
-# == TYPE VALIDATION ==
+# == INVALID TYPE ERRORS ==
 
 
 class InvalidTypeError(Exception):
     """
-    Exception thrown on detecting an invalid type.
+    Exception thrown on detecting an invalid type or
+    a bad type declaration.
     Carries the offending ast node.
     This class is only meant as an interface.
     Only specific sublcasses should be instantiated.
@@ -109,23 +110,12 @@ def validate(t):
 # == USER-TYPE STORAGE/PROCESSING ==
 
 
-class BadTypeDefError(Exception):
-    """
-    Exception thrown on detecting a bad type declaration.
-    Carries the offfending ast node(s).
-    This class is only meant as an interface.
-    Only specific sublcasses should be instantiated.
-    """
-    def __init__(self, node):
-        self.node = node
-
-
-class RedefBuiltinTypeError(BadTypeDefError):
+class RedefBuiltinTypeError(InvalidTypeError):
     """Exception thrown on detecting redefinition of builtin type."""
     pass
 
 
-class RedefConstructorError(BadTypeDefError):
+class RedefConstructorError(InvalidTypeError):
     """Exception thrown on detecting redefinition of constructor."""
 
     def __init__(self, node, prev):
@@ -133,7 +123,7 @@ class RedefConstructorError(BadTypeDefError):
         self.prev = prev
 
 
-class RedefUserTypeError(BadTypeDefError):
+class RedefUserTypeError(InvalidTypeError):
     """Exception thrown on detecting redefinition of user type."""
 
     def __init__(self, node, prev):
@@ -141,7 +131,7 @@ class RedefUserTypeError(BadTypeDefError):
         self.prev = prev
 
 
-class UndefTypeError(BadTypeDefError):
+class UndefTypeError(InvalidTypeError):
     """Exception thrown on detecting reference to undefined type."""
     pass
 

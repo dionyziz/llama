@@ -8,6 +8,12 @@ from compiler import ast, parse
 
 class TestAST(unittest.TestCase):
 
+    def test_node_init(self):
+        self.assertRaises(
+            NotImplementedError,
+            ast.Node
+        )
+
     def test_eq(self):
         foocon = ast.Constructor("foo", [])
         ast.Constructor("foo", []).should.equal(foocon)

@@ -5,8 +5,8 @@ from compiler import ast, symbol
 # pylint: disable=no-member
 
 
-class TestSymbolTableAPI(unittest.TestCase):
-    """Test the API of the SymbolTable class."""
+class TestTableAPI(unittest.TestCase):
+    """Test the API of the Table class."""
 
     @staticmethod
     def test_scope_init():
@@ -16,8 +16,8 @@ class TestSymbolTableAPI(unittest.TestCase):
         scope.should.have.property("nesting").being(1)
 
     @staticmethod
-    def test_symboltable_init():
-        symbol.SymbolTable()
+    def test_table_init():
+        symbol.Table()
 
     def test_redef_identifier_error(self):
         exc = symbol.RedefIdentifierError
@@ -31,7 +31,7 @@ class TestSymbolTableAPI(unittest.TestCase):
         param = ast.Param("foo")
         param.lineno, param.lexpos = 3, 4
 
-        table = symbol.SymbolTable()
+        table = symbol.Table()
 
         # Open a scope and define "foo".
         table.open_scope()
